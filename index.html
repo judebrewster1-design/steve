@@ -1,18 +1,56 @@
+<!-- index.html -->
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Skibidi Steven</title>
-  <style>
-    .rainbow-text {
-      background-image: linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet);
-      background-clip: text;
-      -webkit-background-clip: text;
-      color: transparent;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fading Rainbow Word Game</title>
+    <style>
+        body {
+            background-color: #000080;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            overflow: hidden;
+        }
+        #logo {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 50px;
+            height: 50px;
+        }
+        #word {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 64px;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
-  <h1 class="rainbow-text">steven has skibbidi aura rizz no cap frfrfrfrfrfrfrfrfrfrfrfrfr67676767676767676767676767</h1>
- 
+    <img id="logo" src="steven logo.png" alt="Steven Logo">
+    <div id="word">Steven</div>
+
+    <script>
+        const wordElement = document.getElementById('word');
+        const rainbowColors = ['#FF0000', '#FFA500', '#FFFF00', '#008000', '#0000FF', '#4B0082'];
+        let colorIndex = 0;
+        let alpha = 1;
+
+        function animate() {
+            wordElement.style.color = rainbowColors[colorIndex];
+            wordElement.style.opacity = alpha;
+            alpha -= 0.01;
+            if (alpha < 0) {
+                alpha = 1;
+                colorIndex = (colorIndex + 1) % rainbowColors.length;
+            }
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
 </body>
 </html>
