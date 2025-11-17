@@ -681,7 +681,7 @@ input:checked + .toggle-slider:before {
       <div class="status-badge">
         <span id="uptimeDisplay">--:--:--</span>
       </div>
-      <img src="meryle.png" alt="Merle" class="header-merle-img">
+      <img src="/images/Merle.jpg" alt="Merle" class="header-merle-img">
     </div>
   </div>
 </header>
@@ -809,7 +809,10 @@ input:checked + .toggle-slider:before {
 </div>
 
 <script>
-const API_URL = window.location.origin;
+// ============================================================================
+// CONFIGURATION - Your Cloudflare Tunnel URL
+// ============================================================================
+const API_URL = 'https://beef-fixtures-championship-judge.trycloudflare.com';
 const VIDEO_URL = `${API_URL}/video`;
 const UPDATE_INTERVAL = 3000;
 
@@ -1008,6 +1011,7 @@ async function loadInitialSettings() {
 
 window.addEventListener('DOMContentLoaded', () => {
   console.log('🐆 Merle Cam Dashboard v2.0 Initialized');
+  console.log('Backend URL:', API_URL);
   
   initVideo();
   loadInitialSettings();
