@@ -681,7 +681,7 @@ input:checked + .toggle-slider:before {
       <div class="status-badge">
         <span id="uptimeDisplay">--:--:--</span>
       </div>
-      <img src="/images/Merle.jpg" alt="Merle" class="header-merle-img">
+      <img src="/images/photo1763341809.jpg" alt="Merle" class="header-merle-img">
     </div>
   </div>
 </header>
@@ -724,9 +724,9 @@ input:checked + .toggle-slider:before {
         <div class="stat-label">Motion detections</div>
       </div>
       <div class="stat-card">
-        <h3>👁️ Viewers</h3>
-        <div class="stat-value" id="viewerCount">--</div>
-        <div class="stat-label">Currently watching</div>
+        <h3>📡 Status</h3>
+        <div class="stat-value" id="cameraStatus">--</div>
+        <div class="stat-label">Camera state</div>
       </div>
     </div>
   </div>
@@ -810,25 +810,40 @@ input:checked + .toggle-slider:before {
 
 <script>
 // ============================================================================
-// CONFIGURATION - Your Cloudflare Tunnel URL
+// BACKEND CONFIGURATION
 // ============================================================================
 const API_URL = 'https://beef-fixtures-championship-judge.trycloudflare.com';
 const VIDEO_URL = `${API_URL}/video`;
 const UPDATE_INTERVAL = 3000;
 
 let updateInterval;
-let brightnessInterval;
+let lastFrameUpdate = Date.now();
 
+// ============================================================================
+// VIDEO FEED
+// ============================================================================
 function initVideo() {
   const video = document.getElementById('videoFeed');
+  
+  // Add timestamp to prevent caching
   video.src = `${VIDEO_URL}?t=${Date.now()}`;
+  
   video.onerror = () => {
-    console.error('Video feed error');
-    document.getElementById('statusDot').classList.add('error');
-    document.getElementById('connectionStatus').textContent = 'Camera Error';
+    console.error('Video feed error - retrying...');
+    setTimeout(() => {
+      video.src = `${VIDEO_URL}?t=${Date.now()}`;
+    }, 2000);
+  };
+  
+  video.onload = () => {
+    console.log('Video feed loaded successfully');
+    lastFrameUpdate = Date.now();
   };
 }
 
+// ============================================================================
+// SETTINGS CONTROL
+// ============================================================================
 document.getElementById('applyBtn').addEventListener('click', async () => {
   const btn = document.getElementById('applyBtn');
   const originalHTML = btn.innerHTML;
@@ -839,13 +854,26 @@ document.getElementById('applyBtn').addEventListener('click', async () => {
   try {
     const settings = {
       fps: document.getElementById('fpsSelect').value,
-      motion: document.getElementById('motionToggle').checked,
-      lowdata: document.getElementById('lowDataToggle').checked,
-      recording: document.getElementById('recordingToggle').checked
+      motion: document.getElementById('motionToggle').checked ? 'true' : 'false',
+      lowdata: document.getElementById('lowDataToggle').checked ? 'true' : 'false',
+      recording: document.getElementById('recordingToggle').checked ? 'true' : 'false'
     };
     
-    const response = await fetch(`${API_URL}/settings?` + new URLSearchParams(settings));
+    console.log('Applying settings:', settings);
+    
+    const response = await fetch(`${API_URL}/settings?` + new URLSearchParams(settings), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    
     const data = await response.json();
+    console.log('Settings applied:', data);
     
     updateSettingsDisplay(data);
     
@@ -872,56 +900,44 @@ document.getElementById('applyBtn').addEventListener('click', async () => {
 });
 
 document.getElementById('refreshBtn').addEventListener('click', () => {
+  console.log('Refreshing video feed...');
   const video = document.getElementById('videoFeed');
   video.src = `${VIDEO_URL}?t=${Date.now()}`;
+  updateStatus();
 });
 
 function updateSettingsDisplay(data) {
-  document.getElementById('fpsSelect').value = data.fps;
-  document.getElementById('motionToggle').checked = data.motion;
-  document.getElementById('lowDataToggle').checked = data.low_data;
-  document.getElementById('recordingToggle').checked = data.recording || false;
-  
-  const indicator = document.getElementById('motionIndicator');
-  const status = document.getElementById('motionStatus');
-  if (data.motion) {
-    indicator.classList.remove('disabled');
-    status.textContent = 'Motion: On';
-  } else {
-    indicator.classList.add('disabled');
-    status.textContent = 'Motion: Off';
+  if (data.fps !== undefined) {
+    document.getElementById('fpsSelect').value = data.fps;
   }
   
-  const recordingBadge = document.getElementById('recordingBadge');
-  recordingBadge.style.display = data.recording ? 'flex' : 'none';
-}
-
-function updateBrightness() {
-  const img = document.getElementById('videoFeed');
-  const canvas = document.createElement('canvas');
-  canvas.width = 160;
-  canvas.height = 120;
-  const ctx = canvas.getContext('2d');
-  
-  try {
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    let total = 0;
-    
-    for (let i = 0; i < imgData.data.length; i += 16) {
-      const r = imgData.data[i];
-      const g = imgData.data[i + 1];
-      const b = imgData.data[i + 2];
-      total += 0.299 * r + 0.587 * g + 0.114 * b;
+  if (data.motion !== undefined) {
+    document.getElementById('motionToggle').checked = data.motion;
+    const indicator = document.getElementById('motionIndicator');
+    const status = document.getElementById('motionStatus');
+    if (data.motion) {
+      indicator.classList.remove('disabled');
+      status.textContent = 'Motion: On';
+    } else {
+      indicator.classList.add('disabled');
+      status.textContent = 'Motion: Off';
     }
-    
-    const avgBrightness = Math.round(total / (imgData.data.length / 16));
-    document.getElementById('brightnessValue').textContent = avgBrightness;
-  } catch (e) {
-    document.getElementById('brightnessValue').textContent = 'N/A';
+  }
+  
+  if (data.low_data !== undefined) {
+    document.getElementById('lowDataToggle').checked = data.low_data;
+  }
+  
+  if (data.recording !== undefined) {
+    document.getElementById('recordingToggle').checked = data.recording;
+    const recordingBadge = document.getElementById('recordingBadge');
+    recordingBadge.style.display = data.recording ? 'flex' : 'none';
   }
 }
 
+// ============================================================================
+// STATUS UPDATES
+// ============================================================================
 function formatUptime(seconds) {
   const hours = Math.floor(seconds / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);
@@ -946,26 +962,45 @@ async function updateStatus() {
     }
     
     const data = await response.json();
+    console.log('Status update:', data);
     
+    // Update connection status
     document.getElementById('statusDot').classList.remove('error');
     document.getElementById('connectionStatus').textContent = 'Connected';
     
-    document.getElementById('uptimeDisplay').textContent = formatUptime(data.uptime);
+    // Update uptime
+    if (data.uptime !== undefined) {
+      document.getElementById('uptimeDisplay').textContent = formatUptime(data.uptime);
+    }
     
-    document.getElementById('fpsValue').textContent = data.fps_actual || '--';
-    document.getElementById('frameCount').textContent = formatNumber(data.frame_count || 0);
-    document.getElementById('eventCount').textContent = data.motion_events?.length || 0;
+    // Update stats
+    if (data.fps_actual !== undefined) {
+      document.getElementById('fpsValue').textContent = data.fps_actual;
+    }
+    
+    if (data.frame_count !== undefined) {
+      document.getElementById('frameCount').textContent = formatNumber(data.frame_count);
+    }
     
     if (data.brightness !== undefined) {
       document.getElementById('brightnessValue').textContent = Math.round(data.brightness);
     }
     
-    if (data.settings) {
-      updateSettingsDisplay(data.settings);
+    if (data.camera_active !== undefined) {
+      document.getElementById('cameraStatus').textContent = data.camera_active ? 'Active' : 'Inactive';
     }
     
+    // Update motion events
     if (data.motion_events && data.motion_events.length > 0) {
+      document.getElementById('eventCount').textContent = data.motion_events.length;
       updateActivityLog(data.motion_events);
+    } else {
+      document.getElementById('eventCount').textContent = '0';
+    }
+    
+    // Update settings display
+    if (data.settings) {
+      updateSettingsDisplay(data.settings);
     }
     
   } catch (error) {
@@ -983,12 +1018,13 @@ function updateActivityLog(events) {
     return;
   }
   
+  // Show last 10 events, most recent first
   const recentEvents = events.slice(-10).reverse();
   
   log.innerHTML = recentEvents.map(event => `
     <div class="activity-item">
-      <span class="activity-time">${event.time_str}</span>
-      <span class="activity-intensity">⚡ ${event.intensity}</span>
+      <span class="activity-time">${event.time_str || 'Unknown'}</span>
+      <span class="activity-intensity">⚡ ${event.intensity || 'N/A'}</span>
     </div>
   `).join('');
 }
@@ -999,26 +1035,41 @@ document.getElementById('clearEventsBtn').addEventListener('click', () => {
   document.getElementById('eventCount').textContent = '0';
 });
 
+// ============================================================================
+// INITIAL LOAD
+// ============================================================================
 async function loadInitialSettings() {
   try {
     const response = await fetch(`${API_URL}/settings`);
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
     const data = await response.json();
+    console.log('Initial settings loaded:', data);
     updateSettingsDisplay(data);
   } catch (error) {
-    console.error('Failed to load settings:', error);
+    console.error('Failed to load initial settings:', error);
   }
 }
 
+// ============================================================================
+// INITIALIZATION
+// ============================================================================
 window.addEventListener('DOMContentLoaded', () => {
-  console.log('🐆 Merle Cam Dashboard v2.0 Initialized');
+  console.log('🐆 Merle Cam Dashboard Initialized');
   console.log('Backend URL:', API_URL);
   
+  // Initialize video feed
   initVideo();
+  
+  // Load initial settings
   loadInitialSettings();
+  
+  // Start status updates
   updateStatus();
   updateInterval = setInterval(updateStatus, UPDATE_INTERVAL);
-  brightnessInterval = setInterval(updateBrightness, 2000);
   
+  // Keyboard shortcuts
   document.addEventListener('keydown', (e) => {
     if (e.ctrlKey || e.metaKey) {
       if (e.key === 'r') {
@@ -1032,19 +1083,25 @@ window.addEventListener('DOMContentLoaded', () => {
   });
 });
 
+// ============================================================================
+// CLEANUP
+// ============================================================================
 window.addEventListener('beforeunload', () => {
   clearInterval(updateInterval);
-  clearInterval(brightnessInterval);
 });
 
+// Handle visibility changes (pause updates when tab is hidden)
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) {
     clearInterval(updateInterval);
-    clearInterval(brightnessInterval);
+    console.log('Tab hidden - pausing updates');
   } else {
+    console.log('Tab visible - resuming updates');
     updateStatus();
     updateInterval = setInterval(updateStatus, UPDATE_INTERVAL);
-    brightnessInterval = setInterval(updateBrightness, 2000);
+    // Refresh video feed
+    const video = document.getElementById('videoFeed');
+    video.src = `${VIDEO_URL}?t=${Date.now()}`;
   }
 });
 </script>
