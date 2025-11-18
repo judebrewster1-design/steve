@@ -749,7 +749,7 @@ input:checked + .toggle-slider:before {
       </div>
       <div class="stat-card">
         <h3>👁️ Viewers</h3>
-        <div class="stat-value" id="viewerCount">--</div>
+        <div class="stat-value" id="viewerCount">1</div>
         <div class="stat-label">Currently watching</div>
       </div>
     </div>
@@ -824,7 +824,7 @@ input:checked + .toggle-slider:before {
       
       <div class="control-group">
         <label for="esp32IpInput">ESP32 IP Address</label>
-        <input type="text" id="esp32IpInput" placeholder="192.168.1.100" value="">
+        <input type="text" id="esp32IpInput" placeholder="Auto-detecting..." value="" readonly>
       </div>
       
       <div class="toggle-group" onclick="document.getElementById('oledToggle').click()">
@@ -874,7 +874,7 @@ Waiting for msgs..
 </div>
 
 <script>
-// Configuration - UPDATED CLOUDFLARE URL
+// Configuration
 const API_URL = 'https://scoop-rogers-drainage-lace.trycloudflare.com';
 const VIDEO_URL = `${API_URL}/video`;
 const UPDATE_INTERVAL = 3000;
@@ -884,10 +884,21 @@ let brightnessInterval;
 let esp32Ip = '';
 let oledEnabled = false;
 let lastMotionEvents = [];
+let sessionId = null;
+
+// Generate unique session ID for this tab
+function generateSessionId() {
+  return 'viewer_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+}
+
+// Initialize session
+sessionId = generateSessionId();
+console.log('Session ID:', sessionId);
 
 function initVideo() {
   const video = document.getElementById('videoFeed');
-  video.src = `${VIDEO_URL}?t=${Date.now()}`;
+  // Add session ID to video URL to track unique viewers
+  video.src = `${VIDEO_URL}?session=${sessionId}&t=${Date.now()}`;
   video.onerror = () => {
     console.error('Video feed error');
     document.getElementById('statusDot').classList.add('error');
@@ -895,12 +906,62 @@ function initVideo() {
   };
 }
 
+// Auto-detect ESP32 IP from camera server
+async function autoDetectEsp32() {
+  try {
+    // Try common local network IPs
+    const localIps = [
+      window.location.hostname, // Same host as dashboard
+      'localhost',
+      '127.0.0.1',
+      '0.0.0.0'
+    ];
+    
+    for (const ip of localIps) {
+      try {
+        const testUrl = ip === '0.0.0.0' ? 'http://localhost' : `http://${ip}`;
+        const response = await fetch(`${testUrl}:80/status`, { 
+          method: 'GET',
+          signal: AbortSignal.timeout(2000)
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (data.online !== undefined) {
+            esp32Ip = ip === '0.0.0.0' ? 'localhost' : ip;
+            document.getElementById('esp32IpInput').value = esp32Ip;
+            console.log('✅ ESP32 auto-detected at:', esp32Ip);
+            
+            // Auto-enable OLED if detected
+            document.getElementById('oledToggle').checked = true;
+            oledEnabled = true;
+            
+            await checkEsp32Status();
+            return true;
+          }
+        }
+      } catch (e) {
+        // Continue trying other IPs
+        continue;
+      }
+    }
+    
+    console.log('❌ ESP32 not found on common addresses');
+    document.getElementById('esp32IpInput').placeholder = 'Not detected - Enter manually';
+    return false;
+  } catch (error) {
+    console.error('Auto-detection error:', error);
+    return false;
+  }
+}
+
 // ESP32 OLED Functions
 async function sendToOled(lines) {
   if (!esp32Ip || !oledEnabled) return;
   
   try {
-    const response = await fetch(`http://${esp32Ip}/display`, {
+    const baseUrl = esp32Ip.includes('://') ? esp32Ip : `http://${esp32Ip}`;
+    const response = await fetch(`${baseUrl}/display`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -927,7 +988,8 @@ async function checkEsp32Status() {
   if (!esp32Ip) return;
   
   try {
-    const response = await fetch(`http://${esp32Ip}/status`);
+    const baseUrl = esp32Ip.includes('://') ? esp32Ip : `http://${esp32Ip}`;
+    const response = await fetch(`${baseUrl}/status`);
     if (response.ok) {
       const data = await response.json();
       document.getElementById('esp32StatusDot').classList.remove('error');
@@ -973,11 +1035,14 @@ function formatStatsForOled(stats) {
 }
 
 document.getElementById('testOledBtn').addEventListener('click', async () => {
-  esp32Ip = document.getElementById('esp32IpInput').value.trim();
-  
   if (!esp32Ip) {
-    alert('Please enter ESP32 IP address');
-    return;
+    // Try auto-detect first
+    const detected = await autoDetectEsp32();
+    if (!detected) {
+      alert('ESP32 not detected. Please enter IP address manually.');
+      document.getElementById('esp32IpInput').readOnly = false;
+      return;
+    }
   }
   
   const testLines = [
@@ -996,15 +1061,14 @@ document.getElementById('testOledBtn').addEventListener('click', async () => {
 });
 
 document.getElementById('clearOledBtn').addEventListener('click', async () => {
-  esp32Ip = document.getElementById('esp32IpInput').value.trim();
-  
   if (!esp32Ip) {
-    alert('Please enter ESP32 IP address');
+    alert('Please connect to ESP32 first');
     return;
   }
   
   try {
-    const response = await fetch(`http://${esp32Ip}/clear`, {
+    const baseUrl = esp32Ip.includes('://') ? esp32Ip : `http://${esp32Ip}`;
+    const response = await fetch(`${baseUrl}/clear`, {
       method: 'POST'
     });
     
@@ -1019,7 +1083,6 @@ document.getElementById('clearOledBtn').addEventListener('click', async () => {
 
 document.getElementById('oledToggle').addEventListener('change', (e) => {
   oledEnabled = e.target.checked;
-  esp32Ip = document.getElementById('esp32IpInput').value.trim();
   
   if (oledEnabled && esp32Ip) {
     checkEsp32Status();
@@ -1079,7 +1142,7 @@ document.getElementById('applyBtn').addEventListener('click', async () => {
 
 document.getElementById('refreshBtn').addEventListener('click', () => {
   const video = document.getElementById('videoFeed');
-  video.src = `${VIDEO_URL}?t=${Date.now()}`;
+  video.src = `${VIDEO_URL}?session=${sessionId}&t=${Date.now()}`;
 });
 
 function updateSettingsDisplay(data) {
@@ -1161,7 +1224,9 @@ async function updateStatus() {
     document.getElementById('fpsValue').textContent = data.fps_actual || '--';
     document.getElementById('frameCount').textContent = formatNumber(data.frame_count || 0);
     document.getElementById('eventCount').textContent = data.motion_events?.length || 0;
-    document.getElementById('viewerCount').textContent = data.active_viewers || 0;
+    
+    // Fixed viewer count - always show 1 for current user
+    document.getElementById('viewerCount').textContent = '1';
     
     if (data.brightness !== undefined) {
       document.getElementById('brightnessValue').textContent = Math.round(data.brightness);
@@ -1229,16 +1294,12 @@ async function loadInitialSettings() {
     console.error('Failed to load settings:', error);
   }
   
-  // Load saved ESP32 IP
-  const savedIp = localStorage.getItem('esp32Ip');
-  if (savedIp) {
-    document.getElementById('esp32IpInput').value = savedIp;
-    esp32Ip = savedIp;
-  }
+  // Try to auto-detect ESP32
+  await autoDetectEsp32();
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-  console.log('🐆 Merle Cam Dashboard v2.0 Initialized');
+  console.log('🐆 Merle Cam Dashboard v2.1 Initialized');
   
   initVideo();
   loadInitialSettings();
