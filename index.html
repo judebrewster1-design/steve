@@ -389,7 +389,7 @@ body::before {
   letter-spacing: 1px;
 }
 
-.control-group select {
+.control-group select, .control-group input[type="text"] {
   width: 100%;
   padding: 12px 16px;
   background: var(--bg-primary);
@@ -400,6 +400,9 @@ body::before {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s;
+}
+
+.control-group select {
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath fill='%23d4a23c' d='M8 11L3 6h10z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
@@ -407,12 +410,12 @@ body::before {
   padding-right: 40px;
 }
 
-.control-group select:hover {
+.control-group select:hover, .control-group input[type="text"]:hover {
   border-color: var(--accent-gold);
   background-color: rgba(27, 18, 11, 0.8);
 }
 
-.control-group select:focus {
+.control-group select:focus, .control-group input[type="text"]:focus {
   outline: none;
   border-color: var(--accent-light);
   box-shadow: 0 0 0 3px rgba(212, 162, 60, 0.2);
@@ -613,6 +616,23 @@ input:checked + .toggle-slider:before {
   font-style: italic;
 }
 
+.oled-preview {
+  background: #000;
+  border: 3px solid var(--accent-gold);
+  border-radius: 12px;
+  padding: 20px;
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  line-height: 1.4;
+  color: #fff;
+  min-height: 160px;
+  max-height: 160px;
+  overflow: hidden;
+  white-space: pre-wrap;
+  word-break: break-all;
+  box-shadow: 0 0 20px rgba(212, 162, 60, 0.3);
+}
+
 @media (max-width: 1200px) {
   .container {
     grid-template-columns: 1fr;
@@ -677,6 +697,10 @@ input:checked + .toggle-slider:before {
       <div class="status-badge">
         <div class="status-dot" id="statusDot"></div>
         <span id="connectionStatus">Initializing...</span>
+      </div>
+      <div class="status-badge">
+        <div class="status-dot" id="esp32StatusDot"></div>
+        <span id="esp32Status">ESP32: Offline</span>
       </div>
       <div class="status-badge">
         <span id="uptimeDisplay">--:--:--</span>
@@ -795,6 +819,47 @@ input:checked + .toggle-slider:before {
     
     <div class="panel-card">
       <div class="panel-header">
+        <h2><span class="panel-icon">📺</span> ESP32 OLED Display</h2>
+      </div>
+      
+      <div class="control-group">
+        <label for="esp32IpInput">ESP32 IP Address</label>
+        <input type="text" id="esp32IpInput" placeholder="192.168.1.100" value="">
+      </div>
+      
+      <div class="toggle-group" onclick="document.getElementById('oledToggle').click()">
+        <div class="toggle-label">
+          <span>📡</span>
+          <span>Send to OLED</span>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="oledToggle" onclick="event.stopPropagation()">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      
+      <div class="oled-preview" id="oledPreview">
+  MERLE CAM OLED
+==================
+
+Status: WAITING
+IP: Not Set
+
+Waiting for msgs..
+      </div>
+      
+      <div class="button-group">
+        <button class="btn btn-primary" id="testOledBtn">
+          <span>📤</span> Test
+        </button>
+        <button class="btn btn-secondary" id="clearOledBtn">
+          <span>🧹</span> Clear
+        </button>
+      </div>
+    </div>
+    
+    <div class="panel-card">
+      <div class="panel-header">
         <h2><span class="panel-icon">📋</span> Motion Activity</h2>
         <button class="btn btn-secondary" style="padding: 8px 16px; font-size: 12px;" id="clearEventsBtn">
           Clear
@@ -809,13 +874,16 @@ input:checked + .toggle-slider:before {
 </div>
 
 <script>
-// Configuration - UPDATE THIS WITH YOUR CLOUDFLARE TUNNEL URL
-const API_URL = 'https://closely-tvs-consciousness-dean.trycloudflare.com';
+// Configuration - UPDATED CLOUDFLARE URL
+const API_URL = 'https://scoop-rogers-drainage-lace.trycloudflare.com';
 const VIDEO_URL = `${API_URL}/video`;
 const UPDATE_INTERVAL = 3000;
 
 let updateInterval;
 let brightnessInterval;
+let esp32Ip = '';
+let oledEnabled = false;
+let lastMotionEvents = [];
 
 function initVideo() {
   const video = document.getElementById('videoFeed');
@@ -826,6 +894,146 @@ function initVideo() {
     document.getElementById('connectionStatus').textContent = 'Camera Error';
   };
 }
+
+// ESP32 OLED Functions
+async function sendToOled(lines) {
+  if (!esp32Ip || !oledEnabled) return;
+  
+  try {
+    const response = await fetch(`http://${esp32Ip}/display`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ lines: lines })
+    });
+    
+    if (response.ok) {
+      console.log('✅ Sent to OLED:', lines);
+      updateOledPreview(lines);
+      document.getElementById('esp32StatusDot').classList.remove('error');
+      document.getElementById('esp32Status').textContent = 'ESP32: Connected';
+    } else {
+      throw new Error('OLED response not OK');
+    }
+  } catch (error) {
+    console.error('❌ Failed to send to OLED:', error);
+    document.getElementById('esp32StatusDot').classList.add('error');
+    document.getElementById('esp32Status').textContent = 'ESP32: Error';
+  }
+}
+
+async function checkEsp32Status() {
+  if (!esp32Ip) return;
+  
+  try {
+    const response = await fetch(`http://${esp32Ip}/status`);
+    if (response.ok) {
+      const data = await response.json();
+      document.getElementById('esp32StatusDot').classList.remove('error');
+      document.getElementById('esp32Status').textContent = 'ESP32: Online';
+      console.log('ESP32 Status:', data);
+    } else {
+      throw new Error('ESP32 not responding');
+    }
+  } catch (error) {
+    document.getElementById('esp32StatusDot').classList.add('error');
+    document.getElementById('esp32Status').textContent = 'ESP32: Offline';
+  }
+}
+
+function updateOledPreview(lines) {
+  const preview = document.getElementById('oledPreview');
+  let text = '';
+  
+  for (let i = 0; i < 8; i++) {
+    if (i < lines.length) {
+      text += lines[i].substring(0, 21) + '\n';
+    } else {
+      text += '\n';
+    }
+  }
+  
+  preview.textContent = text;
+}
+
+function formatStatsForOled(stats) {
+  const lines = [
+    '  MERLE CAM STATS',
+    '==================',
+    '',
+    `FPS: ${stats.fps_actual || 0}`,
+    `Brightness: ${stats.brightness || 0}`,
+    `Events: ${stats.motion_events?.length || 0}`,
+    `Frames: ${stats.frame_count || 0}`,
+    `Uptime: ${formatUptime(stats.uptime || 0)}`
+  ];
+  
+  return lines;
+}
+
+document.getElementById('testOledBtn').addEventListener('click', async () => {
+  esp32Ip = document.getElementById('esp32IpInput').value.trim();
+  
+  if (!esp32Ip) {
+    alert('Please enter ESP32 IP address');
+    return;
+  }
+  
+  const testLines = [
+    '  MERLE CAM TEST',
+    '==================',
+    '',
+    'Connection: OK',
+    'Display: Active',
+    'Status: Testing',
+    '',
+    'Test successful!'
+  ];
+  
+  await sendToOled(testLines);
+  await checkEsp32Status();
+});
+
+document.getElementById('clearOledBtn').addEventListener('click', async () => {
+  esp32Ip = document.getElementById('esp32IpInput').value.trim();
+  
+  if (!esp32Ip) {
+    alert('Please enter ESP32 IP address');
+    return;
+  }
+  
+  try {
+    const response = await fetch(`http://${esp32Ip}/clear`, {
+      method: 'POST'
+    });
+    
+    if (response.ok) {
+      console.log('✅ OLED cleared');
+      updateOledPreview([]);
+    }
+  } catch (error) {
+    console.error('❌ Failed to clear OLED:', error);
+  }
+});
+
+document.getElementById('oledToggle').addEventListener('change', (e) => {
+  oledEnabled = e.target.checked;
+  esp32Ip = document.getElementById('esp32IpInput').value.trim();
+  
+  if (oledEnabled && esp32Ip) {
+    checkEsp32Status();
+  }
+});
+
+document.getElementById('esp32IpInput').addEventListener('change', (e) => {
+  esp32Ip = e.target.value.trim();
+  localStorage.setItem('esp32Ip', esp32Ip);
+  
+  if (oledEnabled && esp32Ip) {
+    checkEsp32Status();
+  }
+});
 
 document.getElementById('applyBtn').addEventListener('click', async () => {
   const btn = document.getElementById('applyBtn');
@@ -965,6 +1173,20 @@ async function updateStatus() {
     
     if (data.motion_events && data.motion_events.length > 0) {
       updateActivityLog(data.motion_events);
+      
+      // Send to OLED if enabled and new motion detected
+      if (oledEnabled && esp32Ip && data.motion_events.length > lastMotionEvents.length) {
+        const oledLines = formatStatsForOled(data);
+        await sendToOled(oledLines);
+      }
+      
+      lastMotionEvents = data.motion_events;
+    }
+    
+    // Periodically update OLED with stats if enabled
+    if (oledEnabled && esp32Ip && Math.random() < 0.1) {
+      const oledLines = formatStatsForOled(data);
+      await sendToOled(oledLines);
     }
     
   } catch (error) {
@@ -1005,6 +1227,13 @@ async function loadInitialSettings() {
     updateSettingsDisplay(data);
   } catch (error) {
     console.error('Failed to load settings:', error);
+  }
+  
+  // Load saved ESP32 IP
+  const savedIp = localStorage.getItem('esp32Ip');
+  if (savedIp) {
+    document.getElementById('esp32IpInput').value = savedIp;
+    esp32Ip = savedIp;
   }
 }
 
