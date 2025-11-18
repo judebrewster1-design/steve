@@ -705,7 +705,7 @@ input:checked + .toggle-slider:before {
       <div class="status-badge">
         <span id="uptimeDisplay">--:--:--</span>
       </div>
-      <img src="meryle.png" alt="Merle" class="header-merle-img">
+      <img src="meryle.png" alt="Merle" class="header-merle-img" onerror="this.style.display='none'">
     </div>
   </div>
 </header>
@@ -838,15 +838,13 @@ input:checked + .toggle-slider:before {
         </label>
       </div>
       
-      <div class="oled-preview" id="oledPreview">
-  MERLE CAM OLED
+      <div class="oled-preview" id="oledPreview">  MERLE CAM OLED
 ==================
 
 Status: WAITING
 IP: Not Set
 
-Waiting for msgs..
-      </div>
+Waiting for msgs..</div>
       
       <div class="button-group">
         <button class="btn btn-primary" id="testOledBtn">
@@ -886,18 +884,15 @@ let oledEnabled = false;
 let lastMotionEvents = [];
 let sessionId = null;
 
-// Generate unique session ID for this tab
 function generateSessionId() {
   return 'viewer_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
 }
 
-// Initialize session
 sessionId = generateSessionId();
 console.log('Session ID:', sessionId);
 
 function initVideo() {
   const video = document.getElementById('videoFeed');
-  // Add session ID to video URL to track unique viewers
   video.src = `${VIDEO_URL}?session=${sessionId}&t=${Date.now()}`;
   video.onerror = () => {
     console.error('Video feed error');
@@ -906,12 +901,10 @@ function initVideo() {
   };
 }
 
-// Auto-detect ESP32 IP from camera server
 async function autoDetectEsp32() {
   try {
-    // Try common local network IPs
     const localIps = [
-      window.location.hostname, // Same host as dashboard
+      window.location.hostname,
       'localhost',
       '127.0.0.1',
       '0.0.0.0'
@@ -932,7 +925,6 @@ async function autoDetectEsp32() {
             document.getElementById('esp32IpInput').value = esp32Ip;
             console.log('✅ ESP32 auto-detected at:', esp32Ip);
             
-            // Auto-enable OLED if detected
             document.getElementById('oledToggle').checked = true;
             oledEnabled = true;
             
@@ -941,7 +933,6 @@ async function autoDetectEsp32() {
           }
         }
       } catch (e) {
-        // Continue trying other IPs
         continue;
       }
     }
@@ -955,7 +946,6 @@ async function autoDetectEsp32() {
   }
 }
 
-// ESP32 OLED Functions
 async function sendToOled(lines) {
   if (!esp32Ip || !oledEnabled) return;
   
@@ -1036,7 +1026,6 @@ function formatStatsForOled(stats) {
 
 document.getElementById('testOledBtn').addEventListener('click', async () => {
   if (!esp32Ip) {
-    // Try auto-detect first
     const detected = await autoDetectEsp32();
     if (!detected) {
       alert('ESP32 not detected. Please enter IP address manually.');
@@ -1113,7 +1102,9 @@ document.getElementById('applyBtn').addEventListener('click', async () => {
       recording: document.getElementById('recordingToggle').checked
     };
     
-    const response = await fetch(`${API_URL}/settings?` + new URLSearchParams(settings));
+    const response = await fetch(`${API_URL}/settings?` + new URLSearchParams(settings), {
+      method: 'POST'
+    });
     const data = await response.json();
     
     updateSettingsDisplay(data);
@@ -1225,7 +1216,6 @@ async function updateStatus() {
     document.getElementById('frameCount').textContent = formatNumber(data.frame_count || 0);
     document.getElementById('eventCount').textContent = data.motion_events?.length || 0;
     
-    // Fixed viewer count - always show 1 for current user
     document.getElementById('viewerCount').textContent = '1';
     
     if (data.brightness !== undefined) {
@@ -1239,7 +1229,6 @@ async function updateStatus() {
     if (data.motion_events && data.motion_events.length > 0) {
       updateActivityLog(data.motion_events);
       
-      // Send to OLED if enabled and new motion detected
       if (oledEnabled && esp32Ip && data.motion_events.length > lastMotionEvents.length) {
         const oledLines = formatStatsForOled(data);
         await sendToOled(oledLines);
@@ -1248,7 +1237,6 @@ async function updateStatus() {
       lastMotionEvents = data.motion_events;
     }
     
-    // Periodically update OLED with stats if enabled
     if (oledEnabled && esp32Ip && Math.random() < 0.1) {
       const oledLines = formatStatsForOled(data);
       await sendToOled(oledLines);
@@ -1294,7 +1282,6 @@ async function loadInitialSettings() {
     console.error('Failed to load settings:', error);
   }
   
-  // Try to auto-detect ESP32
   await autoDetectEsp32();
 }
 
