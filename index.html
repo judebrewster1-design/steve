@@ -849,10 +849,10 @@ input:checked + .toggle-slider:before {
     <div class="header-status">
       <div class="status-badge">
         <div class="status-dot" id="statusDot"></div>
-        <span id="connectionStatus">Connecting...</span>
+        <span id="connectionStatus">Initializing...</span>
       </div>
       <div class="status-badge">
-        <span id="uptimeDisplay">00:00:00</span>
+        <span id="uptimeDisplay">--:--:--</span>
       </div>
     </div>
   </div>
@@ -861,11 +861,11 @@ input:checked + .toggle-slider:before {
 <div class="container">
   <div class="main-content">
     <div class="video-wrapper">
-      <img id="videoFeed" src="https://scoop-rogers-drainage-lace.trycloudflare.com" alt="Live Camera Feed">
+      <img id="videoFeed" src="" alt="Live Camera Feed">
       <div class="video-overlay">
         <div class="overlay-badge">
           <div class="motion-indicator" id="motionIndicator"></div>
-          <span id="motionStatus">Motion Detection</span>
+          <span id="motionStatus">Motion</span>
         </div>
       </div>
     </div>
@@ -913,18 +913,783 @@ input:checked + .toggle-slider:before {
       <div class="chat-section">
         <div class="chat-header">
           <h2><span class="panel-icon">💬</span> Public Chat</h2>
-          <button class="btn btn-secondary" style="padding: 8px 16px; font-size: 12px;" id="clearChatBtn">
+          <button class="btn btn-primary btn-send" id="sendAIMessageBtn">
+            <span>🤖</span> Ask
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="control-panel">
+    <div class="panel-card">
+      <div class="panel-header">
+        <h2><span class="panel-icon">⚙️</span> Camera Settings</h2>
+      </div>
+      
+      <div class="control-group">
+        <label for="fpsSelect">Frame Rate</label>
+        <select id="fpsSelect">
+          <option value="10">10 FPS - Power Saving</option>
+          <option value="15">15 FPS - Eco Mode</option>
+          <option value="24">24 FPS - Cinematic</option>
+          <option value="30" selected>30 FPS - Standard</option>
+          <option value="60">60 FPS - Smooth</option>
+        </select>
+      </div>
+      
+      <div class="toggle-group" onclick="document.getElementById('motionToggle').click()">
+        <div class="toggle-label">
+          <span>🚨</span>
+          <span>Motion Detection</span>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="motionToggle" checked onclick="event.stopPropagation()">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      
+      <div class="toggle-group" onclick="document.getElementById('lowDataToggle').click()">
+        <div class="toggle-label">
+          <span>📶</span>
+          <span>Low Data Mode</span>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="lowDataToggle" onclick="event.stopPropagation()">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      
+      <div class="button-group">
+        <button class="btn btn-primary" id="applyBtn">
+          <span>✓</span> Apply
+        </button>
+        <button class="btn btn-secondary" id="refreshBtn">
+          <span>↻</span> Refresh
+        </button>
+      </div>
+    </div>
+    
+    <div class="panel-card">
+      <div class="panel-header">
+        <h2><span class="panel-icon">🛡️</span> Moderation</h2>
+      </div>
+      
+      <div class="toggle-group" onclick="document.getElementById('profanityToggle').click()">
+        <div class="toggle-label">
+          <span>🚫</span>
+          <span>Profanity Filter</span>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="profanityToggle" checked onclick="event.stopPropagation()">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      
+      <div class="toggle-group" onclick="document.getElementById('autoBanToggle').click()">
+        <div class="toggle-label">
+          <span>⚠️</span>
+          <span>Auto-Ban Users</span>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="autoBanToggle" onclick="event.stopPropagation()">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      
+      <div class="button-group">
+        <button class="btn btn-primary" id="applyModerationBtn">
+          <span>✓</span> Apply
+        </button>
+        <button class="btn btn-secondary" id="viewViolationsBtn">
+          <span>📋</span> Violations<span class="badge-count" id="violationBadge">0</span>
+        </button>
+      </div>
+    </div>
+    
+    <div class="panel-card">
+      <div class="panel-header">
+        <h2><span class="panel-icon">🤖</span> AI Settings</h2>
+      </div>
+      
+      <div class="toggle-group" onclick="document.getElementById('aiToggle').click()">
+        <div class="toggle-label">
+          <span>🐆</span>
+          <span>AI Chatbot Enabled</span>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="aiToggle" checked onclick="event.stopPropagation()">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      
+      <div class="toggle-group" onclick="document.getElementById('aiAutoReplyToggle').click()">
+        <div class="toggle-label">
+          <span>💬</span>
+          <span>Auto-Reply in Chat</span>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="aiAutoReplyToggle" onclick="event.stopPropagation()">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      
+      <div style="background: var(--bg-primary); padding: 12px; border-radius: 8px; border: 2px solid var(--border-color); margin-top: 12px;">
+        <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.4;">
+          💡 <strong>Tip:</strong> Use the AI chat box for direct questions, or mention "Merle" in public chat!
+        </p>
+      </div>
+      
+      <button class="btn btn-primary" id="applyAIBtn" style="margin-top: 15px; width: 100%;">
+        <span>✓</span> Apply AI Settings
+      </button>
+    </div>
+    
+    <div class="panel-card">
+      <div class="panel-header">
+        <h2><span class="panel-icon">🚨</span> Motion Activity</h2>
+        <button class="btn btn-secondary" style="padding: 8px 16px; font-size: 12px;" id="clearEventsBtn">
+          Clear
+        </button>
+      </div>
+      
+      <div class="activity-log" id="activityLog">
+        <div class="no-activity">No motion events detected</div>
+      </div>
+    </div>
+    
+    <div class="panel-card" id="violationPanel" style="display: none;">
+      <div class="panel-header">
+        <h2><span class="panel-icon">⚠️</span> Violation Log</h2>
+        <button class="btn btn-secondary" style="padding: 8px 16px; font-size: 12px;" id="closeViolationsBtn">
+          Close
+        </button>
+      </div>
+      
+      <div class="activity-log" id="violationLog">
+        <div class="no-activity">No violations detected</div>
+      </div>
+      
+      <button class="btn btn-primary" id="clearViolationsBtn" style="margin-top: 15px; width: 100%;">
+        <span>🧹</span> Clear All Violations
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Configuration
+const API_URL = 'https://scoop-rogers-drainage-lace.trycloudflare.com';
+const VIDEO_URL = `${API_URL}/video`;
+const UPDATE_INTERVAL = 3000;
+const CHAT_UPDATE_INTERVAL = 2000;
+
+let updateInterval;
+let chatUpdateInterval;
+let sessionId = null;
+let lastMessageId = 0;
+let lastAIMessageId = 0;
+let username = localStorage.getItem('merle_cam_username') || '';
+
+function generateSessionId() {
+  return 'viewer_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+}
+
+sessionId = generateSessionId();
+
+// Initialize username
+if (username) {
+  document.getElementById('usernameInput').value = username;
+}
+
+function initVideo() {
+  const video = document.getElementById('videoFeed');
+  video.src = `${VIDEO_URL}?session=${sessionId}&t=${Date.now()}`;
+  video.onerror = () => {
+    console.error('Video feed error');
+    document.getElementById('statusDot').classList.add('error');
+    document.getElementById('connectionStatus').textContent = 'Camera Error';
+  };
+}
+
+function formatUptime(seconds) {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
+  
+  if (hours > 0) {
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  }
+  return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+}
+
+function formatNumber(num) {
+  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+async function updateStatus() {
+  try {
+    const response = await fetch(`${API_URL}/status`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    document.getElementById('statusDot').classList.remove('error');
+    document.getElementById('connectionStatus').textContent = 'Connected';
+    
+    document.getElementById('uptimeDisplay').textContent = formatUptime(data.uptime);
+    document.getElementById('fpsValue').textContent = data.fps_actual || '--';
+    document.getElementById('frameCount').textContent = formatNumber(data.frame_count || 0);
+    document.getElementById('eventCount').textContent = data.motion_events?.length || 0;
+    document.getElementById('brightnessValue').textContent = Math.round(data.brightness || 0);
+    document.getElementById('messageCount').textContent = data.total_messages || 0;
+    document.getElementById('filteredCount').textContent = data.filtered_messages || 0;
+    document.getElementById('violationBadge').textContent = data.violation_count || 0;
+    document.getElementById('aiCount').textContent = data.ai_responses || 0;
+    
+    if (data.settings) {
+      updateSettingsDisplay(data.settings);
+    }
+    
+    if (data.motion_events && data.motion_events.length > 0) {
+      updateActivityLog(data.motion_events);
+    }
+    
+  } catch (error) {
+    console.error('Status update failed:', error);
+    document.getElementById('statusDot').classList.add('error');
+    document.getElementById('connectionStatus').textContent = 'Disconnected';
+  }
+}
+
+function updateSettingsDisplay(data) {
+  document.getElementById('fpsSelect').value = data.fps;
+  document.getElementById('motionToggle').checked = data.motion;
+  document.getElementById('lowDataToggle').checked = data.low_data;
+  document.getElementById('profanityToggle').checked = data.profanity_filter;
+  document.getElementById('autoBanToggle').checked = data.auto_ban || false;
+  document.getElementById('aiToggle').checked = data.ai_enabled !== false;
+  document.getElementById('aiAutoReplyToggle').checked = data.ai_auto_reply || false;
+  
+  const indicator = document.getElementById('motionIndicator');
+  const status = document.getElementById('motionStatus');
+  if (data.motion) {
+    indicator.classList.remove('disabled');
+    status.textContent = 'Motion: On';
+  } else {
+    indicator.classList.add('disabled');
+    status.textContent = 'Motion: Off';
+  }
+}
+
+function updateActivityLog(events) {
+  const log = document.getElementById('activityLog');
+  
+  if (!events || events.length === 0) {
+    log.innerHTML = '<div class="no-activity">No motion events detected</div>';
+    return;
+  }
+  
+  const recentEvents = events.slice(-10).reverse();
+  
+  log.innerHTML = recentEvents.map(event => `
+    <div class="activity-item">
+      <span class="activity-time">${event.time_str}</span>
+      <span class="activity-intensity">⚡ ${event.intensity}</span>
+    </div>
+  `).join('');
+}
+
+async function updateChat() {
+  try {
+    const response = await fetch(`${API_URL}/chat/messages`);
+    if (!response.ok) return;
+    
+    const data = await response.json();
+    const messages = data.messages || [];
+    
+    if (messages.length === 0) {
+      document.getElementById('chatMessages').innerHTML = '<div class="no-activity">No messages yet. Start chatting!</div>';
+      document.getElementById('aiChatMessages').innerHTML = '<div class="no-activity">Ask Merle AI anything! 🐆</div>';
+      return;
+    }
+    
+    // Separate public and AI messages
+    const publicMessages = messages.filter(msg => msg.type !== 'ai');
+    const aiMessages = messages.filter(msg => msg.type === 'ai' || msg.username.includes('AI'));
+    
+    // Update public chat
+    const latestPublicId = publicMessages[publicMessages.length - 1]?.id || 0;
+    if (latestPublicId > lastMessageId || publicMessages.length === 0) {
+      lastMessageId = latestPublicId;
+      
+      const chatContainer = document.getElementById('chatMessages');
+      const shouldScroll = chatContainer.scrollHeight - chatContainer.scrollTop <= chatContainer.clientHeight + 100;
+      
+      if (publicMessages.length === 0) {
+        chatContainer.innerHTML = '<div class="no-activity">No messages yet. Start chatting!</div>';
+      } else {
+        chatContainer.innerHTML = publicMessages.map(msg => {
+          const messageClass = msg.type === 'censored' ? 'censored' : msg.type === 'system' ? 'system' : '';
+          return `
+            <div class="chat-message ${messageClass}">
+              <div class="message-header">
+                <span class="message-username">${escapeHtml(msg.username)}</span>
+                <span class="message-time">${msg.time_str}</span>
+              </div>
+              <div class="message-text">${escapeHtml(msg.text)}</div>
+            </div>
+          `;
+        }).join('');
+      }
+      
+      if (shouldScroll) {
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+      }
+    }
+    
+    // Update AI chat
+    const latestAIId = aiMessages[aiMessages.length - 1]?.id || 0;
+    if (latestAIId > lastAIMessageId || aiMessages.length === 0) {
+      lastAIMessageId = latestAIId;
+      
+      const aiChatContainer = document.getElementById('aiChatMessages');
+      const shouldScrollAI = aiChatContainer.scrollHeight - aiChatContainer.scrollTop <= aiChatContainer.clientHeight + 100;
+      
+      if (aiMessages.length === 0) {
+        aiChatContainer.innerHTML = '<div class="no-activity">Ask Merle AI anything! 🐆</div>';
+      } else {
+        aiChatContainer.innerHTML = aiMessages.map(msg => `
+          <div class="chat-message ai">
+            <div class="message-header">
+              <span class="message-username">${escapeHtml(msg.username)}</span>
+              <span class="message-time">${msg.time_str}</span>
+            </div>
+            <div class="message-text">${escapeHtml(msg.text)}</div>
+          </div>
+        `).join('');
+      }
+      
+      if (shouldScrollAI) {
+        aiChatContainer.scrollTop = aiChatContainer.scrollHeight;
+      }
+    }
+    
+  } catch (error) {
+    console.error('Chat update failed:', error);
+  }
+}
+
+async function sendMessage() {
+  const usernameInput = document.getElementById('usernameInput');
+  const messageInput = document.getElementById('messageInput');
+  const sendBtn = document.getElementById('sendMessageBtn');
+  
+  const username = usernameInput.value.trim();
+  const text = messageInput.value.trim();
+  
+  if (!username) {
+    usernameInput.focus();
+    usernameInput.style.borderColor = 'var(--danger)';
+    setTimeout(() => usernameInput.style.borderColor = '', 2000);
+    return;
+  }
+  
+  if (!text) {
+    messageInput.focus();
+    return;
+  }
+  
+  // Save username
+  localStorage.setItem('merle_cam_username', username);
+  
+  // Disable button
+  sendBtn.disabled = true;
+  sendBtn.innerHTML = '<div class="loading"></div>';
+  
+  try {
+    const response = await fetch(`${API_URL}/chat/send`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ username, text })
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      messageInput.value = '';
+      
+      if (result.censored) {
+        // Show warning
+        messageInput.style.borderColor = 'var(--warning)';
+        setTimeout(() => messageInput.style.borderColor = '', 2000);
+      }
+      
+      // Update chat immediately
+      await updateChat();
+    } else {
+      // Show error
+      alert(result.error || 'Failed to send message');
+      
+      if (result.banned) {
+        usernameInput.style.borderColor = 'var(--danger)';
+        usernameInput.disabled = true;
+      }
+    }
+    
+  } catch (error) {
+    console.error('Send message failed:', error);
+    alert('Failed to send message');
+  } finally {
+    sendBtn.disabled = false;
+    sendBtn.innerHTML = '<span>📤</span> Send';
+  }
+}
+
+async function sendAIMessage() {
+  const messageInput = document.getElementById('aiMessageInput');
+  const sendBtn = document.getElementById('sendAIMessageBtn');
+  
+  const text = messageInput.value.trim();
+  
+  if (!text) {
+    messageInput.focus();
+    return;
+  }
+  
+  const username = localStorage.getItem('merle_cam_username') || 'Guest';
+  
+  // Disable button
+  sendBtn.disabled = true;
+  sendBtn.innerHTML = '<div class="loading"></div>';
+  
+  try {
+    const response = await fetch(`${API_URL}/ai/chat`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ message: text, username })
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      messageInput.value = '';
+      
+      // Add user message to AI chat
+      const aiChatContainer = document.getElementById('aiChatMessages');
+      if (aiChatContainer.innerHTML.includes('no-activity')) {
+        aiChatContainer.innerHTML = '';
+      }
+      
+      const now = new Date();
+      const timeStr = now.toTimeString().split(' ')[0].substring(0, 5);
+      
+      // User message
+      aiChatContainer.innerHTML += `
+        <div class="chat-message">
+          <div class="message-header">
+            <span class="message-username">${escapeHtml(username)}</span>
+            <span class="message-time">${timeStr}</span>
+          </div>
+          <div class="message-text">${escapeHtml(text)}</div>
+        </div>
+      `;
+      
+      // AI response
+      aiChatContainer.innerHTML += `
+        <div class="chat-message ai">
+          <div class="message-header">
+            <span class="message-username">Merle AI 🐆</span>
+            <span class="message-time">${timeStr}</span>
+          </div>
+          <div class="message-text">${escapeHtml(result.response)}</div>
+        </div>
+      `;
+      
+      aiChatContainer.scrollTop = aiChatContainer.scrollHeight;
+    } else {
+      alert(result.error || 'AI is not available');
+    }
+    
+  } catch (error) {
+    console.error('AI message failed:', error);
+    alert('Failed to get AI response');
+  } finally {
+    sendBtn.disabled = false;
+    sendBtn.innerHTML = '<span>🤖</span> Ask';
+  }
+}
+
+async function loadViolations() {
+  try {
+    const response = await fetch(`${API_URL}/moderation/violations`);
+    if (!response.ok) return;
+    
+    const data = await response.json();
+    const violations = data.violations || [];
+    
+    const log = document.getElementById('violationLog');
+    
+    if (violations.length === 0) {
+      log.innerHTML = '<div class="no-activity">No violations detected</div>';
+      return;
+    }
+    
+    log.innerHTML = violations.slice().reverse().map(v => `
+      <div class="violation-item">
+        <div class="violation-header">
+          <span class="violation-user">👤 ${escapeHtml(v.username)}</span>
+          <span class="violation-time">${v.time_str}</span>
+        </div>
+        <div class="violation-text">"${escapeHtml(v.text)}"</div>
+        <div class="violation-words">Detected: ${v.found_words.join(', ')}</div>
+      </div>
+    `).join('');
+    
+  } catch (error) {
+    console.error('Load violations failed:', error);
+  }
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+// Event Listeners
+document.getElementById('sendMessageBtn').addEventListener('click', sendMessage);
+document.getElementById('sendAIMessageBtn').addEventListener('click', sendAIMessage);
+
+document.getElementById('messageInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+});
+
+document.getElementById('aiMessageInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendAIMessage();
+  }
+});
+
+document.getElementById('applyBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('applyBtn');
+  const originalHTML = btn.innerHTML;
+  
+  btn.innerHTML = '<div class="loading"></div>';
+  btn.disabled = true;
+  
+  try {
+    const settings = {
+      fps: document.getElementById('fpsSelect').value,
+      motion: document.getElementById('motionToggle').checked,
+      lowdata: document.getElementById('lowDataToggle').checked
+    };
+    
+    const response = await fetch(`${API_URL}/settings?` + new URLSearchParams(settings), {
+      method: 'POST'
+    });
+    const data = await response.json();
+    
+    updateSettingsDisplay(data);
+    
+    btn.innerHTML = '<span>✓</span> Applied!';
+    btn.style.background = 'linear-gradient(135deg, #4ade80, #22c55e)';
+    
+    setTimeout(() => {
+      btn.innerHTML = originalHTML;
+      btn.style.background = '';
+      btn.disabled = false;
+    }, 2000);
+    
+  } catch (error) {
+    console.error('Failed to apply settings:', error);
+    btn.innerHTML = '<span>✗</span> Error';
+    btn.style.background = 'linear-gradient(135deg, #f87171, #dc2626)';
+    
+    setTimeout(() => {
+      btn.innerHTML = originalHTML;
+      btn.style.background = '';
+      btn.disabled = false;
+    }, 2000);
+  }
+});
+
+document.getElementById('applyModerationBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('applyModerationBtn');
+  const originalHTML = btn.innerHTML;
+  
+  btn.innerHTML = '<div class="loading"></div>';
+  btn.disabled = true;
+  
+  try {
+    const settings = {
+      profanity_filter: document.getElementById('profanityToggle').checked,
+      auto_ban: document.getElementById('autoBanToggle').checked
+    };
+    
+    const response = await fetch(`${API_URL}/settings?` + new URLSearchParams(settings), {
+      method: 'POST'
+    });
+    
+    btn.innerHTML = '<span>✓</span> Applied!';
+    btn.style.background = 'linear-gradient(135deg, #4ade80, #22c55e)';
+    
+    setTimeout(() => {
+      btn.innerHTML = originalHTML;
+      btn.style.background = '';
+      btn.disabled = false;
+    }, 2000);
+    
+  } catch (error) {
+    console.error('Failed to apply moderation settings:', error);
+    btn.innerHTML = '<span>✗</span> Error';
+    
+    setTimeout(() => {
+      btn.innerHTML = originalHTML;
+      btn.disabled = false;
+    }, 2000);
+  }
+});
+
+document.getElementById('applyAIBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('applyAIBtn');
+  const originalHTML = btn.innerHTML;
+  
+  btn.innerHTML = '<div class="loading"></div>';
+  btn.disabled = true;
+  
+  try {
+    const settings = {
+      ai_enabled: document.getElementById('aiToggle').checked,
+      ai_auto_reply: document.getElementById('aiAutoReplyToggle').checked
+    };
+    
+    const response = await fetch(`${API_URL}/settings?` + new URLSearchParams(settings), {
+      method: 'POST'
+    });
+    
+    btn.innerHTML = '<span>✓</span> Applied!';
+    btn.style.background = 'linear-gradient(135deg, #4ade80, #22c55e)';
+    
+    setTimeout(() => {
+      btn.innerHTML = originalHTML;
+      btn.style.background = '';
+      btn.disabled = false;
+    }, 2000);
+    
+  } catch (error) {
+    console.error('Failed to apply AI settings:', error);
+    btn.innerHTML = '<span>✗</span> Error';
+    
+    setTimeout(() => {
+      btn.innerHTML = originalHTML;
+      btn.disabled = false;
+    }, 2000);
+  }
+});
+
+document.getElementById('refreshBtn').addEventListener('click', () => {
+  const video = document.getElementById('videoFeed');
+  video.src = `${VIDEO_URL}?session=${sessionId}&t=${Date.now()}`;
+});
+
+document.getElementById('clearChatBtn').addEventListener('click', async () => {
+  if (!confirm('Clear all public chat messages?')) return;
+  
+  try {
+    await fetch(`${API_URL}/chat/clear`, { method: 'POST' });
+    document.getElementById('chatMessages').innerHTML = '<div class="no-activity">Chat cleared</div>';
+    lastMessageId = 0;
+  } catch (error) {
+    console.error('Failed to clear chat:', error);
+  }
+});
+
+document.getElementById('clearAIChatBtn').addEventListener('click', () => {
+  document.getElementById('aiChatMessages').innerHTML = '<div class="no-activity">Ask Merle AI anything! 🐆</div>';
+});
+
+document.getElementById('clearEventsBtn').addEventListener('click', () => {
+  const log = document.getElementById('activityLog');
+  log.innerHTML = '<div class="no-activity">Activity log cleared</div>';
+  document.getElementById('eventCount').textContent = '0';
+});
+
+document.getElementById('viewViolationsBtn').addEventListener('click', () => {
+  document.getElementById('violationPanel').style.display = 'block';
+  loadViolations();
+});
+
+document.getElementById('closeViolationsBtn').addEventListener('click', () => {
+  document.getElementById('violationPanel').style.display = 'none';
+});
+
+document.getElementById('clearViolationsBtn').addEventListener('click', async () => {
+  if (!confirm('Clear all violations?')) return;
+  
+  try {
+    await fetch(`${API_URL}/moderation/violations/clear`, { method: 'POST' });
+    document.getElementById('violationLog').innerHTML = '<div class="no-activity">Violations cleared</div>';
+    document.getElementById('violationBadge').textContent = '0';
+  } catch (error) {
+    console.error('Failed to clear violations:', error);
+  }
+});
+
+// Initialize
+window.addEventListener('DOMContentLoaded', () => {
+  console.log('🐆 Merle Cam Dashboard v3.1 Initialized');
+  
+  initVideo();
+  updateStatus();
+  updateChat();
+  
+  updateInterval = setInterval(updateStatus, UPDATE_INTERVAL);
+  chatUpdateInterval = setInterval(updateChat, CHAT_UPDATE_INTERVAL);
+});
+
+window.addEventListener('beforeunload', () => {
+  clearInterval(updateInterval);
+  clearInterval(chatUpdateInterval);
+});
+
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    clearInterval(updateInterval);
+    clearInterval(chatUpdateInterval);
+  } else {
+    updateStatus();
+    updateChat();
+    updateInterval = setInterval(updateStatus, UPDATE_INTERVAL);
+    chatUpdateInterval = setInterval(updateChat, CHAT_UPDATE_INTERVAL);
+  }
+});
+</script>
+
+</body>
+</html>btn btn-secondary" style="padding: 8px 16px; font-size: 12px;" id="clearChatBtn">
             Clear
           </button>
         </div>
         
         <div class="chat-messages" id="chatMessages">
-          <div class="no-activity">Loading chat...</div>
+          <div class="no-activity">Loading chat history...</div>
         </div>
         
         <div class="chat-input-container">
           <div class="chat-input-wrapper">
-            <input type="text" class="username-input" id="usernameInput" placeholder="Your username..." maxlength="20" value="Guest">
+            <input type="text" class="username-input" id="usernameInput" placeholder="Your username..." maxlength="20">
             <textarea class="chat-input" id="messageInput" placeholder="Type a message..." rows="2" maxlength="500"></textarea>
           </div>
           <button class="btn btn-primary btn-send" id="sendMessageBtn">
@@ -936,541 +1701,18 @@ input:checked + .toggle-slider:before {
       <!-- AI Chat -->
       <div class="chat-section ai-chat">
         <div class="chat-header">
-          <h2><span class="panel-icon">🤖</span> Merle AI Assistant</h2>
+          <h2><span class="panel-icon">🤖</span> AI Assistant</h2>
           <button class="btn btn-secondary" style="padding: 8px 16px; font-size: 12px;" id="clearAIChatBtn">
             Clear
           </button>
         </div>
         
         <div class="chat-messages" id="aiChatMessages">
-          <div class="chat-message ai">
-            <div class="message-header">
-              <span class="message-username">Merle AI 🐆</span>
-              <span class="message-time">Now</span>
-            </div>
-            <div class="message-text">Hello! I'm Merle AI. Ask me anything about the camera system! 🐆</div>
-          </div>
+          <div class="no-activity">Ask Merle AI anything! 🐆</div>
         </div>
         
         <div class="chat-input-container">
           <div class="chat-input-wrapper">
             <textarea class="chat-input" id="aiMessageInput" placeholder="Ask Merle AI anything..." rows="2" maxlength="500"></textarea>
           </div>
-          <button class="btn btn-primary btn-send" id="sendAIMessageBtn">
-            <span>🤖</span> Ask
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Control Panel -->
-  <div class="control-panel">
-    <!-- Camera Controls -->
-    <div class="panel-card">
-      <div class="panel-header">
-        <h2><span class="panel-icon">📹</span> Camera Controls</h2>
-      </div>
-      
-      <div class="control-group">
-        <label>Frame Rate</label>
-        <select id="fpsSelect">
-          <option value="15">15 FPS</option>
-          <option value="24">24 FPS</option>
-          <option value="30" selected>30 FPS</option>
-          <option value="60">60 FPS</option>
-        </select>
-      </div>
-
-      <div class="toggle-group" onclick="toggleMotionDetection()">
-        <div class="toggle-label">
-          <span>🚨</span>
-          <span>Motion Detection</span>
-        </div>
-        <label class="toggle-switch">
-          <input type="checkbox" id="motionToggle" checked>
-          <span class="toggle-slider"></span>
-        </label>
-      </div>
-
-      <div class="toggle-group" onclick="toggleLowData()">
-        <div class="toggle-label">
-          <span>📶</span>
-          <span>Low Data Mode</span>
-        </div>
-        <label class="toggle-switch">
-          <input type="checkbox" id="lowDataToggle">
-          <span class="toggle-slider"></span>
-        </label>
-      </div>
-
-      <div class="toggle-group" onclick="toggleRecording()">
-        <div class="toggle-label">
-          <span>⏺️</span>
-          <span>Recording</span>
-        </div>
-        <label class="toggle-switch">
-          <input type="checkbox" id="recordingToggle">
-          <span class="toggle-slider"></span>
-        </label>
-      </div>
-
-      <div class="toggle-group" onclick="toggleProfanityFilter()">
-        <div class="toggle-label">
-          <span>🛡️</span>
-          <span>Profanity Filter</span>
-        </div>
-        <label class="toggle-switch">
-          <input type="checkbox" id="profanityToggle" checked>
-          <span class="toggle-slider"></span>
-        </label>
-      </div>
-
-      <div class="toggle-group" onclick="toggleAI()">
-        <div class="toggle-label">
-          <span>🤖</span>
-          <span>AI Auto-Reply</span>
-        </div>
-        <label class="toggle-switch">
-          <input type="checkbox" id="aiToggle">
-          <span class="toggle-slider"></span>
-        </label>
-      </div>
-
-      <div class="button-group">
-        <button class="btn btn-secondary" onclick="takeSnapshot()">
-          <span>📸</span> Snapshot
-        </button>
-        <button class="btn btn-secondary" onclick="resetCamera()">
-          <span>🔄</span> Reset
-        </button>
-      </div>
-    </div>
-
-    <!-- Activity Log -->
-    <div class="panel-card">
-      <div class="panel-header">
-        <h2><span class="panel-icon">📊</span> Motion Activity</h2>
-      </div>
-      
-      <div class="activity-log" id="activityLog">
-        <div class="no-activity">No motion detected yet</div>
-      </div>
-    </div>
-
-    <!-- Profanity Violations -->
-    <div class="panel-card">
-      <div class="panel-header">
-        <h2>
-          <span class="panel-icon">🛡️</span> 
-          Profanity Filter
-          <span class="badge-count" id="violationBadge">0</span>
-        </h2>
-      </div>
-      
-      <div class="activity-log" id="violationLog">
-        <div class="no-activity">No violations detected</div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<script>
-// Configuration
-const API_BASE = 'http://localhost:5000';
-const UPDATE_INTERVAL = 1000; // 1 second
-
-// State
-let lastMessageId = 0;
-let updateTimer = null;
-
-// Utility Functions
-function formatTime(seconds) {
-  const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
-  const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
-  const s = Math.floor(seconds % 60).toString().padStart(2, '0');
-  return `${h}:${m}:${s}`;
-}
-
-function getTimeString() {
-  const now = new Date();
-  return now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-}
-
-// API Functions
-async function fetchStatus() {
-  try {
-    const response = await fetch(`${API_BASE}/status`);
-    const data = await response.json();
-    updateUI(data);
-  } catch (error) {
-    console.error('Failed to fetch status:', error);
-    document.getElementById('connectionStatus').textContent = 'Disconnected';
-    document.getElementById('statusDot').classList.add('error');
-  }
-}
-
-async function fetchMessages() {
-  try {
-    const response = await fetch(`${API_BASE}/chat/messages`);
-    const data = await response.json();
-    
-    // Only update if there are new messages
-    if (data.messages.length > 0) {
-      const latestId = data.messages[data.messages.length - 1].id;
-      if (latestId > lastMessageId) {
-        displayMessages(data.messages);
-        lastMessageId = latestId;
-      }
-    }
-  } catch (error) {
-    console.error('Failed to fetch messages:', error);
-  }
-}
-
-async function fetchViolations() {
-  try {
-    const response = await fetch(`${API_BASE}/moderation/violations`);
-    const data = await response.json();
-    displayViolations(data.violations);
-  } catch (error) {
-    console.error('Failed to fetch violations:', error);
-  }
-}
-
-async function sendMessage(username, text) {
-  try {
-    const response = await fetch(`${API_BASE}/chat/send`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, text })
-    });
-    
-    const result = await response.json();
-    
-    if (!result.success) {
-      alert(result.error || 'Failed to send message');
-    }
-    
-    // Refresh messages
-    await fetchMessages();
-    
-  } catch (error) {
-    console.error('Failed to send message:', error);
-    alert('Failed to send message');
-  }
-}
-
-async function sendAIMessage(message) {
-  try {
-    const response = await fetch(`${API_BASE}/ai/chat`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        message, 
-        username: document.getElementById('usernameInput').value || 'Guest'
-      })
-    });
-    
-    const result = await response.json();
-    
-    if (result.success) {
-      addAIChatMessage('You', message, false);
-      addAIChatMessage('Merle AI 🐆', result.response, true);
-    } else {
-      alert(result.error || 'AI is not available');
-    }
-    
-  } catch (error) {
-    console.error('Failed to get AI response:', error);
-    alert('Failed to get AI response');
-  }
-}
-
-async function updateSetting(key, value) {
-  try {
-    await fetch(`${API_BASE}/settings?${key}=${value}`, {
-      method: 'POST'
-    });
-  } catch (error) {
-    console.error('Failed to update setting:', error);
-  }
-}
-
-async function captureSnapshot() {
-  try {
-    const response = await fetch(`${API_BASE}/snapshot`, {
-      method: 'POST'
-    });
-    const result = await response.json();
-    
-    if (result.success) {
-      alert(`Snapshot saved: ${result.filename}`);
-    }
-  } catch (error) {
-    console.error('Failed to capture snapshot:', error);
-  }
-}
-
-// UI Update Functions
-function updateUI(data) {
-  // Connection status
-  document.getElementById('connectionStatus').textContent = 'Connected';
-  document.getElementById('statusDot').classList.remove('error');
-  
-  // Uptime
-  document.getElementById('uptimeDisplay').textContent = formatTime(data.uptime);
-  
-  // Stats
-  document.getElementById('brightnessValue').textContent = data.brightness;
-  document.getElementById('fpsValue').textContent = data.fps_actual;
-  document.getElementById('frameCount').textContent = data.frame_count;
-  document.getElementById('eventCount').textContent = data.motion_events.length;
-  document.getElementById('messageCount').textContent = data.total_messages;
-  document.getElementById('filteredCount').textContent = data.filtered_messages;
-  document.getElementById('aiCount').textContent = data.ai_responses;
-  
-  // Motion indicator
-  const motionIndicator = document.getElementById('motionIndicator');
-  const motionStatus = document.getElementById('motionStatus');
-  if (data.settings.motion) {
-    motionIndicator.classList.remove('disabled');
-    motionStatus.textContent = 'Motion Enabled';
-  } else {
-    motionIndicator.classList.add('disabled');
-    motionStatus.textContent = 'Motion Disabled';
-  }
-  
-  // Motion events
-  displayMotionEvents(data.motion_events);
-  
-  // Update toggles to match server state
-  document.getElementById('motionToggle').checked = data.settings.motion;
-  document.getElementById('lowDataToggle').checked = data.settings.low_data;
-  document.getElementById('recordingToggle').checked = data.settings.recording;
-  document.getElementById('profanityToggle').checked = data.settings.profanity_filter;
-  document.getElementById('aiToggle').checked = data.settings.ai_auto_reply;
-}
-
-function displayMessages(messages) {
-  const container = document.getElementById('chatMessages');
-  container.innerHTML = '';
-  
-  if (messages.length === 0) {
-    container.innerHTML = '<div class="no-activity">No messages yet</div>';
-    return;
-  }
-  
-  messages.forEach(msg => {
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `chat-message ${msg.type}`;
-    messageDiv.innerHTML = `
-      <div class="message-header">
-        <span class="message-username">${msg.username}</span>
-        <span class="message-time">${msg.time_str}</span>
-      </div>
-      <div class="message-text">${msg.text}</div>
-    `;
-    container.appendChild(messageDiv);
-  });
-  
-  container.scrollTop = container.scrollHeight;
-}
-
-function displayMotionEvents(events) {
-  const log = document.getElementById('activityLog');
-  
-  if (events.length === 0) {
-    log.innerHTML = '<div class="no-activity">No motion detected yet</div>';
-    return;
-  }
-  
-  log.innerHTML = '';
-  events.slice(-10).reverse().forEach(event => {
-    const item = document.createElement('div');
-    item.className = 'activity-item';
-    item.innerHTML = `
-      <span class="activity-time">${event.time_str}</span>
-      <span class="activity-intensity">${Math.round(event.intensity / 100)}%</span>
-    `;
-    log.appendChild(item);
-  });
-}
-
-function displayViolations(violations) {
-  const log = document.getElementById('violationLog');
-  const badge = document.getElementById('violationBadge');
-  
-  badge.textContent = violations.length;
-  
-  if (violations.length === 0) {
-    log.innerHTML = '<div class="no-activity">No violations detected</div>';
-    return;
-  }
-  
-  log.innerHTML = '';
-  violations.slice(-10).reverse().forEach(violation => {
-    const item = document.createElement('div');
-    item.className = 'violation-item';
-    item.innerHTML = `
-      <div class="violation-header">
-        <span class="violation-user">${violation.username}</span>
-        <span class="violation-time">${violation.time_str}</span>
-      </div>
-      <div class="violation-text">"${violation.text}"</div>
-      <div class="violation-words">Detected: ${violation.found_words.join(', ')}</div>
-    `;
-    log.appendChild(item);
-  });
-}
-
-function addAIChatMessage(username, message, isAI) {
-  const container = document.getElementById('aiChatMessages');
-  
-  const messageDiv = document.createElement('div');
-  messageDiv.className = isAI ? 'chat-message ai' : 'chat-message';
-  messageDiv.innerHTML = `
-    <div class="message-header">
-      <span class="message-username">${username}</span>
-      <span class="message-time">${getTimeString()}</span>
-    </div>
-    <div class="message-text">${message}</div>
-  `;
-  
-  container.appendChild(messageDiv);
-  container.scrollTop = container.scrollHeight;
-}
-
-// Event Handlers
-document.getElementById('sendMessageBtn').addEventListener('click', async () => {
-  const input = document.getElementById('messageInput');
-  const usernameInput = document.getElementById('usernameInput');
-  const message = input.value.trim();
-  const username = usernameInput.value.trim() || 'Guest';
-  
-  if (!message) return;
-  
-  await sendMessage(username, message);
-  input.value = '';
-});
-
-document.getElementById('messageInput').addEventListener('keypress', (e) => {
-  if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault();
-    document.getElementById('sendMessageBtn').click();
-  }
-});
-
-document.getElementById('sendAIMessageBtn').addEventListener('click', async () => {
-  const input = document.getElementById('aiMessageInput');
-  const message = input.value.trim();
-  
-  if (!message) return;
-  
-  await sendAIMessage(message);
-  input.value = '';
-});
-
-document.getElementById('aiMessageInput').addEventListener('keypress', (e) => {
-  if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault();
-    document.getElementById('sendAIMessageBtn').click();
-  }
-});
-
-document.getElementById('clearChatBtn').addEventListener('click', async () => {
-  if (confirm('Clear all chat messages?')) {
-    try {
-      await fetch(`${API_BASE}/chat/clear`, { method: 'POST' });
-      await fetchMessages();
-    } catch (error) {
-      console.error('Failed to clear chat:', error);
-    }
-  }
-});
-
-document.getElementById('clearAIChatBtn').addEventListener('click', () => {
-  const container = document.getElementById('aiChatMessages');
-  container.innerHTML = `
-    <div class="chat-message ai">
-      <div class="message-header">
-        <span class="message-username">Merle AI 🐆</span>
-        <span class="message-time">Now</span>
-      </div>
-      <div class="message-text">Chat cleared. How can I help you? 🐆</div>
-    </div>
-  `;
-});
-
-document.getElementById('fpsSelect').addEventListener('change', (e) => {
-  updateSetting('fps', e.target.value);
-});
-
-// Toggle Functions
-function toggleMotionDetection() {
-  const toggle = document.getElementById('motionToggle');
-  updateSetting('motion', toggle.checked);
-}
-
-function toggleLowData() {
-  const toggle = document.getElementById('lowDataToggle');
-  updateSetting('lowdata', toggle.checked);
-}
-
-function toggleRecording() {
-  const toggle = document.getElementById('recordingToggle');
-  updateSetting('recording', toggle.checked);
-}
-
-function toggleProfanityFilter() {
-  const toggle = document.getElementById('profanityToggle');
-  updateSetting('profanity_filter', toggle.checked);
-}
-
-function toggleAI() {
-  const toggle = document.getElementById('aiToggle');
-  updateSetting('ai_auto_reply', toggle.checked);
-}
-
-async function takeSnapshot() {
-  await captureSnapshot();
-}
-
-function resetCamera() {
-  if (confirm('Reset camera settings to defaults?')) {
-    location.reload();
-  }
-}
-
-// Initialize
-async function initialize() {
-  console.log('🐆 Merle Cam Dashboard Initializing...');
-  
-  // Initial fetch
-  await fetchStatus();
-  await fetchMessages();
-  await fetchViolations();
-  
-  // Start update loop
-  updateTimer = setInterval(async () => {
-    await fetchStatus();
-    await fetchMessages();
-    await fetchViolations();
-  }, UPDATE_INTERVAL);
-  
-  console.log('✅ Dashboard initialized');
-}
-
-// Start the app
-initialize();
-
-// Cleanup on page unload
-window.addEventListener('beforeunload', () => {
-  if (updateTimer) {
-    clearInterval(updateTimer);
-  }
-});
-</script>
-
-</body>
-</html>
+          <button class="
