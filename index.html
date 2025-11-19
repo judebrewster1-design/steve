@@ -941,108 +941,100 @@ input:checked + .toggle-slider:before {
       </div>
       
       <div class="control-group">
-        <label for="fpsSelect">Frame Rate</label>
-        <select id="fpsSelect">
-          <option value="10">10 FPS - Power Saving</option>
-          <option value="15">15 FPS - Eco Mode</option>
-          <option value="24">24 FPS - Cinematic</option>
-          <option value="30" selected>30 FPS - Standard</option>
-          <option value="60">60 FPS - Smooth</option>
-        </select>
+        <label>Frame Rate</label>
+        <div style="padding: 12px 16px; background: var(--bg-primary); border: 2px solid var(--border-color); border-radius: 10px; color: var(--text-primary); font-size: 14px; font-weight: 600;">
+          <span id="fpsDisplay">-- FPS</span>
+        </div>
       </div>
       
-      <div class="toggle-group" onclick="document.getElementById('motionToggle').click()">
+      <div class="toggle-group" style="cursor: default;">
         <div class="toggle-label">
           <span>🚨</span>
           <span>Motion Detection</span>
         </div>
         <label class="toggle-switch">
-          <input type="checkbox" id="motionToggle" checked onclick="event.stopPropagation()">
+          <input type="checkbox" id="motionToggle" checked disabled>
           <span class="toggle-slider"></span>
         </label>
       </div>
       
-      <div class="toggle-group" onclick="document.getElementById('lowDataToggle').click()">
+      <div class="toggle-group" style="cursor: default;">
         <div class="toggle-label">
           <span>📶</span>
           <span>Low Data Mode</span>
         </div>
         <label class="toggle-switch">
-          <input type="checkbox" id="lowDataToggle" onclick="event.stopPropagation()">
+          <input type="checkbox" id="lowDataToggle" disabled>
           <span class="toggle-slider"></span>
         </label>
       </div>
       
-      <div class="button-group">
-        <button class="btn btn-primary" id="applyBtn">
-          <span>✓</span> Apply
-        </button>
-        <button class="btn btn-secondary" id="refreshBtn">
-          <span>↻</span> Refresh
-        </button>
+      <div style="background: rgba(212, 162, 60, 0.1); padding: 12px; border-radius: 8px; border: 2px solid var(--accent-gold); margin-top: 12px;">
+        <p style="font-size: 12px; color: var(--text-primary); line-height: 1.4;">
+          🔒 <strong>Admin Only:</strong> Settings can only be changed by editing the backend configuration file.
+        </p>
       </div>
+      
+      <button class="btn btn-secondary" id="refreshBtn" style="margin-top: 15px; width: 100%;">
+        <span>↻</span> Refresh Video
+      </button>
     </div>
     
     <div class="panel-card">
       <div class="panel-header">
-        <h2><span class="panel-icon">🛡️</span> Moderation</h2>
+        <h2><span class="panel-icon">🛡️</span> Moderation Status</h2>
       </div>
       
-      <div class="toggle-group" onclick="document.getElementById('profanityToggle').click()">
+      <div class="toggle-group" style="cursor: default;">
         <div class="toggle-label">
           <span>🚫</span>
           <span>Profanity Filter</span>
         </div>
         <label class="toggle-switch">
-          <input type="checkbox" id="profanityToggle" checked onclick="event.stopPropagation()">
+          <input type="checkbox" id="profanityToggle" checked disabled>
           <span class="toggle-slider"></span>
         </label>
       </div>
       
-      <div class="toggle-group" onclick="document.getElementById('autoBanToggle').click()">
+      <div class="toggle-group" style="cursor: default;">
         <div class="toggle-label">
           <span>⚠️</span>
           <span>Auto-Ban Users</span>
         </div>
         <label class="toggle-switch">
-          <input type="checkbox" id="autoBanToggle" onclick="event.stopPropagation()">
+          <input type="checkbox" id="autoBanToggle" disabled>
           <span class="toggle-slider"></span>
         </label>
       </div>
       
-      <div class="button-group">
-        <button class="btn btn-primary" id="applyModerationBtn">
-          <span>✓</span> Apply
-        </button>
-        <button class="btn btn-secondary" id="viewViolationsBtn">
-          <span>📋</span> Violations<span class="badge-count" id="violationBadge">0</span>
-        </button>
-      </div>
+      <button class="btn btn-primary" id="viewViolationsBtn" style="margin-top: 15px; width: 100%;">
+        <span>📋</span> View Violations<span class="badge-count" id="violationBadge">0</span>
+      </button>
     </div>
     
     <div class="panel-card">
       <div class="panel-header">
-        <h2><span class="panel-icon">🤖</span> AI Settings</h2>
+        <h2><span class="panel-icon">🤖</span> AI Status</h2>
       </div>
       
-      <div class="toggle-group" onclick="document.getElementById('aiToggle').click()">
+      <div class="toggle-group" style="cursor: default;">
         <div class="toggle-label">
           <span>🐆</span>
-          <span>AI Chatbot Enabled</span>
+          <span>AI Chatbot</span>
         </div>
         <label class="toggle-switch">
-          <input type="checkbox" id="aiToggle" checked onclick="event.stopPropagation()">
+          <input type="checkbox" id="aiToggle" checked disabled>
           <span class="toggle-slider"></span>
         </label>
       </div>
       
-      <div class="toggle-group" onclick="document.getElementById('aiAutoReplyToggle').click()">
+      <div class="toggle-group" style="cursor: default;">
         <div class="toggle-label">
           <span>💬</span>
           <span>Auto-Reply in Chat</span>
         </div>
         <label class="toggle-switch">
-          <input type="checkbox" id="aiAutoReplyToggle" onclick="event.stopPropagation()">
+          <input type="checkbox" id="aiAutoReplyToggle" disabled>
           <span class="toggle-slider"></span>
         </label>
       </div>
@@ -1052,10 +1044,6 @@ input:checked + .toggle-slider:before {
           💡 <strong>Tip:</strong> Use the AI chat box for direct questions, or mention "Merle" in public chat!
         </p>
       </div>
-      
-      <button class="btn btn-primary" id="applyAIBtn" style="margin-top: 15px; width: 100%;">
-        <span>✓</span> Apply AI Settings
-      </button>
     </div>
     
     <div class="panel-card">
@@ -1179,7 +1167,10 @@ async function updateStatus() {
 }
 
 function updateSettingsDisplay(data) {
-  document.getElementById('fpsSelect').value = data.fps;
+  // Display FPS as text (read-only)
+  document.getElementById('fpsDisplay').textContent = `${data.fps} FPS`;
+  
+  // Update toggle states (disabled, just showing status)
   document.getElementById('motionToggle').checked = data.motion;
   document.getElementById('lowDataToggle').checked = data.low_data;
   document.getElementById('profanityToggle').checked = data.profanity_filter;
@@ -1492,123 +1483,6 @@ document.getElementById('aiMessageInput').addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && !e.shiftKey) {
     e.preventDefault();
     sendAIMessage();
-  }
-});
-
-document.getElementById('applyBtn').addEventListener('click', async () => {
-  const btn = document.getElementById('applyBtn');
-  const originalHTML = btn.innerHTML;
-  
-  btn.innerHTML = '<div class="loading"></div>';
-  btn.disabled = true;
-  
-  try {
-    const settings = {
-      fps: document.getElementById('fpsSelect').value,
-      motion: document.getElementById('motionToggle').checked,
-      lowdata: document.getElementById('lowDataToggle').checked
-    };
-    
-    const response = await fetch(`${API_URL}/settings?` + new URLSearchParams(settings), {
-      method: 'POST'
-    });
-    const data = await response.json();
-    
-    updateSettingsDisplay(data);
-    
-    btn.innerHTML = '<span>✓</span> Applied!';
-    btn.style.background = 'linear-gradient(135deg, #4ade80, #22c55e)';
-    
-    setTimeout(() => {
-      btn.innerHTML = originalHTML;
-      btn.style.background = '';
-      btn.disabled = false;
-    }, 2000);
-    
-  } catch (error) {
-    console.error('Failed to apply settings:', error);
-    btn.innerHTML = '<span>✗</span> Error';
-    btn.style.background = 'linear-gradient(135deg, #f87171, #dc2626)';
-    
-    setTimeout(() => {
-      btn.innerHTML = originalHTML;
-      btn.style.background = '';
-      btn.disabled = false;
-    }, 2000);
-  }
-});
-
-document.getElementById('applyModerationBtn').addEventListener('click', async () => {
-  const btn = document.getElementById('applyModerationBtn');
-  const originalHTML = btn.innerHTML;
-  
-  btn.innerHTML = '<div class="loading"></div>';
-  btn.disabled = true;
-  
-  try {
-    const settings = {
-      profanity_filter: document.getElementById('profanityToggle').checked,
-      auto_ban: document.getElementById('autoBanToggle').checked
-    };
-    
-    const response = await fetch(`${API_URL}/settings?` + new URLSearchParams(settings), {
-      method: 'POST'
-    });
-    
-    btn.innerHTML = '<span>✓</span> Applied!';
-    btn.style.background = 'linear-gradient(135deg, #4ade80, #22c55e)';
-    
-    setTimeout(() => {
-      btn.innerHTML = originalHTML;
-      btn.style.background = '';
-      btn.disabled = false;
-    }, 2000);
-    
-  } catch (error) {
-    console.error('Failed to apply moderation settings:', error);
-    btn.innerHTML = '<span>✗</span> Error';
-    
-    setTimeout(() => {
-      btn.innerHTML = originalHTML;
-      btn.disabled = false;
-    }, 2000);
-  }
-});
-
-document.getElementById('applyAIBtn').addEventListener('click', async () => {
-  const btn = document.getElementById('applyAIBtn');
-  const originalHTML = btn.innerHTML;
-  
-  btn.innerHTML = '<div class="loading"></div>';
-  btn.disabled = true;
-  
-  try {
-    const settings = {
-      ai_enabled: document.getElementById('aiToggle').checked,
-      ai_auto_reply: document.getElementById('aiAutoReplyToggle').checked
-    };
-    
-    const response = await fetch(`${API_URL}/settings?` + new URLSearchParams(settings), {
-      method: 'POST'
-    });
-    
-    btn.innerHTML = '<span>✓</span> Applied!';
-    btn.style.background = 'linear-gradient(135deg, #4ade80, #22c55e)';
-    
-    setTimeout(() => {
-      btn.innerHTML = originalHTML;
-      btn.style.background = '';
-      btn.disabled = false;
-    }, 2000);
-    
-  } catch (error) {
-    console.error('Failed to apply AI settings:', error);
-    btn.innerHTML = '<span>✗</span> Error';
-    
-    setTimeout(() => {
-      btn.innerHTML = originalHTML;
-      btn.disabled = false;
-    }, 2000);
   }
 });
 
