@@ -28,7 +28,7 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
   background: radial-gradient(ellipse at top, #4b3621 0%, var(--bg-primary) 50%, #0a0604 100%);
   color: var(--text-primary);
   min-height: 100vh;
@@ -43,20 +43,8 @@ body::before {
   width: 100%;
   height: 100%;
   background: 
-    repeating-linear-gradient(
-      90deg,
-      transparent,
-      transparent 50px,
-      rgba(212, 162, 60, 0.02) 50px,
-      rgba(212, 162, 60, 0.02) 51px
-    ),
-    repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 50px,
-      rgba(212, 162, 60, 0.02) 50px,
-      rgba(212, 162, 60, 0.02) 51px
-    );
+    repeating-linear-gradient(90deg, transparent, transparent 50px, rgba(212, 162, 60, 0.02) 50px, rgba(212, 162, 60, 0.02) 51px),
+    repeating-linear-gradient(0deg, transparent, transparent 50px, rgba(212, 162, 60, 0.02) 50px, rgba(212, 162, 60, 0.02) 51px);
   pointer-events: none;
   z-index: 0;
 }
@@ -129,19 +117,6 @@ body::before {
   align-items: center;
 }
 
-.header-merle-img {
-  height: 50px;
-  width: auto;
-  object-fit: contain;
-  transition: all 0.3s ease;
-  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3));
-}
-
-.header-merle-img:hover {
-  transform: scale(1.05);
-  filter: drop-shadow(0 4px 12px rgba(212, 162, 60, 0.6));
-}
-
 .status-badge {
   display: flex;
   align-items: center;
@@ -189,7 +164,7 @@ body::before {
   gap: 30px;
 }
 
-.video-section {
+.main-content {
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -265,23 +240,9 @@ body::before {
   animation: none;
 }
 
-.recording-indicator {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--danger);
-  box-shadow: 0 0 10px var(--danger);
-  animation: blink 1s infinite;
-}
-
-@keyframes blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.3; }
-}
-
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 15px;
 }
 
@@ -312,25 +273,197 @@ body::before {
 }
 
 .stat-card h3 {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   color: var(--accent-gold);
   text-transform: uppercase;
   letter-spacing: 1.5px;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .stat-value {
-  font-size: 36px;
+  font-size: 32px;
   font-weight: 700;
   color: var(--text-primary);
   line-height: 1;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 
 .stat-label {
-  font-size: 13px;
+  font-size: 11px;
   color: var(--text-secondary);
+}
+
+.chat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.chat-section {
+  background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-secondary) 100%);
+  border: 2px solid var(--border-color);
+  border-radius: 16px;
+  padding: 25px;
+  height: 500px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 32px var(--shadow);
+}
+
+.chat-section.ai-chat {
+  border-color: var(--accent-gold);
+  box-shadow: 0 8px 32px var(--shadow), 0 0 20px rgba(212, 162, 60, 0.2);
+}
+
+.chat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid var(--border-color);
+}
+
+.chat-header h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  margin-bottom: 15px;
+  padding-right: 8px;
+}
+
+.chat-messages::-webkit-scrollbar {
+  width: 8px;
+}
+
+.chat-messages::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+  border-radius: 4px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb {
+  background: var(--accent-gold);
+  border-radius: 4px;
+}
+
+.chat-message {
+  background: var(--bg-primary);
+  border: 2px solid var(--border-color);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  animation: slideIn 0.3s ease-out;
+}
+
+.chat-message.ai {
+  border-left: 4px solid var(--accent-gold);
+  background: rgba(212, 162, 60, 0.08);
+}
+
+.chat-message.censored {
+  border-left: 4px solid var(--warning);
+  background: rgba(251, 191, 36, 0.05);
+}
+
+.chat-message.system {
+  border-left: 4px solid var(--accent-gold);
+  background: rgba(212, 162, 60, 0.05);
+  font-style: italic;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.message-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.message-username {
+  font-weight: 700;
+  color: var(--accent-gold);
+  font-size: 13px;
+}
+
+.message-time {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.message-text {
+  font-size: 14px;
+  color: var(--text-primary);
+  line-height: 1.4;
+  word-wrap: break-word;
+}
+
+.chat-input-container {
+  display: flex;
+  gap: 10px;
+}
+
+.chat-input-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.chat-input {
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--bg-primary);
+  border: 2px solid var(--border-color);
+  border-radius: 10px;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s;
+  resize: none;
+  font-family: inherit;
+}
+
+.chat-input:focus {
+  outline: none;
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 0 3px rgba(212, 162, 60, 0.2);
+}
+
+.username-input {
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--bg-primary);
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.username-input:focus {
+  outline: none;
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 0 3px rgba(212, 162, 60, 0.2);
 }
 
 .control-panel {
@@ -389,7 +522,7 @@ body::before {
   letter-spacing: 1px;
 }
 
-.control-group select, .control-group input[type="text"] {
+.control-group select {
   width: 100%;
   padding: 12px 16px;
   background: var(--bg-primary);
@@ -400,9 +533,6 @@ body::before {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s;
-}
-
-.control-group select {
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath fill='%23d4a23c' d='M8 11L3 6h10z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
@@ -410,12 +540,12 @@ body::before {
   padding-right: 40px;
 }
 
-.control-group select:hover, .control-group input[type="text"]:hover {
+.control-group select:hover {
   border-color: var(--accent-gold);
   background-color: rgba(27, 18, 11, 0.8);
 }
 
-.control-group select:focus, .control-group input[type="text"]:focus {
+.control-group select:focus {
   outline: none;
   border-color: var(--accent-light);
   box-shadow: 0 0 0 3px rgba(212, 162, 60, 0.2);
@@ -536,6 +666,11 @@ input:checked + .toggle-slider:before {
   transform: translateY(-2px);
 }
 
+.btn-send {
+  padding: 12px 20px;
+  font-size: 14px;
+}
+
 .button-group {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -544,7 +679,7 @@ input:checked + .toggle-slider:before {
 }
 
 .activity-log {
-  max-height: 300px;
+  max-height: 250px;
   overflow-y: auto;
   padding-right: 8px;
 }
@@ -577,17 +712,6 @@ input:checked + .toggle-slider:before {
   animation: slideIn 0.5s ease-out;
 }
 
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
 .activity-item:hover {
   background: rgba(27, 18, 11, 0.8);
   border-color: var(--accent-gold);
@@ -609,62 +733,55 @@ input:checked + .toggle-slider:before {
   border-radius: 12px;
 }
 
+.violation-item {
+  background: var(--bg-primary);
+  border: 2px solid var(--danger);
+  border-left: 4px solid var(--danger);
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  animation: slideIn 0.3s ease-out;
+}
+
+.violation-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.violation-user {
+  font-weight: 700;
+  color: var(--danger);
+  font-size: 13px;
+}
+
+.violation-time {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.violation-text {
+  font-size: 12px;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+  font-style: italic;
+}
+
+.violation-words {
+  font-size: 11px;
+  color: var(--warning);
+  background: rgba(251, 191, 36, 0.1);
+  padding: 4px 8px;
+  border-radius: 6px;
+  display: inline-block;
+}
+
 .no-activity {
   text-align: center;
   padding: 40px 20px;
   color: var(--text-secondary);
   font-style: italic;
-}
-
-.oled-preview {
-  background: #000;
-  border: 3px solid var(--accent-gold);
-  border-radius: 12px;
-  padding: 20px;
-  font-family: 'Courier New', monospace;
-  font-size: 11px;
-  line-height: 1.4;
-  color: #fff;
-  min-height: 160px;
-  max-height: 160px;
-  overflow: hidden;
-  white-space: pre-wrap;
-  word-break: break-all;
-  box-shadow: 0 0 20px rgba(212, 162, 60, 0.3);
-}
-
-@media (max-width: 1200px) {
-  .container {
-    grid-template-columns: 1fr;
-  }
-  
-  .control-panel {
-    max-width: none;
-  }
-}
-
-@media (max-width: 768px) {
-  .header-content {
-    justify-content: center;
-  }
-  
-  .logo-icon {
-    width: 50px;
-    height: 50px;
-    font-size: 24px;
-  }
-  
-  .logo-text h1 {
-    font-size: 22px;
-  }
-  
-  .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  
-  .button-group {
-    grid-template-columns: 1fr;
-  }
 }
 
 .loading {
@@ -679,6 +796,42 @@ input:checked + .toggle-slider:before {
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+.badge-count {
+  background: var(--danger);
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 12px;
+  margin-left: 8px;
+}
+
+@media (max-width: 1400px) {
+  .chat-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 1200px) {
+  .container {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .header-content {
+    justify-content: center;
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .button-group {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
 </head>
@@ -696,32 +849,23 @@ input:checked + .toggle-slider:before {
     <div class="header-status">
       <div class="status-badge">
         <div class="status-dot" id="statusDot"></div>
-        <span id="connectionStatus">Initializing...</span>
+        <span id="connectionStatus">Connecting...</span>
       </div>
       <div class="status-badge">
-        <div class="status-dot" id="esp32StatusDot"></div>
-        <span id="esp32Status">ESP32: Offline</span>
+        <span id="uptimeDisplay">00:00:00</span>
       </div>
-      <div class="status-badge">
-        <span id="uptimeDisplay">--:--:--</span>
-      </div>
-      <img src="meryle.png" alt="Merle" class="header-merle-img" onerror="this.style.display='none'">
     </div>
   </div>
 </header>
 
 <div class="container">
-  <div class="video-section">
+  <div class="main-content">
     <div class="video-wrapper">
-      <img id="videoFeed" src="" alt="Live Camera Feed">
+      <img id="videoFeed" src="http://localhost:5000/video" alt="Live Camera Feed">
       <div class="video-overlay">
         <div class="overlay-badge">
           <div class="motion-indicator" id="motionIndicator"></div>
-          <span id="motionStatus">Motion</span>
-        </div>
-        <div class="overlay-badge" id="recordingBadge" style="display: none;">
-          <div class="recording-indicator"></div>
-          <span>REC</span>
+          <span id="motionStatus">Motion Detection</span>
         </div>
       </div>
     </div>
@@ -730,7 +874,7 @@ input:checked + .toggle-slider:before {
       <div class="stat-card">
         <h3>💡 Brightness</h3>
         <div class="stat-value" id="brightnessValue">--</div>
-        <div class="stat-label">Average luminosity (0-255)</div>
+        <div class="stat-label">Average luminosity</div>
       </div>
       <div class="stat-card">
         <h3>🎯 Frame Rate</h3>
@@ -743,129 +887,189 @@ input:checked + .toggle-slider:before {
         <div class="stat-label">Total captured</div>
       </div>
       <div class="stat-card">
-        <h3>🚨 Events</h3>
+        <h3>🚨 Motion</h3>
         <div class="stat-value" id="eventCount">--</div>
-        <div class="stat-label">Motion detections</div>
+        <div class="stat-label">Detections</div>
       </div>
       <div class="stat-card">
-        <h3>👁️ Viewers</h3>
-        <div class="stat-value" id="viewerCount">1</div>
-        <div class="stat-label">Currently watching</div>
+        <h3>💬 Messages</h3>
+        <div class="stat-value" id="messageCount">--</div>
+        <div class="stat-label">Total sent</div>
+      </div>
+      <div class="stat-card">
+        <h3>🛡️ Filtered</h3>
+        <div class="stat-value" id="filteredCount">--</div>
+        <div class="stat-label">Profanity caught</div>
+      </div>
+      <div class="stat-card">
+        <h3>🤖 AI Replies</h3>
+        <div class="stat-value" id="aiCount">--</div>
+        <div class="stat-label">Bot responses</div>
+      </div>
+    </div>
+
+    <div class="chat-grid">
+      <!-- Public Chat -->
+      <div class="chat-section">
+        <div class="chat-header">
+          <h2><span class="panel-icon">💬</span> Public Chat</h2>
+          <button class="btn btn-secondary" style="padding: 8px 16px; font-size: 12px;" id="clearChatBtn">
+            Clear
+          </button>
+        </div>
+        
+        <div class="chat-messages" id="chatMessages">
+          <div class="no-activity">Loading chat...</div>
+        </div>
+        
+        <div class="chat-input-container">
+          <div class="chat-input-wrapper">
+            <input type="text" class="username-input" id="usernameInput" placeholder="Your username..." maxlength="20" value="Guest">
+            <textarea class="chat-input" id="messageInput" placeholder="Type a message..." rows="2" maxlength="500"></textarea>
+          </div>
+          <button class="btn btn-primary btn-send" id="sendMessageBtn">
+            <span>📤</span> Send
+          </button>
+        </div>
+      </div>
+
+      <!-- AI Chat -->
+      <div class="chat-section ai-chat">
+        <div class="chat-header">
+          <h2><span class="panel-icon">🤖</span> Merle AI Assistant</h2>
+          <button class="btn btn-secondary" style="padding: 8px 16px; font-size: 12px;" id="clearAIChatBtn">
+            Clear
+          </button>
+        </div>
+        
+        <div class="chat-messages" id="aiChatMessages">
+          <div class="chat-message ai">
+            <div class="message-header">
+              <span class="message-username">Merle AI 🐆</span>
+              <span class="message-time">Now</span>
+            </div>
+            <div class="message-text">Hello! I'm Merle AI. Ask me anything about the camera system! 🐆</div>
+          </div>
+        </div>
+        
+        <div class="chat-input-container">
+          <div class="chat-input-wrapper">
+            <textarea class="chat-input" id="aiMessageInput" placeholder="Ask Merle AI anything..." rows="2" maxlength="500"></textarea>
+          </div>
+          <button class="btn btn-primary btn-send" id="sendAIMessageBtn">
+            <span>🤖</span> Ask
+          </button>
+        </div>
       </div>
     </div>
   </div>
-  
+
+  <!-- Control Panel -->
   <div class="control-panel">
+    <!-- Camera Controls -->
     <div class="panel-card">
       <div class="panel-header">
-        <h2><span class="panel-icon">⚙️</span> Camera Settings</h2>
+        <h2><span class="panel-icon">📹</span> Camera Controls</h2>
       </div>
       
       <div class="control-group">
-        <label for="fpsSelect">Frame Rate</label>
+        <label>Frame Rate</label>
         <select id="fpsSelect">
-          <option value="10">10 FPS - Power Saving</option>
-          <option value="15">15 FPS - Eco Mode</option>
-          <option value="24">24 FPS - Cinematic</option>
-          <option value="30" selected>30 FPS - Standard</option>
-          <option value="60">60 FPS - Smooth</option>
-          <option value="90">90 FPS - High Performance</option>
-          <option value="120">120 FPS - Ultra</option>
+          <option value="15">15 FPS</option>
+          <option value="24">24 FPS</option>
+          <option value="30" selected>30 FPS</option>
+          <option value="60">60 FPS</option>
         </select>
       </div>
-      
-      <div class="toggle-group" onclick="document.getElementById('motionToggle').click()">
+
+      <div class="toggle-group" onclick="toggleMotionDetection()">
         <div class="toggle-label">
           <span>🚨</span>
           <span>Motion Detection</span>
         </div>
         <label class="toggle-switch">
-          <input type="checkbox" id="motionToggle" checked onclick="event.stopPropagation()">
+          <input type="checkbox" id="motionToggle" checked>
           <span class="toggle-slider"></span>
         </label>
       </div>
-      
-      <div class="toggle-group" onclick="document.getElementById('lowDataToggle').click()">
+
+      <div class="toggle-group" onclick="toggleLowData()">
         <div class="toggle-label">
           <span>📶</span>
           <span>Low Data Mode</span>
         </div>
         <label class="toggle-switch">
-          <input type="checkbox" id="lowDataToggle" onclick="event.stopPropagation()">
+          <input type="checkbox" id="lowDataToggle">
           <span class="toggle-slider"></span>
         </label>
       </div>
-      
-      <div class="toggle-group" onclick="document.getElementById('recordingToggle').click()">
+
+      <div class="toggle-group" onclick="toggleRecording()">
         <div class="toggle-label">
-          <span>🎬</span>
+          <span>⏺️</span>
           <span>Recording</span>
         </div>
         <label class="toggle-switch">
-          <input type="checkbox" id="recordingToggle" onclick="event.stopPropagation()">
+          <input type="checkbox" id="recordingToggle">
           <span class="toggle-slider"></span>
         </label>
       </div>
-      
-      <div class="button-group">
-        <button class="btn btn-primary" id="applyBtn">
-          <span>✓</span> Apply
-        </button>
-        <button class="btn btn-secondary" id="refreshBtn">
-          <span>↻</span> Refresh
-        </button>
-      </div>
-    </div>
-    
-    <div class="panel-card">
-      <div class="panel-header">
-        <h2><span class="panel-icon">📺</span> ESP32 OLED Display</h2>
-      </div>
-      
-      <div class="control-group">
-        <label for="esp32IpInput">ESP32 IP Address</label>
-        <input type="text" id="esp32IpInput" placeholder="Auto-detecting..." value="" readonly>
-      </div>
-      
-      <div class="toggle-group" onclick="document.getElementById('oledToggle').click()">
+
+      <div class="toggle-group" onclick="toggleProfanityFilter()">
         <div class="toggle-label">
-          <span>📡</span>
-          <span>Send to OLED</span>
+          <span>🛡️</span>
+          <span>Profanity Filter</span>
         </div>
         <label class="toggle-switch">
-          <input type="checkbox" id="oledToggle" onclick="event.stopPropagation()">
+          <input type="checkbox" id="profanityToggle" checked>
           <span class="toggle-slider"></span>
         </label>
       </div>
-      
-      <div class="oled-preview" id="oledPreview">  MERLE CAM OLED
-==================
 
-Status: WAITING
-IP: Not Set
+      <div class="toggle-group" onclick="toggleAI()">
+        <div class="toggle-label">
+          <span>🤖</span>
+          <span>AI Auto-Reply</span>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="aiToggle">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
 
-Waiting for msgs..</div>
-      
       <div class="button-group">
-        <button class="btn btn-primary" id="testOledBtn">
-          <span>📤</span> Test
+        <button class="btn btn-secondary" onclick="takeSnapshot()">
+          <span>📸</span> Snapshot
         </button>
-        <button class="btn btn-secondary" id="clearOledBtn">
-          <span>🧹</span> Clear
+        <button class="btn btn-secondary" onclick="resetCamera()">
+          <span>🔄</span> Reset
         </button>
       </div>
     </div>
-    
+
+    <!-- Activity Log -->
     <div class="panel-card">
       <div class="panel-header">
-        <h2><span class="panel-icon">📋</span> Motion Activity</h2>
-        <button class="btn btn-secondary" style="padding: 8px 16px; font-size: 12px;" id="clearEventsBtn">
-          Clear
-        </button>
+        <h2><span class="panel-icon">📊</span> Motion Activity</h2>
       </div>
       
       <div class="activity-log" id="activityLog">
-        <div class="no-activity">No motion events detected</div>
+        <div class="no-activity">No motion detected yet</div>
+      </div>
+    </div>
+
+    <!-- Profanity Violations -->
+    <div class="panel-card">
+      <div class="panel-header">
+        <h2>
+          <span class="panel-icon">🛡️</span> 
+          Profanity Filter
+          <span class="badge-count" id="violationBadge">0</span>
+        </h2>
+      </div>
+      
+      <div class="activity-log" id="violationLog">
+        <div class="no-activity">No violations detected</div>
       </div>
     </div>
   </div>
@@ -873,453 +1077,397 @@ Waiting for msgs..</div>
 
 <script>
 // Configuration
-const API_URL = 'https://scoop-rogers-drainage-lace.trycloudflare.com';
-const VIDEO_URL = `${API_URL}/video`;
-const UPDATE_INTERVAL = 3000;
+const API_BASE = 'http://localhost:5000';
+const UPDATE_INTERVAL = 1000; // 1 second
 
-let updateInterval;
-let brightnessInterval;
-let esp32Ip = '';
-let oledEnabled = false;
-let lastMotionEvents = [];
-let sessionId = null;
+// State
+let lastMessageId = 0;
+let updateTimer = null;
 
-function generateSessionId() {
-  return 'viewer_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+// Utility Functions
+function formatTime(seconds) {
+  const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
+  const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
+  const s = Math.floor(seconds % 60).toString().padStart(2, '0');
+  return `${h}:${m}:${s}`;
 }
 
-sessionId = generateSessionId();
-console.log('Session ID:', sessionId);
-
-function initVideo() {
-  const video = document.getElementById('videoFeed');
-  video.src = `${VIDEO_URL}?session=${sessionId}&t=${Date.now()}`;
-  video.onerror = () => {
-    console.error('Video feed error');
-    document.getElementById('statusDot').classList.add('error');
-    document.getElementById('connectionStatus').textContent = 'Camera Error';
-  };
+function getTimeString() {
+  const now = new Date();
+  return now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 }
 
-async function autoDetectEsp32() {
+// API Functions
+async function fetchStatus() {
   try {
-    const localIps = [
-      window.location.hostname,
-      'localhost',
-      '127.0.0.1',
-      '0.0.0.0'
-    ];
-    
-    for (const ip of localIps) {
-      try {
-        const testUrl = ip === '0.0.0.0' ? 'http://localhost' : `http://${ip}`;
-        const response = await fetch(`${testUrl}:80/status`, { 
-          method: 'GET',
-          signal: AbortSignal.timeout(2000)
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          if (data.online !== undefined) {
-            esp32Ip = ip === '0.0.0.0' ? 'localhost' : ip;
-            document.getElementById('esp32IpInput').value = esp32Ip;
-            console.log('✅ ESP32 auto-detected at:', esp32Ip);
-            
-            document.getElementById('oledToggle').checked = true;
-            oledEnabled = true;
-            
-            await checkEsp32Status();
-            return true;
-          }
-        }
-      } catch (e) {
-        continue;
-      }
-    }
-    
-    console.log('❌ ESP32 not found on common addresses');
-    document.getElementById('esp32IpInput').placeholder = 'Not detected - Enter manually';
-    return false;
-  } catch (error) {
-    console.error('Auto-detection error:', error);
-    return false;
-  }
-}
-
-async function sendToOled(lines) {
-  if (!esp32Ip || !oledEnabled) return;
-  
-  try {
-    const baseUrl = esp32Ip.includes('://') ? esp32Ip : `http://${esp32Ip}`;
-    const response = await fetch(`${baseUrl}/display`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ lines: lines })
-    });
-    
-    if (response.ok) {
-      console.log('✅ Sent to OLED:', lines);
-      updateOledPreview(lines);
-      document.getElementById('esp32StatusDot').classList.remove('error');
-      document.getElementById('esp32Status').textContent = 'ESP32: Connected';
-    } else {
-      throw new Error('OLED response not OK');
-    }
-  } catch (error) {
-    console.error('❌ Failed to send to OLED:', error);
-    document.getElementById('esp32StatusDot').classList.add('error');
-    document.getElementById('esp32Status').textContent = 'ESP32: Error';
-  }
-}
-
-async function checkEsp32Status() {
-  if (!esp32Ip) return;
-  
-  try {
-    const baseUrl = esp32Ip.includes('://') ? esp32Ip : `http://${esp32Ip}`;
-    const response = await fetch(`${baseUrl}/status`);
-    if (response.ok) {
-      const data = await response.json();
-      document.getElementById('esp32StatusDot').classList.remove('error');
-      document.getElementById('esp32Status').textContent = 'ESP32: Online';
-      console.log('ESP32 Status:', data);
-    } else {
-      throw new Error('ESP32 not responding');
-    }
-  } catch (error) {
-    document.getElementById('esp32StatusDot').classList.add('error');
-    document.getElementById('esp32Status').textContent = 'ESP32: Offline';
-  }
-}
-
-function updateOledPreview(lines) {
-  const preview = document.getElementById('oledPreview');
-  let text = '';
-  
-  for (let i = 0; i < 8; i++) {
-    if (i < lines.length) {
-      text += lines[i].substring(0, 21) + '\n';
-    } else {
-      text += '\n';
-    }
-  }
-  
-  preview.textContent = text;
-}
-
-function formatStatsForOled(stats) {
-  const lines = [
-    '  MERLE CAM STATS',
-    '==================',
-    '',
-    `FPS: ${stats.fps_actual || 0}`,
-    `Brightness: ${stats.brightness || 0}`,
-    `Events: ${stats.motion_events?.length || 0}`,
-    `Frames: ${stats.frame_count || 0}`,
-    `Uptime: ${formatUptime(stats.uptime || 0)}`
-  ];
-  
-  return lines;
-}
-
-document.getElementById('testOledBtn').addEventListener('click', async () => {
-  if (!esp32Ip) {
-    const detected = await autoDetectEsp32();
-    if (!detected) {
-      alert('ESP32 not detected. Please enter IP address manually.');
-      document.getElementById('esp32IpInput').readOnly = false;
-      return;
-    }
-  }
-  
-  const testLines = [
-    '  MERLE CAM TEST',
-    '==================',
-    '',
-    'Connection: OK',
-    'Display: Active',
-    'Status: Testing',
-    '',
-    'Test successful!'
-  ];
-  
-  await sendToOled(testLines);
-  await checkEsp32Status();
-});
-
-document.getElementById('clearOledBtn').addEventListener('click', async () => {
-  if (!esp32Ip) {
-    alert('Please connect to ESP32 first');
-    return;
-  }
-  
-  try {
-    const baseUrl = esp32Ip.includes('://') ? esp32Ip : `http://${esp32Ip}`;
-    const response = await fetch(`${baseUrl}/clear`, {
-      method: 'POST'
-    });
-    
-    if (response.ok) {
-      console.log('✅ OLED cleared');
-      updateOledPreview([]);
-    }
-  } catch (error) {
-    console.error('❌ Failed to clear OLED:', error);
-  }
-});
-
-document.getElementById('oledToggle').addEventListener('change', (e) => {
-  oledEnabled = e.target.checked;
-  
-  if (oledEnabled && esp32Ip) {
-    checkEsp32Status();
-  }
-});
-
-document.getElementById('esp32IpInput').addEventListener('change', (e) => {
-  esp32Ip = e.target.value.trim();
-  localStorage.setItem('esp32Ip', esp32Ip);
-  
-  if (oledEnabled && esp32Ip) {
-    checkEsp32Status();
-  }
-});
-
-document.getElementById('applyBtn').addEventListener('click', async () => {
-  const btn = document.getElementById('applyBtn');
-  const originalHTML = btn.innerHTML;
-  
-  btn.innerHTML = '<div class="loading"></div>';
-  btn.disabled = true;
-  
-  try {
-    const settings = {
-      fps: document.getElementById('fpsSelect').value,
-      motion: document.getElementById('motionToggle').checked,
-      lowdata: document.getElementById('lowDataToggle').checked,
-      recording: document.getElementById('recordingToggle').checked
-    };
-    
-    const response = await fetch(`${API_URL}/settings?` + new URLSearchParams(settings), {
-      method: 'POST'
-    });
+    const response = await fetch(`${API_BASE}/status`);
     const data = await response.json();
-    
-    updateSettingsDisplay(data);
-    
-    btn.innerHTML = '<span>✓</span> Applied!';
-    btn.style.background = 'linear-gradient(135deg, #4ade80, #22c55e)';
-    
-    setTimeout(() => {
-      btn.innerHTML = originalHTML;
-      btn.style.background = '';
-      btn.disabled = false;
-    }, 2000);
-    
+    updateUI(data);
   } catch (error) {
-    console.error('Failed to apply settings:', error);
-    btn.innerHTML = '<span>✗</span> Error';
-    btn.style.background = 'linear-gradient(135deg, #f87171, #dc2626)';
-    
-    setTimeout(() => {
-      btn.innerHTML = originalHTML;
-      btn.style.background = '';
-      btn.disabled = false;
-    }, 2000);
-  }
-});
-
-document.getElementById('refreshBtn').addEventListener('click', () => {
-  const video = document.getElementById('videoFeed');
-  video.src = `${VIDEO_URL}?session=${sessionId}&t=${Date.now()}`;
-});
-
-function updateSettingsDisplay(data) {
-  document.getElementById('fpsSelect').value = data.fps;
-  document.getElementById('motionToggle').checked = data.motion;
-  document.getElementById('lowDataToggle').checked = data.low_data;
-  document.getElementById('recordingToggle').checked = data.recording || false;
-  
-  const indicator = document.getElementById('motionIndicator');
-  const status = document.getElementById('motionStatus');
-  if (data.motion) {
-    indicator.classList.remove('disabled');
-    status.textContent = 'Motion: On';
-  } else {
-    indicator.classList.add('disabled');
-    status.textContent = 'Motion: Off';
-  }
-  
-  const recordingBadge = document.getElementById('recordingBadge');
-  recordingBadge.style.display = data.recording ? 'flex' : 'none';
-}
-
-function updateBrightness() {
-  const img = document.getElementById('videoFeed');
-  const canvas = document.createElement('canvas');
-  canvas.width = 160;
-  canvas.height = 120;
-  const ctx = canvas.getContext('2d');
-  
-  try {
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    let total = 0;
-    
-    for (let i = 0; i < imgData.data.length; i += 16) {
-      const r = imgData.data[i];
-      const g = imgData.data[i + 1];
-      const b = imgData.data[i + 2];
-      total += 0.299 * r + 0.587 * g + 0.114 * b;
-    }
-    
-    const avgBrightness = Math.round(total / (imgData.data.length / 16));
-    document.getElementById('brightnessValue').textContent = avgBrightness;
-  } catch (e) {
-    document.getElementById('brightnessValue').textContent = 'N/A';
-  }
-}
-
-function formatUptime(seconds) {
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  const secs = seconds % 60;
-  
-  if (hours > 0) {
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  }
-  return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-}
-
-function formatNumber(num) {
-  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-}
-
-async function updateStatus() {
-  try {
-    const response = await fetch(`${API_URL}/status`);
-    
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
-    
-    const data = await response.json();
-    
-    document.getElementById('statusDot').classList.remove('error');
-    document.getElementById('connectionStatus').textContent = 'Connected';
-    
-    document.getElementById('uptimeDisplay').textContent = formatUptime(data.uptime);
-    
-    document.getElementById('fpsValue').textContent = data.fps_actual || '--';
-    document.getElementById('frameCount').textContent = formatNumber(data.frame_count || 0);
-    document.getElementById('eventCount').textContent = data.motion_events?.length || 0;
-    
-    document.getElementById('viewerCount').textContent = '1';
-    
-    if (data.brightness !== undefined) {
-      document.getElementById('brightnessValue').textContent = Math.round(data.brightness);
-    }
-    
-    if (data.settings) {
-      updateSettingsDisplay(data.settings);
-    }
-    
-    if (data.motion_events && data.motion_events.length > 0) {
-      updateActivityLog(data.motion_events);
-      
-      if (oledEnabled && esp32Ip && data.motion_events.length > lastMotionEvents.length) {
-        const oledLines = formatStatsForOled(data);
-        await sendToOled(oledLines);
-      }
-      
-      lastMotionEvents = data.motion_events;
-    }
-    
-    if (oledEnabled && esp32Ip && Math.random() < 0.1) {
-      const oledLines = formatStatsForOled(data);
-      await sendToOled(oledLines);
-    }
-    
-  } catch (error) {
-    console.error('Status update failed:', error);
-    document.getElementById('statusDot').classList.add('error');
+    console.error('Failed to fetch status:', error);
     document.getElementById('connectionStatus').textContent = 'Disconnected';
+    document.getElementById('statusDot').classList.add('error');
   }
 }
 
-function updateActivityLog(events) {
-  const log = document.getElementById('activityLog');
+async function fetchMessages() {
+  try {
+    const response = await fetch(`${API_BASE}/chat/messages`);
+    const data = await response.json();
+    
+    // Only update if there are new messages
+    if (data.messages.length > 0) {
+      const latestId = data.messages[data.messages.length - 1].id;
+      if (latestId > lastMessageId) {
+        displayMessages(data.messages);
+        lastMessageId = latestId;
+      }
+    }
+  } catch (error) {
+    console.error('Failed to fetch messages:', error);
+  }
+}
+
+async function fetchViolations() {
+  try {
+    const response = await fetch(`${API_BASE}/moderation/violations`);
+    const data = await response.json();
+    displayViolations(data.violations);
+  } catch (error) {
+    console.error('Failed to fetch violations:', error);
+  }
+}
+
+async function sendMessage(username, text) {
+  try {
+    const response = await fetch(`${API_BASE}/chat/send`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, text })
+    });
+    
+    const result = await response.json();
+    
+    if (!result.success) {
+      alert(result.error || 'Failed to send message');
+    }
+    
+    // Refresh messages
+    await fetchMessages();
+    
+  } catch (error) {
+    console.error('Failed to send message:', error);
+    alert('Failed to send message');
+  }
+}
+
+async function sendAIMessage(message) {
+  try {
+    const response = await fetch(`${API_BASE}/ai/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        message, 
+        username: document.getElementById('usernameInput').value || 'Guest'
+      })
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      addAIChatMessage('You', message, false);
+      addAIChatMessage('Merle AI 🐆', result.response, true);
+    } else {
+      alert(result.error || 'AI is not available');
+    }
+    
+  } catch (error) {
+    console.error('Failed to get AI response:', error);
+    alert('Failed to get AI response');
+  }
+}
+
+async function updateSetting(key, value) {
+  try {
+    await fetch(`${API_BASE}/settings?${key}=${value}`, {
+      method: 'POST'
+    });
+  } catch (error) {
+    console.error('Failed to update setting:', error);
+  }
+}
+
+async function captureSnapshot() {
+  try {
+    const response = await fetch(`${API_BASE}/snapshot`, {
+      method: 'POST'
+    });
+    const result = await response.json();
+    
+    if (result.success) {
+      alert(`Snapshot saved: ${result.filename}`);
+    }
+  } catch (error) {
+    console.error('Failed to capture snapshot:', error);
+  }
+}
+
+// UI Update Functions
+function updateUI(data) {
+  // Connection status
+  document.getElementById('connectionStatus').textContent = 'Connected';
+  document.getElementById('statusDot').classList.remove('error');
   
-  if (!events || events.length === 0) {
-    log.innerHTML = '<div class="no-activity">No motion events detected</div>';
+  // Uptime
+  document.getElementById('uptimeDisplay').textContent = formatTime(data.uptime);
+  
+  // Stats
+  document.getElementById('brightnessValue').textContent = data.brightness;
+  document.getElementById('fpsValue').textContent = data.fps_actual;
+  document.getElementById('frameCount').textContent = data.frame_count;
+  document.getElementById('eventCount').textContent = data.motion_events.length;
+  document.getElementById('messageCount').textContent = data.total_messages;
+  document.getElementById('filteredCount').textContent = data.filtered_messages;
+  document.getElementById('aiCount').textContent = data.ai_responses;
+  
+  // Motion indicator
+  const motionIndicator = document.getElementById('motionIndicator');
+  const motionStatus = document.getElementById('motionStatus');
+  if (data.settings.motion) {
+    motionIndicator.classList.remove('disabled');
+    motionStatus.textContent = 'Motion Enabled';
+  } else {
+    motionIndicator.classList.add('disabled');
+    motionStatus.textContent = 'Motion Disabled';
+  }
+  
+  // Motion events
+  displayMotionEvents(data.motion_events);
+  
+  // Update toggles to match server state
+  document.getElementById('motionToggle').checked = data.settings.motion;
+  document.getElementById('lowDataToggle').checked = data.settings.low_data;
+  document.getElementById('recordingToggle').checked = data.settings.recording;
+  document.getElementById('profanityToggle').checked = data.settings.profanity_filter;
+  document.getElementById('aiToggle').checked = data.settings.ai_auto_reply;
+}
+
+function displayMessages(messages) {
+  const container = document.getElementById('chatMessages');
+  container.innerHTML = '';
+  
+  if (messages.length === 0) {
+    container.innerHTML = '<div class="no-activity">No messages yet</div>';
     return;
   }
   
-  const recentEvents = events.slice(-10).reverse();
+  messages.forEach(msg => {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `chat-message ${msg.type}`;
+    messageDiv.innerHTML = `
+      <div class="message-header">
+        <span class="message-username">${msg.username}</span>
+        <span class="message-time">${msg.time_str}</span>
+      </div>
+      <div class="message-text">${msg.text}</div>
+    `;
+    container.appendChild(messageDiv);
+  });
   
-  log.innerHTML = recentEvents.map(event => `
-    <div class="activity-item">
-      <span class="activity-time">${event.time_str}</span>
-      <span class="activity-intensity">⚡ ${event.intensity}</span>
-    </div>
-  `).join('');
+  container.scrollTop = container.scrollHeight;
 }
 
-document.getElementById('clearEventsBtn').addEventListener('click', () => {
+function displayMotionEvents(events) {
   const log = document.getElementById('activityLog');
-  log.innerHTML = '<div class="no-activity">Activity log cleared</div>';
-  document.getElementById('eventCount').textContent = '0';
-});
-
-async function loadInitialSettings() {
-  try {
-    const response = await fetch(`${API_URL}/settings`);
-    const data = await response.json();
-    updateSettingsDisplay(data);
-  } catch (error) {
-    console.error('Failed to load settings:', error);
+  
+  if (events.length === 0) {
+    log.innerHTML = '<div class="no-activity">No motion detected yet</div>';
+    return;
   }
   
-  await autoDetectEsp32();
+  log.innerHTML = '';
+  events.slice(-10).reverse().forEach(event => {
+    const item = document.createElement('div');
+    item.className = 'activity-item';
+    item.innerHTML = `
+      <span class="activity-time">${event.time_str}</span>
+      <span class="activity-intensity">${Math.round(event.intensity / 100)}%</span>
+    `;
+    log.appendChild(item);
+  });
 }
 
-window.addEventListener('DOMContentLoaded', () => {
-  console.log('🐆 Merle Cam Dashboard v2.1 Initialized');
+function displayViolations(violations) {
+  const log = document.getElementById('violationLog');
+  const badge = document.getElementById('violationBadge');
   
-  initVideo();
-  loadInitialSettings();
-  updateStatus();
-  updateInterval = setInterval(updateStatus, UPDATE_INTERVAL);
-  brightnessInterval = setInterval(updateBrightness, 2000);
+  badge.textContent = violations.length;
   
-  document.addEventListener('keydown', (e) => {
-    if (e.ctrlKey || e.metaKey) {
-      if (e.key === 'r') {
-        e.preventDefault();
-        document.getElementById('refreshBtn').click();
-      } else if (e.key === 's') {
-        e.preventDefault();
-        document.getElementById('applyBtn').click();
-      }
-    }
+  if (violations.length === 0) {
+    log.innerHTML = '<div class="no-activity">No violations detected</div>';
+    return;
+  }
+  
+  log.innerHTML = '';
+  violations.slice(-10).reverse().forEach(violation => {
+    const item = document.createElement('div');
+    item.className = 'violation-item';
+    item.innerHTML = `
+      <div class="violation-header">
+        <span class="violation-user">${violation.username}</span>
+        <span class="violation-time">${violation.time_str}</span>
+      </div>
+      <div class="violation-text">"${violation.text}"</div>
+      <div class="violation-words">Detected: ${violation.found_words.join(', ')}</div>
+    `;
+    log.appendChild(item);
   });
+}
+
+function addAIChatMessage(username, message, isAI) {
+  const container = document.getElementById('aiChatMessages');
+  
+  const messageDiv = document.createElement('div');
+  messageDiv.className = isAI ? 'chat-message ai' : 'chat-message';
+  messageDiv.innerHTML = `
+    <div class="message-header">
+      <span class="message-username">${username}</span>
+      <span class="message-time">${getTimeString()}</span>
+    </div>
+    <div class="message-text">${message}</div>
+  `;
+  
+  container.appendChild(messageDiv);
+  container.scrollTop = container.scrollHeight;
+}
+
+// Event Handlers
+document.getElementById('sendMessageBtn').addEventListener('click', async () => {
+  const input = document.getElementById('messageInput');
+  const usernameInput = document.getElementById('usernameInput');
+  const message = input.value.trim();
+  const username = usernameInput.value.trim() || 'Guest';
+  
+  if (!message) return;
+  
+  await sendMessage(username, message);
+  input.value = '';
 });
 
+document.getElementById('messageInput').addEventListener('keypress', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    document.getElementById('sendMessageBtn').click();
+  }
+});
+
+document.getElementById('sendAIMessageBtn').addEventListener('click', async () => {
+  const input = document.getElementById('aiMessageInput');
+  const message = input.value.trim();
+  
+  if (!message) return;
+  
+  await sendAIMessage(message);
+  input.value = '';
+});
+
+document.getElementById('aiMessageInput').addEventListener('keypress', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    document.getElementById('sendAIMessageBtn').click();
+  }
+});
+
+document.getElementById('clearChatBtn').addEventListener('click', async () => {
+  if (confirm('Clear all chat messages?')) {
+    try {
+      await fetch(`${API_BASE}/chat/clear`, { method: 'POST' });
+      await fetchMessages();
+    } catch (error) {
+      console.error('Failed to clear chat:', error);
+    }
+  }
+});
+
+document.getElementById('clearAIChatBtn').addEventListener('click', () => {
+  const container = document.getElementById('aiChatMessages');
+  container.innerHTML = `
+    <div class="chat-message ai">
+      <div class="message-header">
+        <span class="message-username">Merle AI 🐆</span>
+        <span class="message-time">Now</span>
+      </div>
+      <div class="message-text">Chat cleared. How can I help you? 🐆</div>
+    </div>
+  `;
+});
+
+document.getElementById('fpsSelect').addEventListener('change', (e) => {
+  updateSetting('fps', e.target.value);
+});
+
+// Toggle Functions
+function toggleMotionDetection() {
+  const toggle = document.getElementById('motionToggle');
+  updateSetting('motion', toggle.checked);
+}
+
+function toggleLowData() {
+  const toggle = document.getElementById('lowDataToggle');
+  updateSetting('lowdata', toggle.checked);
+}
+
+function toggleRecording() {
+  const toggle = document.getElementById('recordingToggle');
+  updateSetting('recording', toggle.checked);
+}
+
+function toggleProfanityFilter() {
+  const toggle = document.getElementById('profanityToggle');
+  updateSetting('profanity_filter', toggle.checked);
+}
+
+function toggleAI() {
+  const toggle = document.getElementById('aiToggle');
+  updateSetting('ai_auto_reply', toggle.checked);
+}
+
+async function takeSnapshot() {
+  await captureSnapshot();
+}
+
+function resetCamera() {
+  if (confirm('Reset camera settings to defaults?')) {
+    location.reload();
+  }
+}
+
+// Initialize
+async function initialize() {
+  console.log('🐆 Merle Cam Dashboard Initializing...');
+  
+  // Initial fetch
+  await fetchStatus();
+  await fetchMessages();
+  await fetchViolations();
+  
+  // Start update loop
+  updateTimer = setInterval(async () => {
+    await fetchStatus();
+    await fetchMessages();
+    await fetchViolations();
+  }, UPDATE_INTERVAL);
+  
+  console.log('✅ Dashboard initialized');
+}
+
+// Start the app
+initialize();
+
+// Cleanup on page unload
 window.addEventListener('beforeunload', () => {
-  clearInterval(updateInterval);
-  clearInterval(brightnessInterval);
-});
-
-document.addEventListener('visibilitychange', () => {
-  if (document.hidden) {
-    clearInterval(updateInterval);
-    clearInterval(brightnessInterval);
-  } else {
-    updateStatus();
-    updateInterval = setInterval(updateStatus, UPDATE_INTERVAL);
-    brightnessInterval = setInterval(updateBrightness, 2000);
+  if (updateTimer) {
+    clearInterval(updateTimer);
   }
 });
 </script>
