@@ -1080,7 +1080,7 @@ input:checked + .toggle-slider:before {
 
 <script>
 // Configuration
-const API_URL = 'https://stationery-exclusive-owned-gore.trycloudflare.com';
+const API_URL = 'https://scoop-rogers-drainage-lace.trycloudflare.com';
 const VIDEO_URL = `${API_URL}/video`;
 const UPDATE_INTERVAL = 3000;
 const CHAT_UPDATE_INTERVAL = 2000;
@@ -1105,12 +1105,32 @@ if (username) {
 
 function initVideo() {
   const video = document.getElementById('videoFeed');
-  video.src = `${VIDEO_URL}?session=${sessionId}&t=${Date.now()}`;
-  video.onerror = () => {
-    console.error('Video feed error');
+  const timestamp = Date.now();
+  video.src = `${VIDEO_URL}?t=${timestamp}`;
+  
+  video.onload = () => {
+    console.log('✅ Video feed loaded successfully');
+  };
+  
+  video.onerror = (e) => {
+    console.error('❌ Video feed error:', e);
+    console.error('Attempted URL:', video.src);
     document.getElementById('statusDot').classList.add('error');
     document.getElementById('connectionStatus').textContent = 'Camera Error';
+    
+    // Log detailed error
+    setTimeout(() => {
+      console.log('Testing video URL directly...');
+      fetch(VIDEO_URL)
+        .then(response => {
+          console.log('Video endpoint response status:', response.status);
+          console.log('Response headers:', response.headers);
+        })
+        .catch(err => console.error('Fetch test failed:', err));
+    }, 1000);
   };
+  
+  console.log('📹 Initializing video feed from:', video.src);
 }
 
 function formatUptime(seconds) {
@@ -1130,13 +1150,15 @@ function formatNumber(num) {
 
 async function updateStatus() {
   try {
+    console.log('🔄 Fetching status from:', `${API_URL}/status`);
     const response = await fetch(`${API_URL}/status`);
     
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
     
     const data = await response.json();
+    console.log('✅ Status data received:', data);
     
     document.getElementById('statusDot').classList.remove('error');
     document.getElementById('connectionStatus').textContent = 'Connected';
@@ -1160,7 +1182,7 @@ async function updateStatus() {
     }
     
   } catch (error) {
-    console.error('Status update failed:', error);
+    console.error('❌ Status update failed:', error);
     document.getElementById('statusDot').classList.add('error');
     document.getElementById('connectionStatus').textContent = 'Disconnected';
   }
@@ -1487,25 +1509,36 @@ document.getElementById('aiMessageInput').addEventListener('keydown', (e) => {
 });
 
 document.getElementById('refreshBtn').addEventListener('click', () => {
+  console.log('🔄 Refreshing video feed...');
   const video = document.getElementById('videoFeed');
-  video.src = `${VIDEO_URL}?session=${sessionId}&t=${Date.now()}`;
+  const timestamp = Date.now();
+  video.src = `${VIDEO_URL}?t=${timestamp}`;
+  console.log('New video URL:', video.src);
 });
 
-document.getElementById('clearChatBtn').addEventListener('click', async () => {
-  if (!confirm('Clear all public chat messages?')) return;
-  
-  try {
-    await fetch(`${API_URL}/chat/clear`, { method: 'POST' });
-    document.getElementById('chatMessages').innerHTML = '<div class="no-activity">Chat cleared</div>';
-    lastMessageId = 0;
-  } catch (error) {
-    console.error('Failed to clear chat:', error);
-  }
-});
+// Clear chat button (only if it exists)
+const clearChatBtn = document.getElementById('clearChatBtn');
+if (clearChatBtn) {
+  clearChatBtn.addEventListener('click', async () => {
+    if (!confirm('Clear all public chat messages?')) return;
+    
+    try {
+      await fetch(`${API_URL}/chat/clear`, { method: 'POST' });
+      document.getElementById('chatMessages').innerHTML = '<div class="no-activity">Chat cleared</div>';
+      lastMessageId = 0;
+    } catch (error) {
+      console.error('Failed to clear chat:', error);
+    }
+  });
+}
 
-document.getElementById('clearAIChatBtn').addEventListener('click', () => {
-  document.getElementById('aiChatMessages').innerHTML = '<div class="no-activity">Ask Merle AI anything! 🐆</div>';
-});
+// Clear AI chat button (only if it exists)
+const clearAIChatBtn = document.getElementById('clearAIChatBtn');
+if (clearAIChatBtn) {
+  clearAIChatBtn.addEventListener('click', () => {
+    document.getElementById('aiChatMessages').innerHTML = '<div class="no-activity">Ask Merle AI anything! 🐆</div>';
+  });
+}
 
 document.getElementById('clearEventsBtn').addEventListener('click', () => {
   const log = document.getElementById('activityLog');
@@ -1537,13 +1570,37 @@ document.getElementById('clearViolationsBtn').addEventListener('click', async ()
 // Initialize
 window.addEventListener('DOMContentLoaded', () => {
   console.log('🐆 Merle Cam Dashboard v3.1 Initialized');
+  console.log('📡 Backend API URL:', API_URL);
+  console.log('📹 Video URL:', VIDEO_URL);
   
-  initVideo();
-  updateStatus();
-  updateChat();
-  
-  updateInterval = setInterval(updateStatus, UPDATE_INTERVAL);
-  chatUpdateInterval = setInterval(updateChat, CHAT_UPDATE_INTERVAL);
+  // Test backend connectivity first
+  console.log('🧪 Testing backend connection...');
+  fetch(`${API_URL}/health`)
+    .then(response => {
+      console.log('✅ Backend health check response:', response.status);
+      return response.json();
+    })
+    .then(data => {
+      console.log('✅ Backend health data:', data);
+      console.log('Camera active:', data.camera_active);
+      
+      // Initialize video and start updates
+      initVideo();
+      updateStatus();
+      updateChat();
+      
+      updateInterval = setInterval(updateStatus, UPDATE_INTERVAL);
+      chatUpdateInterval = setInterval(updateChat, CHAT_UPDATE_INTERVAL);
+    })
+    .catch(error => {
+      console.error('❌ Backend connection failed:', error);
+      console.error('Make sure backend is running at:', API_URL);
+      document.getElementById('statusDot').classList.add('error');
+      document.getElementById('connectionStatus').textContent = 'Backend Offline';
+      
+      // Still try to initialize video
+      initVideo();
+    });
 });
 
 window.addEventListener('beforeunload', () => {
