@@ -432,7 +432,7 @@ body {
 console.log('🐆 Merle Cam initializing...');
 
 // Configuration
-const API_URL = 'https://scoop-rogers-drainage-lace.trycloudflare.com';
+const API_URL = 'https://stationery-exclusive-owned-gore.trycloudflare.com';
 console.log('📡 API URL:', API_URL);
 
 // State
@@ -444,12 +444,22 @@ if (username) {
   document.getElementById('username').value = username;
 }
 
-// Initialize video
+// Initialize video with auto-refresh (for Cloudflare tunnel compatibility)
+let videoRefreshInterval;
+
 function initVideo() {
   const video = document.getElementById('videoFeed');
-  const videoUrl = `${API_URL}/video?t=${Date.now()}`;
-  console.log('📹 Loading video from:', videoUrl);
-  video.src = videoUrl;
+  
+  function refreshFrame() {
+    const videoUrl = `${API_URL}/snapshot?t=${Date.now()}`;
+    video.src = videoUrl;
+  }
+  
+  console.log('📹 Starting video with snapshot mode (Cloudflare-compatible)');
+  refreshFrame();
+  
+  // Refresh every 100ms for ~10 FPS
+  videoRefreshInterval = setInterval(refreshFrame, 100);
   
   video.onerror = (e) => {
     console.error('❌ Video load error:', e);
@@ -457,7 +467,7 @@ function initVideo() {
   };
   
   video.onload = () => {
-    console.log('✅ Video loaded successfully');
+    console.log('✅ Video frame loaded');
   };
 }
 
