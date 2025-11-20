@@ -3,24 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🐆 Merle Cam - Professional Dashboard</title>
+<title>🐆 Merle Cam Dashboard</title>
 <style>
-:root {
-  --bg-primary: #1b120b;
-  --bg-secondary: #2a1a0a;
-  --bg-card: #3b2814;
-  --accent-gold: #d4a23c;
-  --accent-light: #f0c25c;
-  --accent-dark: #b88a28;
-  --text-primary: #f6e0b2;
-  --text-secondary: #c4a872;
-  --border-color: #5e4528;
-  --success: #4ade80;
-  --warning: #fbbf24;
-  --danger: #f87171;
-  --shadow: rgba(0, 0, 0, 0.6);
-}
-
 * {
   box-sizing: border-box;
   margin: 0;
@@ -28,1157 +12,494 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-  background: radial-gradient(ellipse at top, #4b3621 0%, var(--bg-primary) 50%, #0a0604 100%);
-  color: var(--text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+  color: #f6e0b2;
   min-height: 100vh;
-  overflow-x: hidden;
+  padding: 20px;
 }
 
-body::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: 
-    repeating-linear-gradient(90deg, transparent, transparent 50px, rgba(212, 162, 60, 0.02) 50px, rgba(212, 162, 60, 0.02) 51px),
-    repeating-linear-gradient(0deg, transparent, transparent 50px, rgba(212, 162, 60, 0.02) 50px, rgba(212, 162, 60, 0.02) 51px);
-  pointer-events: none;
-  z-index: 0;
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
 .header {
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-  padding: 20px 30px;
-  background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-secondary) 100%);
-  border-bottom: 3px solid var(--accent-gold);
-  box-shadow: 0 8px 32px var(--shadow);
-  backdrop-filter: blur(10px);
-}
-
-.header-content {
-  max-width: 1920px;
-  margin: 0 auto;
+  background: #2a1a0a;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  border: 2px solid #d4a23c;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 20px;
 }
 
-.logo-section {
+.logo {
   display: flex;
   align-items: center;
   gap: 15px;
 }
 
 .logo-icon {
-  width: 60px;
-  height: 60px;
-  background: linear-gradient(135deg, var(--accent-gold), var(--accent-dark));
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 32px;
-  box-shadow: 0 4px 20px rgba(212, 162, 60, 0.4);
-  animation: float 3s ease-in-out infinite;
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-8px); }
+  font-size: 48px;
 }
 
 .logo-text h1 {
-  font-size: 28px;
-  font-weight: 700;
-  background: linear-gradient(135deg, var(--accent-light), var(--accent-gold));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  font-size: 32px;
+  color: #d4a23c;
 }
 
-.logo-text p {
-  font-size: 12px;
-  color: var(--text-secondary);
-  margin-top: 2px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-}
-
-.header-status {
+.status {
   display: flex;
   gap: 15px;
   align-items: center;
 }
 
 .status-badge {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 16px;
-  background: rgba(0, 0, 0, 0.4);
-  border: 2px solid var(--border-color);
-  border-radius: 24px;
-  font-size: 14px;
-  font-weight: 600;
-  transition: all 0.3s;
-}
-
-.status-badge:hover {
-  border-color: var(--accent-gold);
-  transform: translateY(-2px);
+  background: rgba(0, 0, 0, 0.5);
+  padding: 10px 20px;
+  border-radius: 20px;
+  border: 2px solid #d4a23c;
 }
 
 .status-dot {
+  display: inline-block;
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: var(--success);
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  box-shadow: 0 0 12px var(--success);
-}
-
-.status-dot.error {
-  background: var(--danger);
-  box-shadow: 0 0 12px var(--danger);
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.6; transform: scale(1.1); }
-}
-
-.container {
-  position: relative;
-  max-width: 1920px;
-  margin: 0 auto;
-  padding: 30px;
-  display: grid;
-  grid-template-columns: 1fr 380px;
-  gap: 30px;
-}
-
-.main-content {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.video-wrapper {
-  position: relative;
-  background: #000;
-  border-radius: 16px;
-  overflow: hidden;
-  border: 4px solid var(--accent-gold);
-  box-shadow: 
-    0 0 0 1px rgba(212, 162, 60, 0.2),
-    0 20px 60px rgba(0, 0, 0, 0.8),
-    0 0 80px rgba(212, 162, 60, 0.3);
-  transition: transform 0.3s, box-shadow 0.3s;
-}
-
-.video-wrapper:hover {
-  transform: translateY(-4px);
-  box-shadow: 
-    0 0 0 1px rgba(212, 162, 60, 0.3),
-    0 25px 70px rgba(0, 0, 0, 0.9),
-    0 0 100px rgba(212, 162, 60, 0.4);
-}
-
-.video-wrapper img {
-  width: 100%;
-  display: block;
-  min-height: 400px;
-  background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
-}
-
-.video-overlay {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  display: flex;
-  gap: 12px;
-}
-
-.overlay-badge {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 14px;
-  background: rgba(0, 0, 0, 0.85);
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  border-radius: 20px;
-  font-size: 13px;
-  font-weight: 600;
-  backdrop-filter: blur(10px);
-  transition: all 0.3s;
-}
-
-.overlay-badge:hover {
-  background: rgba(0, 0, 0, 0.95);
-  border-color: var(--accent-gold);
-}
-
-.motion-indicator {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--success);
-  box-shadow: 0 0 10px var(--success);
+  background: #4ade80;
+  margin-right: 8px;
   animation: pulse 2s infinite;
 }
 
-.motion-indicator.disabled {
-  background: #666;
-  box-shadow: none;
-  animation: none;
+.status-dot.error {
+  background: #f87171;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.main-grid {
+  display: grid;
+  grid-template-columns: 1fr 350px;
+  gap: 20px;
+}
+
+.video-section {
+  background: #000;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 3px solid #d4a23c;
+  box-shadow: 0 0 30px rgba(212, 162, 60, 0.3);
+}
+
+.video-section img {
+  width: 100%;
+  display: block;
+  min-height: 480px;
+  background: #1a1a1a;
 }
 
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 15px;
+  margin-top: 20px;
 }
 
 .stat-card {
-  background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-secondary) 100%);
-  border: 2px solid var(--border-color);
-  border-radius: 12px;
+  background: #2a1a0a;
   padding: 20px;
-  transition: all 0.3s;
-  position: relative;
-  overflow: hidden;
-}
-
-.stat-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 3px;
-  background: linear-gradient(90deg, var(--accent-gold), var(--accent-light));
-}
-
-.stat-card:hover {
-  border-color: var(--accent-gold);
-  transform: translateY(-4px);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+  border-radius: 10px;
+  border: 2px solid #d4a23c;
+  text-align: center;
 }
 
 .stat-card h3 {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--accent-gold);
+  font-size: 12px;
+  color: #d4a23c;
   text-transform: uppercase;
-  letter-spacing: 1.5px;
   margin-bottom: 10px;
 }
 
 .stat-value {
-  font-size: 32px;
-  font-weight: 700;
-  color: var(--text-primary);
-  line-height: 1;
-  margin-bottom: 4px;
+  font-size: 36px;
+  font-weight: bold;
+  color: #f6e0b2;
 }
 
 .stat-label {
   font-size: 11px;
-  color: var(--text-secondary);
+  color: #c4a872;
+  margin-top: 5px;
 }
 
-.chat-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+.sidebar {
+  display: flex;
+  flex-direction: column;
   gap: 20px;
 }
 
-.chat-section {
-  background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-secondary) 100%);
-  border: 2px solid var(--border-color);
-  border-radius: 16px;
-  padding: 25px;
-  height: 500px;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 8px 32px var(--shadow);
+.panel {
+  background: #2a1a0a;
+  padding: 20px;
+  border-radius: 12px;
+  border: 2px solid #d4a23c;
 }
 
-.chat-section.ai-chat {
-  border-color: var(--accent-gold);
-  box-shadow: 0 8px 32px var(--shadow), 0 0 20px rgba(212, 162, 60, 0.2);
-}
-
-.chat-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 15px;
-  padding-bottom: 15px;
-  border-bottom: 2px solid var(--border-color);
-}
-
-.chat-header h2 {
+.panel h2 {
   font-size: 18px;
-  font-weight: 700;
-  color: var(--text-primary);
+  color: #d4a23c;
+  margin-bottom: 15px;
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
 .chat-messages {
-  flex: 1;
+  height: 300px;
   overflow-y: auto;
   margin-bottom: 15px;
-  padding-right: 8px;
-}
-
-.chat-messages::-webkit-scrollbar {
-  width: 8px;
-}
-
-.chat-messages::-webkit-scrollbar-track {
-  background: var(--bg-primary);
-  border-radius: 4px;
-}
-
-.chat-messages::-webkit-scrollbar-thumb {
-  background: var(--accent-gold);
-  border-radius: 4px;
+  background: #1a1a1a;
+  padding: 10px;
+  border-radius: 8px;
 }
 
 .chat-message {
-  background: var(--bg-primary);
-  border: 2px solid var(--border-color);
-  border-radius: 10px;
-  padding: 12px 14px;
+  background: #2a1a0a;
+  padding: 10px;
+  border-radius: 8px;
   margin-bottom: 10px;
-  animation: slideIn 0.3s ease-out;
-}
-
-.chat-message.ai {
-  border-left: 4px solid var(--accent-gold);
-  background: rgba(212, 162, 60, 0.08);
-}
-
-.chat-message.censored {
-  border-left: 4px solid var(--warning);
-  background: rgba(251, 191, 36, 0.05);
-}
-
-.chat-message.system {
-  border-left: 4px solid var(--accent-gold);
-  background: rgba(212, 162, 60, 0.05);
-  font-style: italic;
-}
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  border-left: 3px solid #d4a23c;
 }
 
 .message-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 6px;
+  margin-bottom: 5px;
+  font-size: 12px;
 }
 
 .message-username {
-  font-weight: 700;
-  color: var(--accent-gold);
-  font-size: 13px;
+  font-weight: bold;
+  color: #d4a23c;
 }
 
 .message-time {
-  font-size: 11px;
-  color: var(--text-secondary);
+  color: #c4a872;
 }
 
 .message-text {
+  color: #f6e0b2;
   font-size: 14px;
-  color: var(--text-primary);
-  line-height: 1.4;
-  word-wrap: break-word;
 }
 
-.chat-input-container {
+.chat-input-group {
   display: flex;
+  flex-direction: column;
   gap: 10px;
 }
 
-.chat-input-wrapper {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.chat-input {
+.input-field {
   width: 100%;
-  padding: 12px 16px;
-  background: var(--bg-primary);
-  border: 2px solid var(--border-color);
-  border-radius: 10px;
-  color: var(--text-primary);
+  padding: 12px;
+  background: #1a1a1a;
+  border: 2px solid #5e4528;
+  border-radius: 8px;
+  color: #f6e0b2;
   font-size: 14px;
-  font-weight: 600;
-  transition: all 0.3s;
-  resize: none;
   font-family: inherit;
 }
 
-.chat-input:focus {
+.input-field:focus {
   outline: none;
-  border-color: var(--accent-gold);
-  box-shadow: 0 0 0 3px rgba(212, 162, 60, 0.2);
-}
-
-.username-input {
-  width: 100%;
-  padding: 10px 14px;
-  background: var(--bg-primary);
-  border: 2px solid var(--border-color);
-  border-radius: 8px;
-  color: var(--text-primary);
-  font-size: 13px;
-  font-weight: 600;
-  transition: all 0.3s;
-}
-
-.username-input:focus {
-  outline: none;
-  border-color: var(--accent-gold);
-  box-shadow: 0 0 0 3px rgba(212, 162, 60, 0.2);
-}
-
-.control-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.panel-card {
-  background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-secondary) 100%);
-  border: 2px solid var(--border-color);
-  border-radius: 16px;
-  padding: 25px;
-  box-shadow: 0 8px 32px var(--shadow);
-  transition: all 0.3s;
-}
-
-.panel-card:hover {
-  border-color: var(--accent-gold);
-  transform: translateX(-2px);
-}
-
-.panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 20px;
-  padding-bottom: 15px;
-  border-bottom: 2px solid var(--border-color);
-}
-
-.panel-header h2 {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--text-primary);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.panel-icon {
-  font-size: 24px;
-}
-
-.control-group {
-  margin-bottom: 20px;
-}
-
-.control-group label {
-  display: block;
-  margin-bottom: 10px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--accent-gold);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.control-group select {
-  width: 100%;
-  padding: 12px 16px;
-  background: var(--bg-primary);
-  border: 2px solid var(--border-color);
-  border-radius: 10px;
-  color: var(--text-primary);
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath fill='%23d4a23c' d='M8 11L3 6h10z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  padding-right: 40px;
-}
-
-.control-group select:hover {
-  border-color: var(--accent-gold);
-  background-color: rgba(27, 18, 11, 0.8);
-}
-
-.control-group select:focus {
-  outline: none;
-  border-color: var(--accent-light);
-  box-shadow: 0 0 0 3px rgba(212, 162, 60, 0.2);
-}
-
-.toggle-group {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 14px 16px;
-  background: var(--bg-primary);
-  border: 2px solid var(--border-color);
-  border-radius: 10px;
-  margin-bottom: 12px;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.toggle-group:hover {
-  border-color: var(--accent-gold);
-  background: rgba(27, 18, 11, 0.8);
-}
-
-.toggle-label {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.toggle-switch {
-  position: relative;
-  width: 52px;
-  height: 28px;
-}
-
-.toggle-switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.toggle-slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: #555;
-  border-radius: 28px;
-  transition: 0.3s;
-}
-
-.toggle-slider:before {
-  position: absolute;
-  content: "";
-  height: 20px;
-  width: 20px;
-  left: 4px;
-  bottom: 4px;
-  background: white;
-  border-radius: 50%;
-  transition: 0.3s;
-}
-
-input:checked + .toggle-slider {
-  background: var(--accent-gold);
-}
-
-input:checked + .toggle-slider:before {
-  transform: translateX(24px);
+  border-color: #d4a23c;
 }
 
 .btn {
-  padding: 14px 24px;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #d4a23c, #b88a28);
   border: none;
-  border-radius: 10px;
-  font-size: 15px;
-  font-weight: 700;
+  border-radius: 8px;
+  color: #1a1a1a;
+  font-weight: bold;
   cursor: pointer;
-  transition: all 0.3s;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, var(--accent-gold), var(--accent-dark));
-  color: var(--bg-primary);
-  box-shadow: 0 6px 20px rgba(212, 162, 60, 0.4);
-}
-
-.btn-primary:hover {
-  background: linear-gradient(135deg, var(--accent-light), var(--accent-gold));
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(212, 162, 60, 0.6);
-}
-
-.btn-primary:active {
-  transform: translateY(0);
-}
-
-.btn-secondary {
-  background: rgba(59, 40, 20, 0.6);
-  color: var(--text-primary);
-  border: 2px solid var(--border-color);
-}
-
-.btn-secondary:hover {
-  background: var(--bg-card);
-  border-color: var(--accent-gold);
-  transform: translateY(-2px);
-}
-
-.btn-send {
-  padding: 12px 20px;
   font-size: 14px;
-}
-
-.button-group {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-top: 20px;
-}
-
-.activity-log {
-  max-height: 250px;
-  overflow-y: auto;
-  padding-right: 8px;
-}
-
-.activity-log::-webkit-scrollbar {
-  width: 8px;
-}
-
-.activity-log::-webkit-scrollbar-track {
-  background: var(--bg-primary);
-  border-radius: 4px;
-}
-
-.activity-log::-webkit-scrollbar-thumb {
-  background: var(--accent-gold);
-  border-radius: 4px;
-}
-
-.activity-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 14px;
-  margin-bottom: 10px;
-  background: var(--bg-primary);
-  border: 2px solid var(--border-color);
-  border-left: 4px solid var(--accent-gold);
-  border-radius: 8px;
   transition: all 0.3s;
-  animation: slideIn 0.5s ease-out;
 }
 
-.activity-item:hover {
-  background: rgba(27, 18, 11, 0.8);
-  border-color: var(--accent-gold);
-  transform: translateX(4px);
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 20px rgba(212, 162, 60, 0.5);
 }
 
-.activity-time {
-  font-size: 13px;
-  color: var(--text-secondary);
-  font-weight: 600;
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
-.activity-intensity {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--danger);
-  background: rgba(248, 113, 113, 0.15);
-  padding: 4px 10px;
-  border-radius: 12px;
-}
-
-.violation-item {
-  background: var(--bg-primary);
-  border: 2px solid var(--danger);
-  border-left: 4px solid var(--danger);
-  border-radius: 8px;
-  padding: 12px 14px;
-  margin-bottom: 10px;
-  animation: slideIn 0.3s ease-out;
-}
-
-.violation-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-}
-
-.violation-user {
-  font-weight: 700;
-  color: var(--danger);
-  font-size: 13px;
-}
-
-.violation-time {
-  font-size: 11px;
-  color: var(--text-secondary);
-}
-
-.violation-text {
+.info-text {
   font-size: 12px;
-  color: var(--text-primary);
-  margin-bottom: 6px;
-  font-style: italic;
-}
-
-.violation-words {
-  font-size: 11px;
-  color: var(--warning);
-  background: rgba(251, 191, 36, 0.1);
-  padding: 4px 8px;
+  color: #c4a872;
+  text-align: center;
+  padding: 10px;
+  background: rgba(212, 162, 60, 0.1);
   border-radius: 6px;
-  display: inline-block;
+  margin-top: 10px;
 }
 
 .no-activity {
   text-align: center;
-  padding: 40px 20px;
-  color: var(--text-secondary);
+  color: #c4a872;
+  padding: 20px;
   font-style: italic;
 }
 
 .loading {
   display: inline-block;
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
   border: 3px solid rgba(255, 255, 255, 0.3);
   border-radius: 50%;
-  border-top-color: var(--accent-gold);
-  animation: spin 1s ease-in-out infinite;
+  border-top-color: #d4a23c;
+  animation: spin 1s linear infinite;
 }
 
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
 
-.badge-count {
-  background: var(--danger);
-  color: white;
-  font-size: 11px;
-  font-weight: 700;
-  padding: 3px 8px;
-  border-radius: 12px;
-  margin-left: 8px;
+.settings-display {
+  background: #1a1a1a;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  border: 2px solid #5e4528;
 }
 
-@media (max-width: 1400px) {
-  .chat-grid {
-    grid-template-columns: 1fr;
-  }
+.settings-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #3a2a1a;
+}
+
+.settings-row:last-child {
+  border-bottom: none;
+}
+
+.settings-label {
+  color: #d4a23c;
+  font-size: 13px;
+}
+
+.settings-value {
+  color: #f6e0b2;
+  font-weight: bold;
+  font-size: 13px;
 }
 
 @media (max-width: 1200px) {
-  .container {
+  .main-grid {
     grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 768px) {
-  .header-content {
-    justify-content: center;
-  }
-  
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
-  }
-  
-  .button-group {
-    grid-template-columns: 1fr;
   }
 }
 </style>
 </head>
 <body>
 
-<header class="header">
-  <div class="header-content">
-    <div class="logo-section">
+<div class="container">
+  <div class="header">
+    <div class="logo">
       <div class="logo-icon">🐆</div>
       <div class="logo-text">
         <h1>Merle Cam</h1>
-        <p>Professional Surveillance</p>
       </div>
     </div>
-    <div class="header-status">
+    <div class="status">
       <div class="status-badge">
-        <div class="status-dot" id="statusDot"></div>
-        <span id="connectionStatus">Initializing...</span>
+        <span class="status-dot" id="statusDot"></span>
+        <span id="connectionStatus">Connecting...</span>
       </div>
       <div class="status-badge">
-        <span id="uptimeDisplay">--:--:--</span>
+        <span id="uptimeDisplay">00:00:00</span>
       </div>
     </div>
   </div>
-</header>
 
-<div class="container">
-  <div class="main-content">
-    <div class="video-wrapper">
-      <img id="videoFeed" src="" alt="Live Camera Feed">
-      <div class="video-overlay">
-        <div class="overlay-badge">
-          <div class="motion-indicator" id="motionIndicator"></div>
-          <span id="motionStatus">Motion</span>
+  <div class="main-grid">
+    <div>
+      <div class="video-section">
+        <img id="videoFeed" src="" alt="Loading camera feed...">
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <h3>💡 Brightness</h3>
+          <div class="stat-value" id="brightness">--</div>
+          <div class="stat-label">Average</div>
+        </div>
+        <div class="stat-card">
+          <h3>🎯 FPS</h3>
+          <div class="stat-value" id="fps">--</div>
+          <div class="stat-label">Actual</div>
+        </div>
+        <div class="stat-card">
+          <h3>📹 Frames</h3>
+          <div class="stat-value" id="frames">--</div>
+          <div class="stat-label">Total</div>
+        </div>
+        <div class="stat-card">
+          <h3>💬 Messages</h3>
+          <div class="stat-value" id="messages">--</div>
+          <div class="stat-label">Sent</div>
+        </div>
+        <div class="stat-card">
+          <h3>🛡️ Filtered</h3>
+          <div class="stat-value" id="filtered">--</div>
+          <div class="stat-label">Blocked</div>
+        </div>
+        <div class="stat-card">
+          <h3>🤖 AI</h3>
+          <div class="stat-value" id="aiResponses">--</div>
+          <div class="stat-label">Replies</div>
         </div>
       </div>
     </div>
-    
-    <div class="stats-grid">
-      <div class="stat-card">
-        <h3>💡 Brightness</h3>
-        <div class="stat-value" id="brightnessValue">--</div>
-        <div class="stat-label">Average luminosity</div>
-      </div>
-      <div class="stat-card">
-        <h3>🎯 Frame Rate</h3>
-        <div class="stat-value" id="fpsValue">--</div>
-        <div class="stat-label">Actual FPS</div>
-      </div>
-      <div class="stat-card">
-        <h3>📹 Frames</h3>
-        <div class="stat-value" id="frameCount">--</div>
-        <div class="stat-label">Total captured</div>
-      </div>
-      <div class="stat-card">
-        <h3>🚨 Motion</h3>
-        <div class="stat-value" id="eventCount">--</div>
-        <div class="stat-label">Detections</div>
-      </div>
-      <div class="stat-card">
-        <h3>💬 Messages</h3>
-        <div class="stat-value" id="messageCount">--</div>
-        <div class="stat-label">Total sent</div>
-      </div>
-      <div class="stat-card">
-        <h3>🛡️ Filtered</h3>
-        <div class="stat-value" id="filteredCount">--</div>
-        <div class="stat-label">Profanity caught</div>
-      </div>
-      <div class="stat-card">
-        <h3>🤖 AI Replies</h3>
-        <div class="stat-value" id="aiCount">--</div>
-        <div class="stat-label">Bot responses</div>
-      </div>
-    </div>
 
-    <div class="chat-grid">
-      <!-- Public Chat -->
-      <div class="chat-section">
-        <div class="chat-header">
-          <h2><span class="panel-icon">💬</span> Public Chat</h2>
-          <button class="btn btn-secondary" style="padding: 8px 16px; font-size: 12px;" id="clearChatBtn">
-            Clear
-          </button>
-        </div>
-        
+    <div class="sidebar">
+      <div class="panel">
+        <h2>💬 Chat</h2>
         <div class="chat-messages" id="chatMessages">
-          <div class="no-activity">Loading chat history...</div>
+          <div class="no-activity">Loading messages...</div>
         </div>
-        
-        <div class="chat-input-container">
-          <div class="chat-input-wrapper">
-            <textarea class="chat-input" id="aiMessageInput" placeholder="Ask Merle AI anything..." rows="2" maxlength="500"></textarea>
+        <div class="chat-input-group">
+          <input type="text" class="input-field" id="username" placeholder="Your username">
+          <input type="text" class="input-field" id="messageInput" placeholder="Type a message...">
+          <button class="btn" id="sendBtn">📤 Send Message</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>🤖 AI Assistant</h2>
+        <div class="chat-messages" id="aiMessages">
+          <div class="no-activity">Ask Merle anything!</div>
+        </div>
+        <div class="chat-input-group">
+          <input type="text" class="input-field" id="aiInput" placeholder="Ask AI...">
+          <button class="btn" id="aiBtn">🤖 Ask AI</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>⚙️ Settings (Read-Only)</h2>
+        <div class="settings-display">
+          <div class="settings-row">
+            <span class="settings-label">FPS Target:</span>
+            <span class="settings-value" id="settingsFps">--</span>
           </div>
-          <button class="btn btn-primary btn-send" id="sendAIMessageBtn">
-            <span>🤖</span> Ask
-          </button>
+          <div class="settings-row">
+            <span class="settings-label">Motion Detection:</span>
+            <span class="settings-value" id="settingsMotion">--</span>
+          </div>
+          <div class="settings-row">
+            <span class="settings-label">Profanity Filter:</span>
+            <span class="settings-value" id="settingsFilter">--</span>
+          </div>
+          <div class="settings-row">
+            <span class="settings-label">AI Enabled:</span>
+            <span class="settings-value" id="settingsAI">--</span>
+          </div>
+        </div>
+        <div class="info-text">
+          🔒 Settings controlled by backend only
         </div>
       </div>
-    </div>
-  </div>
-  
-  <div class="control-panel">
-    <div class="panel-card">
-      <div class="panel-header">
-        <h2><span class="panel-icon">⚙️</span> Camera Settings</h2>
-      </div>
-      
-      <div class="control-group">
-        <label>Frame Rate</label>
-        <div style="padding: 12px 16px; background: var(--bg-primary); border: 2px solid var(--border-color); border-radius: 10px; color: var(--text-primary); font-size: 14px; font-weight: 600;">
-          <span id="fpsDisplay">-- FPS</span>
-        </div>
-      </div>
-      
-      <div class="toggle-group" style="cursor: default;">
-        <div class="toggle-label">
-          <span>🚨</span>
-          <span>Motion Detection</span>
-        </div>
-        <label class="toggle-switch">
-          <input type="checkbox" id="motionToggle" checked disabled>
-          <span class="toggle-slider"></span>
-        </label>
-      </div>
-      
-      <div class="toggle-group" style="cursor: default;">
-        <div class="toggle-label">
-          <span>📶</span>
-          <span>Low Data Mode</span>
-        </div>
-        <label class="toggle-switch">
-          <input type="checkbox" id="lowDataToggle" disabled>
-          <span class="toggle-slider"></span>
-        </label>
-      </div>
-      
-      <div style="background: rgba(212, 162, 60, 0.1); padding: 12px; border-radius: 8px; border: 2px solid var(--accent-gold); margin-top: 12px;">
-        <p style="font-size: 12px; color: var(--text-primary); line-height: 1.4;">
-          🔒 <strong>Admin Only:</strong> Settings can only be changed by editing the backend configuration file.
-        </p>
-      </div>
-      
-      <button class="btn btn-secondary" id="refreshBtn" style="margin-top: 15px; width: 100%;">
-        <span>↻</span> Refresh Video
-      </button>
-    </div>
-    
-    <div class="panel-card">
-      <div class="panel-header">
-        <h2><span class="panel-icon">🛡️</span> Moderation Status</h2>
-      </div>
-      
-      <div class="toggle-group" style="cursor: default;">
-        <div class="toggle-label">
-          <span>🚫</span>
-          <span>Profanity Filter</span>
-        </div>
-        <label class="toggle-switch">
-          <input type="checkbox" id="profanityToggle" checked disabled>
-          <span class="toggle-slider"></span>
-        </label>
-      </div>
-      
-      <div class="toggle-group" style="cursor: default;">
-        <div class="toggle-label">
-          <span>⚠️</span>
-          <span>Auto-Ban Users</span>
-        </div>
-        <label class="toggle-switch">
-          <input type="checkbox" id="autoBanToggle" disabled>
-          <span class="toggle-slider"></span>
-        </label>
-      </div>
-      
-      <button class="btn btn-primary" id="viewViolationsBtn" style="margin-top: 15px; width: 100%;">
-        <span>📋</span> View Violations<span class="badge-count" id="violationBadge">0</span>
-      </button>
-    </div>
-    
-    <div class="panel-card">
-      <div class="panel-header">
-        <h2><span class="panel-icon">🤖</span> AI Status</h2>
-      </div>
-      
-      <div class="toggle-group" style="cursor: default;">
-        <div class="toggle-label">
-          <span>🐆</span>
-          <span>AI Chatbot</span>
-        </div>
-        <label class="toggle-switch">
-          <input type="checkbox" id="aiToggle" checked disabled>
-          <span class="toggle-slider"></span>
-        </label>
-      </div>
-      
-      <div class="toggle-group" style="cursor: default;">
-        <div class="toggle-label">
-          <span>💬</span>
-          <span>Auto-Reply in Chat</span>
-        </div>
-        <label class="toggle-switch">
-          <input type="checkbox" id="aiAutoReplyToggle" disabled>
-          <span class="toggle-slider"></span>
-        </label>
-      </div>
-      
-      <div style="background: var(--bg-primary); padding: 12px; border-radius: 8px; border: 2px solid var(--border-color); margin-top: 12px;">
-        <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.4;">
-          💡 <strong>Tip:</strong> Use the AI chat box for direct questions, or mention "Merle" in public chat!
-        </p>
-      </div>
-    </div>
-    
-    <div class="panel-card">
-      <div class="panel-header">
-        <h2><span class="panel-icon">🚨</span> Motion Activity</h2>
-        <button class="btn btn-secondary" style="padding: 8px 16px; font-size: 12px;" id="clearEventsBtn">
-          Clear
-        </button>
-      </div>
-      
-      <div class="activity-log" id="activityLog">
-        <div class="no-activity">No motion events detected</div>
-      </div>
-    </div>
-    
-    <div class="panel-card" id="violationPanel" style="display: none;">
-      <div class="panel-header">
-        <h2><span class="panel-icon">⚠️</span> Violation Log</h2>
-        <button class="btn btn-secondary" style="padding: 8px 16px; font-size: 12px;" id="closeViolationsBtn">
-          Close
-        </button>
-      </div>
-      
-      <div class="activity-log" id="violationLog">
-        <div class="no-activity">No violations detected</div>
-      </div>
-      
-      <button class="btn btn-primary" id="clearViolationsBtn" style="margin-top: 15px; width: 100%;">
-        <span>🧹</span> Clear All Violations
-      </button>
     </div>
   </div>
 </div>
 
 <script>
+console.log('🐆 Merle Cam initializing...');
+
 // Configuration
 const API_URL = 'https://scoop-rogers-drainage-lace.trycloudflare.com';
-const VIDEO_URL = `${API_URL}/video`;
-const UPDATE_INTERVAL = 3000;
-const CHAT_UPDATE_INTERVAL = 2000;
+console.log('📡 API URL:', API_URL);
 
-let updateInterval;
-let chatUpdateInterval;
-let sessionId = null;
+// State
+let username = localStorage.getItem('merle_username') || '';
 let lastMessageId = 0;
-let lastAIMessageId = 0;
-let username = localStorage.getItem('merle_cam_username') || '';
-
-function generateSessionId() {
-  return 'viewer_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-}
-
-sessionId = generateSessionId();
 
 // Initialize username
 if (username) {
-  document.getElementById('usernameInput').value = username;
+  document.getElementById('username').value = username;
 }
 
+// Initialize video
 function initVideo() {
   const video = document.getElementById('videoFeed');
-  const timestamp = Date.now();
-  video.src = `${VIDEO_URL}?t=${timestamp}`;
-  
-  video.onload = () => {
-    console.log('✅ Video feed loaded successfully');
-  };
+  const videoUrl = `${API_URL}/video?t=${Date.now()}`;
+  console.log('📹 Loading video from:', videoUrl);
+  video.src = videoUrl;
   
   video.onerror = (e) => {
-    console.error('❌ Video feed error:', e);
-    console.error('Attempted URL:', video.src);
-    document.getElementById('statusDot').classList.add('error');
-    document.getElementById('connectionStatus').textContent = 'Camera Error';
-    
-    // Log detailed error
-    setTimeout(() => {
-      console.log('Testing video URL directly...');
-      fetch(VIDEO_URL)
-        .then(response => {
-          console.log('Video endpoint response status:', response.status);
-          console.log('Response headers:', response.headers);
-        })
-        .catch(err => console.error('Fetch test failed:', err));
-    }, 1000);
+    console.error('❌ Video load error:', e);
+    console.error('Video URL:', video.src);
   };
   
-  console.log('📹 Initializing video feed from:', video.src);
+  video.onload = () => {
+    console.log('✅ Video loaded successfully');
+  };
 }
 
+// Format uptime
 function formatUptime(seconds) {
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  const secs = seconds % 60;
-  
-  if (hours > 0) {
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  }
-  return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = seconds % 60;
+  return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 }
 
-function formatNumber(num) {
-  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-}
-
+// Update status
 async function updateStatus() {
   try {
-    console.log('🔄 Fetching status from:', `${API_URL}/status`);
     const response = await fetch(`${API_URL}/status`);
     
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      throw new Error(`HTTP ${response.status}`);
     }
     
     const data = await response.json();
-    console.log('✅ Status data received:', data);
+    console.log('📊 Status updated:', data);
     
+    // Update connection status
     document.getElementById('statusDot').classList.remove('error');
     document.getElementById('connectionStatus').textContent = 'Connected';
     
+    // Update stats
     document.getElementById('uptimeDisplay').textContent = formatUptime(data.uptime);
-    document.getElementById('fpsValue').textContent = data.fps_actual || '--';
-    document.getElementById('frameCount').textContent = formatNumber(data.frame_count || 0);
-    document.getElementById('eventCount').textContent = data.motion_events?.length || 0;
-    document.getElementById('brightnessValue').textContent = Math.round(data.brightness || 0);
-    document.getElementById('messageCount').textContent = data.total_messages || 0;
-    document.getElementById('filteredCount').textContent = data.filtered_messages || 0;
-    document.getElementById('violationBadge').textContent = data.violation_count || 0;
-    document.getElementById('aiCount').textContent = data.ai_responses || 0;
+    document.getElementById('brightness').textContent = Math.round(data.brightness || 0);
+    document.getElementById('fps').textContent = data.fps_actual || 0;
+    document.getElementById('frames').textContent = (data.frame_count || 0).toLocaleString();
+    document.getElementById('messages').textContent = data.total_messages || 0;
+    document.getElementById('filtered').textContent = data.filtered_messages || 0;
+    document.getElementById('aiResponses').textContent = data.ai_responses || 0;
     
+    // Update settings display
     if (data.settings) {
-      updateSettingsDisplay(data.settings);
-    }
-    
-    if (data.motion_events && data.motion_events.length > 0) {
-      updateActivityLog(data.motion_events);
+      document.getElementById('settingsFps').textContent = data.settings.fps + ' FPS';
+      document.getElementById('settingsMotion').textContent = data.settings.motion ? 'ON ✅' : 'OFF ❌';
+      document.getElementById('settingsFilter').textContent = data.settings.profanity_filter ? 'ON ✅' : 'OFF ❌';
+      document.getElementById('settingsAI').textContent = data.settings.ai_enabled ? 'ON ✅' : 'OFF ❌';
     }
     
   } catch (error) {
@@ -1188,47 +509,7 @@ async function updateStatus() {
   }
 }
 
-function updateSettingsDisplay(data) {
-  // Display FPS as text (read-only)
-  document.getElementById('fpsDisplay').textContent = `${data.fps} FPS`;
-  
-  // Update toggle states (disabled, just showing status)
-  document.getElementById('motionToggle').checked = data.motion;
-  document.getElementById('lowDataToggle').checked = data.low_data;
-  document.getElementById('profanityToggle').checked = data.profanity_filter;
-  document.getElementById('autoBanToggle').checked = data.auto_ban || false;
-  document.getElementById('aiToggle').checked = data.ai_enabled !== false;
-  document.getElementById('aiAutoReplyToggle').checked = data.ai_auto_reply || false;
-  
-  const indicator = document.getElementById('motionIndicator');
-  const status = document.getElementById('motionStatus');
-  if (data.motion) {
-    indicator.classList.remove('disabled');
-    status.textContent = 'Motion: On';
-  } else {
-    indicator.classList.add('disabled');
-    status.textContent = 'Motion: Off';
-  }
-}
-
-function updateActivityLog(events) {
-  const log = document.getElementById('activityLog');
-  
-  if (!events || events.length === 0) {
-    log.innerHTML = '<div class="no-activity">No motion events detected</div>';
-    return;
-  }
-  
-  const recentEvents = events.slice(-10).reverse();
-  
-  log.innerHTML = recentEvents.map(event => `
-    <div class="activity-item">
-      <span class="activity-time">${event.time_str}</span>
-      <span class="activity-intensity">⚡ ${event.intensity}</span>
-    </div>
-  `).join('');
-}
-
+// Update chat
 async function updateChat() {
   try {
     const response = await fetch(`${API_URL}/chat/messages`);
@@ -1238,249 +519,148 @@ async function updateChat() {
     const messages = data.messages || [];
     
     if (messages.length === 0) {
-      document.getElementById('chatMessages').innerHTML = '<div class="no-activity">No messages yet. Start chatting!</div>';
-      document.getElementById('aiChatMessages').innerHTML = '<div class="no-activity">Ask Merle AI anything! 🐆</div>';
+      document.getElementById('chatMessages').innerHTML = '<div class="no-activity">No messages yet</div>';
       return;
     }
     
-    // Separate public and AI messages
-    const publicMessages = messages.filter(msg => msg.type !== 'ai');
-    const aiMessages = messages.filter(msg => msg.type === 'ai' || msg.username.includes('AI'));
-    
-    // Update public chat
-    const latestPublicId = publicMessages[publicMessages.length - 1]?.id || 0;
-    if (latestPublicId > lastMessageId || publicMessages.length === 0) {
-      lastMessageId = latestPublicId;
+    const latestId = messages[messages.length - 1]?.id || 0;
+    if (latestId > lastMessageId) {
+      lastMessageId = latestId;
+      
+      const chatHtml = messages.map(msg => `
+        <div class="chat-message">
+          <div class="message-header">
+            <span class="message-username">${escapeHtml(msg.username)}</span>
+            <span class="message-time">${msg.time_str}</span>
+          </div>
+          <div class="message-text">${escapeHtml(msg.text)}</div>
+        </div>
+      `).join('');
       
       const chatContainer = document.getElementById('chatMessages');
-      const shouldScroll = chatContainer.scrollHeight - chatContainer.scrollTop <= chatContainer.clientHeight + 100;
-      
-      if (publicMessages.length === 0) {
-        chatContainer.innerHTML = '<div class="no-activity">No messages yet. Start chatting!</div>';
-      } else {
-        chatContainer.innerHTML = publicMessages.map(msg => {
-          const messageClass = msg.type === 'censored' ? 'censored' : msg.type === 'system' ? 'system' : '';
-          return `
-            <div class="chat-message ${messageClass}">
-              <div class="message-header">
-                <span class="message-username">${escapeHtml(msg.username)}</span>
-                <span class="message-time">${msg.time_str}</span>
-              </div>
-              <div class="message-text">${escapeHtml(msg.text)}</div>
-            </div>
-          `;
-        }).join('');
-      }
-      
-      if (shouldScroll) {
-        chatContainer.scrollTop = chatContainer.scrollHeight;
-      }
-    }
-    
-    // Update AI chat
-    const latestAIId = aiMessages[aiMessages.length - 1]?.id || 0;
-    if (latestAIId > lastAIMessageId || aiMessages.length === 0) {
-      lastAIMessageId = latestAIId;
-      
-      const aiChatContainer = document.getElementById('aiChatMessages');
-      const shouldScrollAI = aiChatContainer.scrollHeight - aiChatContainer.scrollTop <= aiChatContainer.clientHeight + 100;
-      
-      if (aiMessages.length === 0) {
-        aiChatContainer.innerHTML = '<div class="no-activity">Ask Merle AI anything! 🐆</div>';
-      } else {
-        aiChatContainer.innerHTML = aiMessages.map(msg => `
-          <div class="chat-message ai">
-            <div class="message-header">
-              <span class="message-username">${escapeHtml(msg.username)}</span>
-              <span class="message-time">${msg.time_str}</span>
-            </div>
-            <div class="message-text">${escapeHtml(msg.text)}</div>
-          </div>
-        `).join('');
-      }
-      
-      if (shouldScrollAI) {
-        aiChatContainer.scrollTop = aiChatContainer.scrollHeight;
-      }
+      chatContainer.innerHTML = chatHtml;
+      chatContainer.scrollTop = chatContainer.scrollHeight;
     }
     
   } catch (error) {
-    console.error('Chat update failed:', error);
+    console.error('❌ Chat update failed:', error);
   }
 }
 
+// Send message
 async function sendMessage() {
-  const usernameInput = document.getElementById('usernameInput');
+  const usernameInput = document.getElementById('username');
   const messageInput = document.getElementById('messageInput');
-  const sendBtn = document.getElementById('sendMessageBtn');
+  const sendBtn = document.getElementById('sendBtn');
   
-  const username = usernameInput.value.trim();
+  const user = usernameInput.value.trim();
   const text = messageInput.value.trim();
   
-  if (!username) {
-    usernameInput.focus();
-    usernameInput.style.borderColor = 'var(--danger)';
-    setTimeout(() => usernameInput.style.borderColor = '', 2000);
+  if (!user) {
+    alert('Please enter a username');
     return;
   }
   
   if (!text) {
-    messageInput.focus();
+    alert('Please enter a message');
     return;
   }
   
-  // Save username
-  localStorage.setItem('merle_cam_username', username);
+  localStorage.setItem('merle_username', user);
   
-  // Disable button
   sendBtn.disabled = true;
   sendBtn.innerHTML = '<div class="loading"></div>';
   
   try {
     const response = await fetch(`${API_URL}/chat/send`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ username, text })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: user, text })
     });
     
     const result = await response.json();
     
     if (result.success) {
       messageInput.value = '';
-      
-      if (result.censored) {
-        // Show warning
-        messageInput.style.borderColor = 'var(--warning)';
-        setTimeout(() => messageInput.style.borderColor = '', 2000);
-      }
-      
-      // Update chat immediately
       await updateChat();
     } else {
-      // Show error
       alert(result.error || 'Failed to send message');
-      
-      if (result.banned) {
-        usernameInput.style.borderColor = 'var(--danger)';
-        usernameInput.disabled = true;
-      }
     }
     
   } catch (error) {
-    console.error('Send message failed:', error);
+    console.error('❌ Send failed:', error);
     alert('Failed to send message');
   } finally {
     sendBtn.disabled = false;
-    sendBtn.innerHTML = '<span>📤</span> Send';
+    sendBtn.innerHTML = '📤 Send Message';
   }
 }
 
-async function sendAIMessage() {
-  const messageInput = document.getElementById('aiMessageInput');
-  const sendBtn = document.getElementById('sendAIMessageBtn');
+// Send AI message
+async function sendAI() {
+  const aiInput = document.getElementById('aiInput');
+  const aiBtn = document.getElementById('aiBtn');
   
-  const text = messageInput.value.trim();
+  const text = aiInput.value.trim();
   
   if (!text) {
-    messageInput.focus();
+    alert('Please enter a question');
     return;
   }
   
-  const username = localStorage.getItem('merle_cam_username') || 'Guest';
+  const user = localStorage.getItem('merle_username') || 'Guest';
   
-  // Disable button
-  sendBtn.disabled = true;
-  sendBtn.innerHTML = '<div class="loading"></div>';
+  aiBtn.disabled = true;
+  aiBtn.innerHTML = '<div class="loading"></div>';
   
   try {
     const response = await fetch(`${API_URL}/ai/chat`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ message: text, username })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: text, username: user })
     });
     
     const result = await response.json();
     
     if (result.success) {
-      messageInput.value = '';
-      
-      // Add user message to AI chat
-      const aiChatContainer = document.getElementById('aiChatMessages');
-      if (aiChatContainer.innerHTML.includes('no-activity')) {
-        aiChatContainer.innerHTML = '';
-      }
+      aiInput.value = '';
       
       const now = new Date();
-      const timeStr = now.toTimeString().split(' ')[0].substring(0, 5);
+      const time = now.toTimeString().split(' ')[0].substring(0, 5);
       
-      // User message
-      aiChatContainer.innerHTML += `
+      const aiContainer = document.getElementById('aiMessages');
+      if (aiContainer.innerHTML.includes('no-activity')) {
+        aiContainer.innerHTML = '';
+      }
+      
+      aiContainer.innerHTML += `
         <div class="chat-message">
           <div class="message-header">
-            <span class="message-username">${escapeHtml(username)}</span>
-            <span class="message-time">${timeStr}</span>
+            <span class="message-username">${escapeHtml(user)}</span>
+            <span class="message-time">${time}</span>
           </div>
           <div class="message-text">${escapeHtml(text)}</div>
         </div>
-      `;
-      
-      // AI response
-      aiChatContainer.innerHTML += `
-        <div class="chat-message ai">
+        <div class="chat-message">
           <div class="message-header">
             <span class="message-username">Merle AI 🐆</span>
-            <span class="message-time">${timeStr}</span>
+            <span class="message-time">${time}</span>
           </div>
           <div class="message-text">${escapeHtml(result.response)}</div>
         </div>
       `;
       
-      aiChatContainer.scrollTop = aiChatContainer.scrollHeight;
+      aiContainer.scrollTop = aiContainer.scrollHeight;
     } else {
-      alert(result.error || 'AI is not available');
+      alert(result.error || 'AI not available');
     }
     
   } catch (error) {
-    console.error('AI message failed:', error);
+    console.error('❌ AI failed:', error);
     alert('Failed to get AI response');
   } finally {
-    sendBtn.disabled = false;
-    sendBtn.innerHTML = '<span>🤖</span> Ask';
-  }
-}
-
-async function loadViolations() {
-  try {
-    const response = await fetch(`${API_URL}/moderation/violations`);
-    if (!response.ok) return;
-    
-    const data = await response.json();
-    const violations = data.violations || [];
-    
-    const log = document.getElementById('violationLog');
-    
-    if (violations.length === 0) {
-      log.innerHTML = '<div class="no-activity">No violations detected</div>';
-      return;
-    }
-    
-    log.innerHTML = violations.slice().reverse().map(v => `
-      <div class="violation-item">
-        <div class="violation-header">
-          <span class="violation-user">👤 ${escapeHtml(v.username)}</span>
-          <span class="violation-time">${v.time_str}</span>
-        </div>
-        <div class="violation-text">"${escapeHtml(v.text)}"</div>
-        <div class="violation-words">Detected: ${v.found_words.join(', ')}</div>
-      </div>
-    `).join('');
-    
-  } catch (error) {
-    console.error('Load violations failed:', error);
+    aiBtn.disabled = false;
+    aiBtn.innerHTML = '🤖 Ask AI';
   }
 }
 
@@ -1490,169 +670,45 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
-// Event Listeners
-document.getElementById('sendMessageBtn').addEventListener('click', sendMessage);
-document.getElementById('sendAIMessageBtn').addEventListener('click', sendAIMessage);
+// Event listeners
+document.getElementById('sendBtn').addEventListener('click', sendMessage);
+document.getElementById('aiBtn').addEventListener('click', sendAI);
 
-document.getElementById('messageInput').addEventListener('keydown', (e) => {
-  if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault();
-    sendMessage();
-  }
+document.getElementById('messageInput').addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') sendMessage();
 });
 
-document.getElementById('aiMessageInput').addEventListener('keydown', (e) => {
-  if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault();
-    sendAIMessage();
-  }
+document.getElementById('aiInput').addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') sendAI();
 });
-
-document.getElementById('refreshBtn').addEventListener('click', () => {
-  console.log('🔄 Refreshing video feed...');
-  const video = document.getElementById('videoFeed');
-  const timestamp = Date.now();
-  video.src = `${VIDEO_URL}?t=${timestamp}`;
-  console.log('New video URL:', video.src);
-});
-
-// Clear chat button (only if it exists)
-const clearChatBtn = document.getElementById('clearChatBtn');
-if (clearChatBtn) {
-  clearChatBtn.addEventListener('click', async () => {
-    if (!confirm('Clear all public chat messages?')) return;
-    
-    try {
-      await fetch(`${API_URL}/chat/clear`, { method: 'POST' });
-      document.getElementById('chatMessages').innerHTML = '<div class="no-activity">Chat cleared</div>';
-      lastMessageId = 0;
-    } catch (error) {
-      console.error('Failed to clear chat:', error);
-    }
-  });
-}
-
-// Clear AI chat button (only if it exists)
-const clearAIChatBtn = document.getElementById('clearAIChatBtn');
-if (clearAIChatBtn) {
-  clearAIChatBtn.addEventListener('click', () => {
-    document.getElementById('aiChatMessages').innerHTML = '<div class="no-activity">Ask Merle AI anything! 🐆</div>';
-  });
-}
-
-document.getElementById('clearEventsBtn').addEventListener('click', () => {
-  const log = document.getElementById('activityLog');
-  log.innerHTML = '<div class="no-activity">Activity log cleared</div>';
-  document.getElementById('eventCount').textContent = '0';
-});
-
-const viewViolationsBtn = document.getElementById('viewViolationsBtn');
-if (viewViolationsBtn) {
-  viewViolationsBtn.addEventListener('click', () => {
-    document.getElementById('violationPanel').style.display = 'block';
-    loadViolations();
-  });
-}
-
-const closeViolationsBtn = document.getElementById('closeViolationsBtn');
-if (closeViolationsBtn) {
-  closeViolationsBtn.addEventListener('click', () => {
-    document.getElementById('violationPanel').style.display = 'none';
-  });
-}
-
-const clearViolationsBtn = document.getElementById('clearViolationsBtn');
-if (clearViolationsBtn) {
-  clearViolationsBtn.addEventListener('click', async () => {
-    if (!confirm('Clear all violations?')) return;
-    
-    try {
-      await fetch(`${API_URL}/moderation/violations/clear`, { method: 'POST' });
-      document.getElementById('violationLog').innerHTML = '<div class="no-activity">Violations cleared</div>';
-      document.getElementById('violationBadge').textContent = '0';
-    } catch (error) {
-      console.error('Failed to clear violations:', error);
-    }
-  });
-}
 
 // Initialize
-window.addEventListener('DOMContentLoaded', () => {
-  console.log('🐆 Merle Cam Dashboard v3.1 Initialized');
-  console.log('📡 Backend API URL:', API_URL);
-  console.log('📹 Video URL:', VIDEO_URL);
-  
-  // Test backend connectivity first
-  console.log('🧪 Testing backend connection...');
-  fetch(`${API_URL}/health`)
-    .then(response => {
-      console.log('✅ Backend health check response:', response.status);
-      return response.json();
-    })
-    .then(data => {
-      console.log('✅ Backend health data:', data);
-      console.log('Camera active:', data.camera_active);
-      
-      // Initialize video and start updates
-      initVideo();
-      updateStatus();
-      updateChat();
-      
-      updateInterval = setInterval(updateStatus, UPDATE_INTERVAL);
-      chatUpdateInterval = setInterval(updateChat, CHAT_UPDATE_INTERVAL);
-    })
-    .catch(error => {
-      console.error('❌ Backend connection failed:', error);
-      console.error('Make sure backend is running at:', API_URL);
-      document.getElementById('statusDot').classList.add('error');
-      document.getElementById('connectionStatus').textContent = 'Backend Offline';
-      
-      // Still try to initialize video
-      initVideo();
-    });
-});
-
-window.addEventListener('beforeunload', () => {
-  clearInterval(updateInterval);
-  clearInterval(chatUpdateInterval);
-});
-
-document.addEventListener('visibilitychange', () => {
-  if (document.hidden) {
-    clearInterval(updateInterval);
-    clearInterval(chatUpdateInterval);
-  } else {
+console.log('🧪 Testing backend connection...');
+fetch(`${API_URL}/health`)
+  .then(response => response.json())
+  .then(data => {
+    console.log('✅ Backend connected:', data);
+    console.log('Camera active:', data.camera_active);
+    
+    initVideo();
     updateStatus();
     updateChat();
-    updateInterval = setInterval(updateStatus, UPDATE_INTERVAL);
-    chatUpdateInterval = setInterval(updateChat, CHAT_UPDATE_INTERVAL);
-  }
-});
+    
+    setInterval(updateStatus, 3000);
+    setInterval(updateChat, 2000);
+  })
+  .catch(error => {
+    console.error('❌ Backend connection failed:', error);
+    console.error('Make sure backend is running at:', API_URL);
+    document.getElementById('statusDot').classList.add('error');
+    document.getElementById('connectionStatus').textContent = 'Backend Offline';
+    
+    // Try to load video anyway
+    initVideo();
+  });
+
+console.log('✅ Frontend initialized');
 </script>
 
 </body>
-</html>container">
-          <div class="chat-input-wrapper">
-            <input type="text" class="username-input" id="usernameInput" placeholder="Your username..." maxlength="20">
-            <textarea class="chat-input" id="messageInput" placeholder="Type a message..." rows="2" maxlength="500"></textarea>
-          </div>
-          <button class="btn btn-primary btn-send" id="sendMessageBtn">
-            <span>📤</span> Send
-          </button>
-        </div>
-      </div>
-
-      <!-- AI Chat -->
-      <div class="chat-section ai-chat">
-        <div class="chat-header">
-          <h2><span class="panel-icon">🤖</span> AI Assistant</h2>
-          <button class="btn btn-secondary" style="padding: 8px 16px; font-size: 12px;" id="clearAIChatBtn">
-            Clear
-          </button>
-        </div>
-        
-        <div class="chat-messages" id="aiChatMessages">
-          <div class="no-activity">Ask Merle AI anything! 🐆</div>
-        </div>
-        
-        <div class="chat-input-
+</html>
