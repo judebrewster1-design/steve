@@ -1546,26 +1546,35 @@ document.getElementById('clearEventsBtn').addEventListener('click', () => {
   document.getElementById('eventCount').textContent = '0';
 });
 
-document.getElementById('viewViolationsBtn').addEventListener('click', () => {
-  document.getElementById('violationPanel').style.display = 'block';
-  loadViolations();
-});
+const viewViolationsBtn = document.getElementById('viewViolationsBtn');
+if (viewViolationsBtn) {
+  viewViolationsBtn.addEventListener('click', () => {
+    document.getElementById('violationPanel').style.display = 'block';
+    loadViolations();
+  });
+}
 
-document.getElementById('closeViolationsBtn').addEventListener('click', () => {
-  document.getElementById('violationPanel').style.display = 'none';
-});
+const closeViolationsBtn = document.getElementById('closeViolationsBtn');
+if (closeViolationsBtn) {
+  closeViolationsBtn.addEventListener('click', () => {
+    document.getElementById('violationPanel').style.display = 'none';
+  });
+}
 
-document.getElementById('clearViolationsBtn').addEventListener('click', async () => {
-  if (!confirm('Clear all violations?')) return;
-  
-  try {
-    await fetch(`${API_URL}/moderation/violations/clear`, { method: 'POST' });
-    document.getElementById('violationLog').innerHTML = '<div class="no-activity">Violations cleared</div>';
-    document.getElementById('violationBadge').textContent = '0';
-  } catch (error) {
-    console.error('Failed to clear violations:', error);
-  }
-});
+const clearViolationsBtn = document.getElementById('clearViolationsBtn');
+if (clearViolationsBtn) {
+  clearViolationsBtn.addEventListener('click', async () => {
+    if (!confirm('Clear all violations?')) return;
+    
+    try {
+      await fetch(`${API_URL}/moderation/violations/clear`, { method: 'POST' });
+      document.getElementById('violationLog').innerHTML = '<div class="no-activity">Violations cleared</div>';
+      document.getElementById('violationBadge').textContent = '0';
+    } catch (error) {
+      console.error('Failed to clear violations:', error);
+    }
+  });
+}
 
 // Initialize
 window.addEventListener('DOMContentLoaded', () => {
