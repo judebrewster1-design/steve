@@ -458,8 +458,8 @@ function initVideo() {
   console.log('📹 Starting video with snapshot mode (Cloudflare-compatible)');
   refreshFrame();
   
-  // Refresh every 100ms for ~10 FPS
-  videoRefreshInterval = setInterval(refreshFrame, 100);
+  // Refresh every 33ms for 30 FPS
+  videoRefreshInterval = setInterval(refreshFrame, 33);
   
   video.onerror = (e) => {
     console.error('❌ Video load error:', e);
