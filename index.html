@@ -132,44 +132,65 @@ body {
   border: 2px solid #4ade80;
 }
 
-.motion-snapshot {
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
-  width: 180px;
-  background: rgba(0, 0, 0, 0.9);
+.motion-latest-box {
+  background: #2a1a0a;
+  border-radius: 12px;
   border: 3px solid #ff4d4d;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 0 20px rgba(255, 77, 77, 0.5);
+  padding: 15px;
+  margin-top: 20px;
+  box-shadow: 0 0 20px rgba(255, 77, 77, 0.3);
 }
 
-.motion-snapshot.hidden {
+.motion-latest-box.hidden {
   display: none;
 }
 
-.motion-snapshot-header {
-  background: #ff4d4d;
+.motion-latest-header {
+  background: linear-gradient(135deg, #ff4d4d, #ff8800);
   color: white;
-  padding: 6px;
-  font-size: 12px;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 16px;
   font-weight: bold;
   text-align: center;
+  margin-bottom: 12px;
 }
 
-.motion-snapshot-image {
-  width: 100%;
-  display: block;
-  background: #000;
+.motion-latest-content {
+  display: flex;
+  align-items: center;
+  gap: 15px;
 }
 
-.motion-snapshot-time {
-  background: rgba(0, 0, 0, 0.8);
-  color: #fff;
-  padding: 4px;
-  font-size: 10px;
-  text-align: center;
-  border-top: 1px solid #ff4d4d;
+.motion-latest-image {
+  width: 200px;
+  border-radius: 8px;
+  border: 2px solid #ff4d4d;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.motion-latest-image:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(255, 77, 77, 0.5);
+}
+
+.motion-latest-info {
+  flex: 1;
+}
+
+.motion-latest-time {
+  background: rgba(0, 0, 0, 0.5);
+  color: #f6e0b2;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  margin-bottom: 10px;
+  border-left: 3px solid #ff4d4d;
+}
+
+.motion-latest-time strong {
+  color: #ff4d4d;
 }
 
 .stats-grid {
@@ -471,10 +492,18 @@ body {
       <div class="video-section">
         <img id="videoFeed" src="" alt="Loading 30 FPS stream...">
         <div class="fps-overlay" id="fpsOverlay">-- FPS</div>
-        <div class="motion-snapshot hidden" id="motionSnapshot">
-          <div class="motion-snapshot-header">🚨 LAST MOTION</div>
-          <img class="motion-snapshot-image" id="motionImage" src="" alt="Motion detected">
-          <div class="motion-snapshot-time" id="motionTime">--</div>
+      </div>
+
+      <div class="motion-latest-box hidden" id="motionLatestBox">
+        <div class="motion-latest-header">🚨 LATEST MOTION DETECTED</div>
+        <div class="motion-latest-content">
+          <img class="motion-latest-image" id="motionLatestImage" src="" alt="Latest motion" onclick="openModal(this.src)">
+          <div class="motion-latest-info">
+            <div class="motion-latest-time">
+              <strong>Detected:</strong><br>
+              <span id="motionLatestTime">--</span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -633,13 +662,13 @@ async function updateMotionSnapshot() {
     const data = await response.json();
     
     if (data.has_snapshot) {
-      const motionSnapshot = document.getElementById('motionSnapshot');
-      const motionImage = document.getElementById('motionImage');
-      const motionTime = document.getElementById('motionTime');
+      const motionBox = document.getElementById('motionLatestBox');
+      const motionImage = document.getElementById('motionLatestImage');
+      const motionTime = document.getElementById('motionLatestTime');
       
       motionImage.src = `${API_URL}/motion/snapshot?t=${Date.now()}`;
       motionTime.textContent = data.timestamp;
-      motionSnapshot.classList.remove('hidden');
+      motionBox.classList.remove('hidden');
     }
   } catch (error) {
     console.error('❌ Motion snapshot update failed:', error);
