@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🐆 Merle Cam Dashboard</title>
+<title>🐆 Merle Cam Dashboard TURBO</title>
 <style>
 * {
   box-sizing: border-box;
@@ -50,6 +50,21 @@ body {
   color: #d4a23c;
 }
 
+.turbo-badge {
+  background: linear-gradient(135deg, #ff4d4d, #ff8800);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: bold;
+  animation: glow 2s infinite;
+}
+
+@keyframes glow {
+  0%, 100% { box-shadow: 0 0 10px rgba(255, 77, 77, 0.5); }
+  50% { box-shadow: 0 0 20px rgba(255, 136, 0, 0.8); }
+}
+
 .status {
   display: flex;
   gap: 15px;
@@ -94,6 +109,7 @@ body {
   overflow: hidden;
   border: 3px solid #d4a23c;
   box-shadow: 0 0 30px rgba(212, 162, 60, 0.3);
+  position: relative;
 }
 
 .video-section img {
@@ -101,6 +117,19 @@ body {
   display: block;
   min-height: 480px;
   background: #1a1a1a;
+}
+
+.fps-overlay {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #4ade80;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 18px;
+  border: 2px solid #4ade80;
 }
 
 .stats-grid {
@@ -272,45 +301,20 @@ body {
   to { transform: rotate(360deg); }
 }
 
-.settings-display {
-  background: #1a1a1a;
-  padding: 12px;
-  border-radius: 8px;
-  margin-bottom: 10px;
-  border: 2px solid #5e4528;
-}
-
-.settings-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 8px 0;
-  border-bottom: 1px solid #3a2a1a;
-}
-
-.settings-row:last-child {
-  border-bottom: none;
-}
-
-.settings-label {
-  color: #d4a23c;
-  font-size: 13px;
-}
-
-.settings-value {
-  color: #f6e0b2;
-  font-weight: bold;
-  font-size: 13px;
+.memory-indicator {
+  background: rgba(74, 222, 128, 0.1);
+  border: 1px solid #4ade80;
+  padding: 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #4ade80;
+  text-align: center;
+  margin-top: 10px;
 }
 
 @media (max-width: 1200px) {
   .main-grid {
     grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 768px) {
-  .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
   }
 }
 </style>
@@ -322,7 +326,7 @@ body {
     <div class="logo">
       <div class="logo-icon">🐆</div>
       <div class="logo-text">
-        <h1>Merle Cam</h1>
+        <h1>Merle Cam <span class="turbo-badge">⚡ TURBO</span></h1>
       </div>
     </div>
     <div class="status">
@@ -339,7 +343,8 @@ body {
   <div class="main-grid">
     <div>
       <div class="video-section">
-        <img id="videoFeed" src="" alt="Loading camera feed...">
+        <img id="videoFeed" src="" alt="Loading 30 FPS stream...">
+        <div class="fps-overlay" id="fpsOverlay">-- FPS</div>
       </div>
 
       <div class="stats-grid">
@@ -391,6 +396,9 @@ body {
 
       <div class="panel">
         <h2>🤖 AI Assistant</h2>
+        <div class="memory-indicator">
+          🧠 AI Memory: <span id="memoryCount">0</span>/10 messages
+        </div>
         <div class="chat-messages" id="aiMessages">
           <div class="no-activity">Ask Merle anything!</div>
         </div>
@@ -399,79 +407,41 @@ body {
           <button class="btn" id="aiBtn">🤖 Ask AI</button>
         </div>
       </div>
-
-      <div class="panel">
-        <h2>⚙️ Settings (Read-Only)</h2>
-        <div class="settings-display">
-          <div class="settings-row">
-            <span class="settings-label">FPS Target:</span>
-            <span class="settings-value" id="settingsFps">--</span>
-          </div>
-          <div class="settings-row">
-            <span class="settings-label">Motion Detection:</span>
-            <span class="settings-value" id="settingsMotion">--</span>
-          </div>
-          <div class="settings-row">
-            <span class="settings-label">Profanity Filter:</span>
-            <span class="settings-value" id="settingsFilter">--</span>
-          </div>
-          <div class="settings-row">
-            <span class="settings-label">AI Enabled:</span>
-            <span class="settings-value" id="settingsAI">--</span>
-          </div>
-        </div>
-        <div class="info-text">
-          🔒 Settings controlled by backend only
-        </div>
-      </div>
     </div>
   </div>
 </div>
 
 <script>
-console.log('🐆 Merle Cam initializing...');
+console.log('🐆 Merle Cam TURBO initializing...');
 
-// Configuration
-const API_URL = 'https://stationery-exclusive-owned-gore.trycloudflare.com';
+const API_URL = 'http://localhost:5000';
 console.log('📡 API URL:', API_URL);
 
-// State
 let username = localStorage.getItem('merle_username') || '';
 let lastMessageId = 0;
 
-// Initialize username
 if (username) {
   document.getElementById('username').value = username;
 }
 
-// Initialize video with auto-refresh (for Cloudflare tunnel compatibility)
-let videoRefreshInterval;
-
+// TURBO VIDEO STREAMING - Direct MJPEG
 function initVideo() {
   const video = document.getElementById('videoFeed');
+  const videoUrl = `${API_URL}/video`;
   
-  function refreshFrame() {
-    const videoUrl = `${API_URL}/snapshot?t=${Date.now()}`;
-    video.src = videoUrl;
-  }
-  
-  console.log('📹 Starting video with snapshot mode (Cloudflare-compatible)');
-  refreshFrame();
-  
-  // Refresh every 33ms for 30 FPS
-  videoRefreshInterval = setInterval(refreshFrame, 33);
+  console.log('🔥 Starting TURBO 30 FPS video stream');
+  video.src = videoUrl;
   
   video.onerror = (e) => {
-    console.error('❌ Video load error:', e);
-    console.error('Video URL:', video.src);
+    console.error('❌ Video stream error:', e);
+    setTimeout(initVideo, 2000);
   };
   
   video.onload = () => {
-    console.log('✅ Video frame loaded');
+    console.log('✅ Video stream connected');
   };
 }
 
-// Format uptime
 function formatUptime(seconds) {
   const h = Math.floor(seconds / 3600);
   const m = Math.floor((seconds % 3600) / 60);
@@ -479,7 +449,6 @@ function formatUptime(seconds) {
   return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 }
 
-// Update status
 async function updateStatus() {
   try {
     const response = await fetch(`${API_URL}/status`);
@@ -489,28 +458,19 @@ async function updateStatus() {
     }
     
     const data = await response.json();
-    console.log('📊 Status updated:', data);
     
-    // Update connection status
     document.getElementById('statusDot').classList.remove('error');
     document.getElementById('connectionStatus').textContent = 'Connected';
     
-    // Update stats
     document.getElementById('uptimeDisplay').textContent = formatUptime(data.uptime);
     document.getElementById('brightness').textContent = Math.round(data.brightness || 0);
     document.getElementById('fps').textContent = data.fps_actual || 0;
+    document.getElementById('fpsOverlay').textContent = `${data.fps_actual || 0} FPS`;
     document.getElementById('frames').textContent = (data.frame_count || 0).toLocaleString();
     document.getElementById('messages').textContent = data.total_messages || 0;
     document.getElementById('filtered').textContent = data.filtered_messages || 0;
     document.getElementById('aiResponses').textContent = data.ai_responses || 0;
-    
-    // Update settings display
-    if (data.settings) {
-      document.getElementById('settingsFps').textContent = data.settings.fps + ' FPS';
-      document.getElementById('settingsMotion').textContent = data.settings.motion ? 'ON ✅' : 'OFF ❌';
-      document.getElementById('settingsFilter').textContent = data.settings.profanity_filter ? 'ON ✅' : 'OFF ❌';
-      document.getElementById('settingsAI').textContent = data.settings.ai_enabled ? 'ON ✅' : 'OFF ❌';
-    }
+    document.getElementById('memoryCount').textContent = data.conversation_length || 0;
     
   } catch (error) {
     console.error('❌ Status update failed:', error);
@@ -519,7 +479,6 @@ async function updateStatus() {
   }
 }
 
-// Update chat
 async function updateChat() {
   try {
     const response = await fetch(`${API_URL}/chat/messages`);
@@ -557,7 +516,6 @@ async function updateChat() {
   }
 }
 
-// Send message
 async function sendMessage() {
   const usernameInput = document.getElementById('username');
   const messageInput = document.getElementById('messageInput');
@@ -606,7 +564,6 @@ async function sendMessage() {
   }
 }
 
-// Send AI message
 async function sendAI() {
   const aiInput = document.getElementById('aiInput');
   const aiBtn = document.getElementById('aiBtn');
@@ -680,7 +637,6 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
-// Event listeners
 document.getElementById('sendBtn').addEventListener('click', sendMessage);
 document.getElementById('aiBtn').addEventListener('click', sendAI);
 
@@ -692,32 +648,29 @@ document.getElementById('aiInput').addEventListener('keypress', (e) => {
   if (e.key === 'Enter') sendAI();
 });
 
-// Initialize
 console.log('🧪 Testing backend connection...');
 fetch(`${API_URL}/health`)
   .then(response => response.json())
   .then(data => {
     console.log('✅ Backend connected:', data);
-    console.log('Camera active:', data.camera_active);
+    console.log('🔥 TURBO mode active!');
     
     initVideo();
     updateStatus();
     updateChat();
     
-    setInterval(updateStatus, 3000);
-    setInterval(updateChat, 2000);
+    setInterval(updateStatus, 2000);
+    setInterval(updateChat, 1000);
   })
   .catch(error => {
     console.error('❌ Backend connection failed:', error);
-    console.error('Make sure backend is running at:', API_URL);
     document.getElementById('statusDot').classList.add('error');
     document.getElementById('connectionStatus').textContent = 'Backend Offline';
     
-    // Try to load video anyway
     initVideo();
   });
 
-console.log('✅ Frontend initialized');
+console.log('✅ TURBO Frontend initialized - 30 FPS mode activated!');
 </script>
 
 </body>
