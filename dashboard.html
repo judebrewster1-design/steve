@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🐆 Merle Cam Dashboard TURBO</title>
+<style>
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+  color: #f6e0b2;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.header {
+  background: #2a1a0a;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  border: 2px solid #d4a23c;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.logo-icon {
+  font-size: 48px;
+}
+
+.logo-text h1 {
+  font-size: 32px;
+  color: #d4a23c;
+}
+
+.turbo-badge {
+  background: linear-gradient(135deg, #ff4d4d, #ff8800);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: bold;
+  animation: glow 2s infinite;
+}
+
+@keyframes glow {
+  0%, 100% { box-shadow: 0 0 10px rgba(255, 77, 77, 0.5); }
+  50% { box-shadow: 0 0 20px rgba(255, 136, 0, 0.8); }
+}
+
+.status {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.status-badge {
+  background: rgba(0, 0, 0, 0.5);
+  padding: 10px 20px;
+  border-radius: 20px;
+  border: 2px solid #d4a23c;
+}
+
+.user-badge {
+  background: rgba(139, 92, 246, 0.3);
+  border-color: #8b5cf6;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.user-badge:hover {
+  transform: translateY(-2px);
+}
+
+.verified-icon {
+  color: #3b82f6;
+  font-weight: bold;
+  margin-right: 5px;
+}
+
+.guest-badge {
+  background: rgba(239, 68, 68, 0.3);
+  border-color: #ef4444;
+}
+
+.status-dot {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #4ade80;
+  margin-right: 8px;
+  animation: pulse 2s infinite;
+}
+
+.status-dot.error {
+  background: #f87171;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.main-grid {
+  display: grid;
+  grid-template-columns: 1fr 350px;
+  gap: 20px;
+}
+
+.video-section {
+  background: #000;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 3px solid #d4a23c;
+  box-shadow: 0 0 30px rgba(212, 162, 60, 0.3);
+  position: relative;
+}
+
+.video-section img {
+  width: 100%;
+  display: block;
+  min-height: 480px;
+  background: #1a1a1a;
+}
+
+.fps-overlay {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #4ade80;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 18px;
+  border: 2px solid #4ade80;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.stat-card {
+  background: #2a1a0a;
+  padding: 20px;
+  border-radius: 10px;
+  border: 2px solid #d4a23c;
+  text-align: center;
+}
+
+.stat-card h3 {
+  font-size: 12px;
+  color: #d4a23c;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.stat-value {
+  font-size: 36px;
+  font-weight: bold;
+  color: #f6e0b2;
+}
+
+.stat-label {
+  font-size: 11px;
+  color: #c4a872;
+  margin-top: 5px;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.panel {
+  background: #2a1a0a;
+  padding: 20px;
+  border-radius: 12px;
+  border: 2px solid #d4a23c;
+}
+
+.panel h2 {
+  font-size: 18px;
+  color: #d4a23c;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.chat-messages {
+  height: 300px;
+  overflow-y: auto;
+  margin-bottom: 15px;
+  background: #1a1a1a;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.chat-message {
+  background: #2a1a0a;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  border-left: 3px solid #d4a23c;
+}
+
+.chat-message.ai {
+  border-left-color: #8b5cf6;
+  background: rgba(139, 92, 246, 0.1);
+}
+
+.message-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+  font-size: 12px;
+}
+
+.message-username {
+  font-weight: bold;
+  color: #d4a23c;
+}
+
+.message-time {
+  color: #c4a872;
+}
+
+.message-text {
+  color: #f6e0b2;
+  font-size: 14px;
+}
+
+.chat-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.input-field {
+  width: 100%;
+  padding: 12px;
+  background: #1a1a1a;
+  border: 2px solid #5e4528;
+  border-radius: 8px;
+  color: #f6e0b2;
+  font-size: 14px;
+  font-family: inherit;
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: #d4a23c;
+}
+
+.input-field:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn {
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #d4a23c, #b88a28);
+  border: none;
+  border-radius: 8px;
+  color: #1a1a1a;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 20px rgba(212, 162, 60, 0.5);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-logout {
+  background: rgba(239, 68, 68, 0.3);
+  color: #f6e0b2;
+  padding: 8px 16px;
+  font-size: 13px;
+}
+
+.no-activity {
+  text-align: center;
+  color: #c4a872;
+  padding: 20px;
+  font-style: italic;
+}
+
+.loading {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #d4a23c;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.memory-indicator {
+  background: rgba(74, 222, 128, 0.1);
+  border: 1px solid #4ade80;
+  padding: 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #4ade80;
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.guest-warning {
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid #ef4444;
+  padding: 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #f87171;
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.logout-btn {
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+@media (max-width: 1200px) {
+  .main-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <div class="logo">
+      <div class="logo-icon">🐆</div>
+      <div class="logo-text">
+        <h1>Merle Cam <span class="turbo-badge">⚡ TURBO</span></h1>
+      </div>
+    </div>
+    <div class="status">
+      <div class="status-badge user-badge" id="userBadge" onclick="logout()">
+        <span id="userDisplay">Loading...</span>
+      </div>
+      <div class="status-badge">
+        <span class="status-dot" id="statusDot"></span>
+        <span id="connectionStatus">Connecting...</span>
+      </div>
+      <div class="status-badge">
+        <span id="uptimeDisplay">00:00:00</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-grid">
+    <div>
+      <div class="video-section">
+        <img id="videoFeed" src="" alt="Loading 30 FPS stream...">
+        <div class="fps-overlay" id="fpsOverlay">-- FPS</div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <h3>💡 Brightness</h3>
+          <div class="stat-value" id="brightness">--</div>
+          <div class="stat-label">Average</div>
+        </div>
+        <div class="stat-card">
+          <h3>🎯 FPS</h3>
+          <div class="stat-value" id="fps">--</div>
+          <div class="stat-label">Actual</div>
+        </div>
+        <div class="stat-card">
+          <h3>📹 Frames</h3>
+          <div class="stat-value" id="frames">--</div>
+          <div class="stat-label">Total</div>
+        </div>
+        <div class="stat-card">
+          <h3>💬 Messages</h3>
+          <div class="stat-value" id="messages">--</div>
+          <div class="stat-label">Sent</div>
+        </div>
+        <div class="stat-card">
+          <h3>🛡️ Filtered</h3>
+          <div class="stat-value" id="filtered">--</div>
+          <div class="stat-label">Blocked</div>
+        </div>
+        <div class="stat-card">
+          <h3>🤖 AI</h3>
+          <div class="stat-value" id="aiResponses">--</div>
+          <div class="stat-label">Replies</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar">
+      <div class="panel">
+        <h2>💬 Chat</h2>
+        <div id="guestWarningChat" class="guest-warning" style="display: none;">
+          👁️ Guest Mode - You can view but not send messages. <a href="index.html" style="color: #4ade80;">Login</a> to chat!
+        </div>
+        <div class="chat-messages" id="chatMessages">
+          <div class="no-activity">Loading messages...</div>
+        </div>
+        <div class="chat-input-group" id="chatInput">
+          <input type="text" class="input-field" id="messageInput" placeholder="Type a message...">
+          <button class="btn" id="sendBtn">📤 Send Message</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>🤖 AI Assistant</h2>
+        <div id="guestWarningAI" class="guest-warning" style="display: none;">
+          👁️ Guest Mode - <a href="index.html" style="color: #4ade80;">Login</a> to use AI!
+        </div>
+        <div class="memory-indicator">
+          🧠 AI Status: <span id="aiStatusText">Checking...</span>
+        </div>
+        <div class="chat-messages" id="aiMessages">
+          <div class="no-activity">Ask Merle anything!</div>
+        </div>
+        <div class="chat-input-group" id="aiInput">
+          <input type="text" class="input-field" id="aiInputField" placeholder="Ask AI...">
+          <button class="btn" id="aiBtn">🤖 Ask AI</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>🎯 Recent Motion Events</h2>
+        <div class="chat-messages" id="motionLog">
+          <div class="no-activity">No motion detected yet</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+console.log('🐆 Merle Cam TURBO initializing...');
+
+const API_URL = 'https://competitive-remained-normal-kong.trycloudflare.com';
+console.log('📡 API URL:', API_URL);
+
+let username = localStorage.getItem('username') || 'Guest';
+let sessionToken = localStorage.getItem('session_token') || '';
+let isVerified = localStorage.getItem('verified') === 'true';
+let isGuest = localStorage.getItem('guest_mode') === 'true';
+let lastMessageId = 0;
+
+// Check authentication on load
+if (!isGuest && !sessionToken) {
+  console.log('❌ No session found, redirecting to login...');
+  window.location.href = 'index.html';
+}
+
+// Update UI based on user status
+function updateUserDisplay() {
+  const userDisplay = document.getElementById('userDisplay');
+  const userBadge = document.getElementById('userBadge');
+  
+  if (isGuest) {
+    userDisplay.innerHTML = '👁️ Guest';
+    userBadge.classList.add('guest-badge');
+    
+    // Disable chat and AI for guests
+    document.getElementById('guestWarningChat').style.display = 'block';
+    document.getElementById('guestWarningAI').style.display = 'block';
+    document.getElementById('messageInput').disabled = true;
+    document.getElementById('sendBtn').disabled = true;
+    document.getElementById('aiInputField').disabled = true;
+    document.getElementById('aiBtn').disabled = true;
+  } else {
+    const verifiedIcon = isVerified ? '<span class="verified-icon">✓</span>' : '';
+    userDisplay.innerHTML = `${verifiedIcon}${username}`;
+  }
+}
+
+updateUserDisplay();
+
+function logout() {
+  if (confirm('Logout?')) {
+    localStorage.clear();
+    window.location.href = 'index.html';
+  }
+}
+
+// TURBO VIDEO STREAMING
+function initVideo() {
+  const video = document.getElementById('videoFeed');
+  const videoUrl = `${API_URL}/video`;
+  
+  console.log('🔥 Starting TURBO 30 FPS video stream');
+  video.src = videoUrl;
+  
+  video.onerror = (e) => {
+    console.error('❌ Video stream error:', e);
+    setTimeout(initVideo, 2000);
+  };
+}
+
+function formatUptime(seconds) {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = seconds % 60;
+  return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+}
+
+async function updateStatus() {
+  try {
+    const response = await fetch(`${API_URL}/status`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    document.getElementById('statusDot').classList.remove('error');
+    document.getElementById('connectionStatus').textContent = 'Connected';
+    
+    document.getElementById('uptimeDisplay').textContent = formatUptime(data.uptime);
+    document.getElementById('brightness').textContent = Math.round(data.brightness || 0);
+    document.getElementById('fps').textContent = data.fps_actual || 0;
+    document.getElementById('fpsOverlay').textContent = `${data.fps_actual || 0} FPS`;
+    document.getElementById('frames').textContent = (data.frame_count || 0).toLocaleString();
+    document.getElementById('messages').textContent = data.total_messages || 0;
+    document.getElementById('filtered').textContent = data.filtered_messages || 0;
+    document.getElementById('aiResponses').textContent = data.ai_responses || 0;
+    
+    const aiStatusText = document.getElementById('aiStatusText');
+    if (data.ai_available) {
+      aiStatusText.textContent = '✅ Online';
+      aiStatusText.style.color = '#4ade80';
+    } else {
+      aiStatusText.textContent = '❌ Offline';
+      aiStatusText.style.color = '#f87171';
+    }
+    
+    if (data.motion_events && data.motion_events.length > 0) {
+      const motionLog = document.getElementById('motionLog');
+      const motionHtml = data.motion_events.reverse().slice(0, 10).map(event => `
+        <div class="chat-message">
+          <div class="message-header">
+            <span class="message-username">Motion Detected</span>
+            <span class="message-time">${event.time_str}</span>
+          </div>
+          <div class="message-text">Intensity: ${event.intensity}</div>
+        </div>
+      `).join('');
+      motionLog.innerHTML = motionHtml;
+    }
+    
+  } catch (error) {
+    console.error('❌ Status update failed:', error);
+    document.getElementById('statusDot').classList.add('error');
+    document.getElementById('connectionStatus').textContent = 'Disconnected';
+  }
+}
+
+async function updateChat() {
+  try {
+    const response = await fetch(`${API_URL}/chat/messages`);
+    if (!response.ok) return;
+    
+    const data = await response.json();
+    const messages = data.messages || [];
+    
+    if (messages.length === 0) {
+      document.getElementById('chatMessages').innerHTML = '<div class="no-activity">No messages yet</div>';
+      return;
+    }
+    
+    const latestId = messages[messages.length - 1]?.id || 0;
+    if (latestId > lastMessageId) {
+      lastMessageId = latestId;
+      
+      const chatHtml = messages.map(msg => {
+        const verifiedIcon = msg.verified ? '<span class="verified-icon">✓</span>' : '';
+        const messageClass = msg.type === 'ai' ? 'chat-message ai' : 'chat-message';
+        
+        return `
+          <div class="${messageClass}">
+            <div class="message-header">
+              <span class="message-username">${verifiedIcon}${escapeHtml(msg.username)}</span>
+              <span class="message-time">${msg.time_str}</span>
+            </div>
+            <div class="message-text">${escapeHtml(msg.text)}</div>
+          </div>
+        `;
+      }).join('');
+      
+      const chatContainer = document.getElementById('chatMessages');
+      chatContainer.innerHTML = chatHtml;
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+    
+  } catch (error) {
+    console.error('❌ Chat update failed:', error);
+  }
+}
+
+async function sendMessage() {
+  if (isGuest) {
+    alert('Login to send messages!');
+    return;
+  }
+  
+  const messageInput = document.getElementById('messageInput');
+  const sendBtn = document.getElementById('sendBtn');
+  
+  const text = messageInput.value.trim();
+  
+  if (!text) {
+    return;
+  }
+  
+  sendBtn.disabled = true;
+  sendBtn.innerHTML = '<div class="loading"></div>';
+  
+  try {
+    const response = await fetch(`${API_URL}/chat/send`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        username: username, 
+        text: text,
+        session_token: sessionToken
+      })
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      messageInput.value = '';
+      await updateChat();
+    } else {
+      alert(result.error || 'Failed to send message');
+    }
+    
+  } catch (error) {
+    console.error('❌ Send failed:', error);
+    alert('Failed to send message');
+  } finally {
+    sendBtn.disabled = false;
+    sendBtn.innerHTML = '📤 Send Message';
+  }
+}
+
+async function sendAI() {
+  if (isGuest) {
+    alert('Login to use AI!');
+    return;
+  }
+  
+  const aiInputField = document.getElementById('aiInputField');
+  const aiBtn = document.getElementById('aiBtn');
+  
+  const text = aiInputField.value.trim();
+  
+  if (!text) {
+    return;
+  }
+  
+  aiBtn.disabled = true;
+  aiBtn.innerHTML = '<div class="loading"></div>';
+  
+  try {
+    const response = await fetch(`${API_URL}/ai/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        message: text, 
+        username: username,
+        session_token: sessionToken
+      })
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      aiInputField.value = '';
+      
+      const now = new Date();
+      const time = now.toTimeString().split(' ')[0].substring(0, 5);
+      
+      const aiContainer = document.getElementById('aiMessages');
+      if (aiContainer.innerHTML.includes('no-activity')) {
+        aiContainer.innerHTML = '';
+      }
+      
+      const verifiedIcon = isVerified ? '<span class="verified-icon">✓</span>' : '';
+      
+      aiContainer.innerHTML += `
+        <div class="chat-message">
+          <div class="message-header">
+            <span class="message-username">${verifiedIcon}${escapeHtml(username)}</span>
+            <span class="message-time">${time}</span>
+          </div>
+          <div class="message-text">${escapeHtml(text)}</div>
+        </div>
+        <div class="chat-message ai">
+          <div class="message-header">
+            <span class="message-username"><span class="verified-icon">✓</span>Merle AI 🐆</span>
+            <span class="message-time">${time}</span>
+          </div>
+          <div class="message-text">${escapeHtml(result.response)}</div>
+        </div>
+      `;
+      
+      aiContainer.scrollTop = aiContainer.scrollHeight;
+    } else {
+      alert(result.error || 'AI not available');
+    }
+    
+  } catch (error) {
+    console.error('❌ AI failed:', error);
+    alert('Failed to get AI response');
+  } finally {
+    aiBtn.disabled = false;
+    aiBtn.innerHTML = '🤖 Ask AI';
+  }
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+document.getElementById('sendBtn').addEventListener('click', sendMessage);
+document.getElementById('aiBtn').addEventListener('click', sendAI);
+
+document.getElementById('messageInput').addEventListener('keypress', (e) => {
+  if (e.key === 'Enter' && !isGuest) sendMessage();
+});
+
+document.getElementById('aiInputField').addEventListener('keypress', (e) => {
+  if (e.key === 'Enter' && !isGuest) sendAI();
+});
+
+console.log('🧪 Testing backend connection...');
+fetch(`${API_URL}/health`)
+  .then(response => response.json())
+  .then(data => {
+    console.log('✅ Backend connected:', data);
+    console.log('🔥 TURBO mode active!');
+    console.log(`👤 Logged in as: ${username} ${isGuest ? '(Guest)' : ''} ${isVerified ? '✓' : ''}`);
+    
+    initVideo();
+    updateStatus();
+    updateChat();
+    
+    setInterval(updateStatus, 2000);
+    setInterval(updateChat, 1000);
+  })
+  .catch(error => {
+    console.error('❌ Backend connection failed:', error);
+    document.getElementById('statusDot').classList.add('error');
+    document.getElementById('connectionStatus').textContent = 'Backend Offline';
+    
+    initVideo();
+  });
+
+console.log('✅ TURBO Frontend initialized - 30 FPS mode activated!');
+</script>
+
+</body>
+</html>
