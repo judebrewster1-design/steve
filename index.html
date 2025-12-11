@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Coins, Trophy, History, Dice1, Spade, Zap, TrendingDown, Circle, ChevronLeft, X, Settings, LogOut, DollarSign } from 'lucide-react';
 
+// ⚠️ CHANGE THIS TO YOUR BACKEND URL
 const API_URL = 'https://avenue-divided-framed-drag.trycloudflare.com';
-const TELEGRAM_BOT_TOKEN = '7817681870:AAG4kG_vN1yUSJauQeBA7TJtzjGeyeWAm2w';
 
 export default function StakeCasino() {
   const [user, setUser] = useState(null);
@@ -13,14 +13,14 @@ export default function StakeCasino() {
   const [showAdmin, setShowAdmin] = useState(false);
 
   useEffect(() => {
-    const savedUser = localStorage.getItem('stake_user');
+    const savedUser = sessionStorage.getItem('stake_user');
     if (savedUser) {
       try {
         const userData = JSON.parse(savedUser);
         setUser(userData);
         loadBalance(userData.username);
       } catch (e) {
-        localStorage.removeItem('stake_user');
+        sessionStorage.removeItem('stake_user');
       }
     }
   }, []);
@@ -48,7 +48,7 @@ export default function StakeCasino() {
       const userData = { username: username.trim(), id: data.userId };
       setUser(userData);
       setBalance(data.balance || 0);
-      localStorage.setItem('stake_user', JSON.stringify(userData));
+      sessionStorage.setItem('stake_user', JSON.stringify(userData));
       return null;
     } catch (e) {
       return 'Connection failed';
@@ -69,7 +69,7 @@ export default function StakeCasino() {
   };
 
   const logout = () => {
-    localStorage.removeItem('stake_user');
+    sessionStorage.removeItem('stake_user');
     setUser(null);
     setBalance(0);
     setCurrentGame(null);
@@ -127,6 +127,40 @@ export default function StakeCasino() {
 
       {showHistory && <HistoryModal history={history} onClose={() => setShowHistory(false)} />}
       {showAdmin && <AdminPanel username={user.username} onClose={() => setShowAdmin(false)} onBalanceUpdate={loadBalance} onLogout={logout} />}
+    </div>
+  );
+}
+
+function PlayingCard({ suit, value, faceDown = false }) {
+  const suitSymbols = { 'spades': '♠', 'hearts': '♥', 'diamonds': '♦', 'clubs': '♣' };
+  const isRed = suit === 'hearts' || suit === 'diamonds';
+  
+  if (faceDown) {
+    return (
+      <div className="w-20 h-28 bg-gradient-to-br from-blue-800 to-blue-950 rounded-xl flex items-center justify-center shadow-xl border-2 border-blue-700 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(255,255,255,0.05)_10px,rgba(255,255,255,0.05)_20px)]"></div>
+        <div className="text-5xl opacity-30">🂠</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-20 h-28 bg-gradient-to-br from-white to-gray-100 rounded-xl flex flex-col items-center justify-between p-2 shadow-xl border-2 border-gray-300 transform hover:scale-105 transition relative">
+      <div className={`text-2xl font-bold ${isRed ? 'text-red-600' : 'text-gray-900'}`}>
+        {value}
+      </div>
+      <div className={`text-4xl ${isRed ? 'text-red-600' : 'text-gray-900'}`}>
+        {suitSymbols[suit]}
+      </div>
+      <div className={`text-2xl font-bold ${isRed ? 'text-red-600' : 'text-gray-900'}`}>
+        {value}
+      </div>
+      <div className={`absolute top-1 left-1 text-xs font-bold ${isRed ? 'text-red-600' : 'text-gray-900'}`}>
+        {value}{suitSymbols[suit]}
+      </div>
+      <div className={`absolute bottom-1 right-1 text-xs font-bold rotate-180 ${isRed ? 'text-red-600' : 'text-gray-900'}`}>
+        {value}{suitSymbols[suit]}
+      </div>
     </div>
   );
 }
@@ -243,6 +277,8 @@ function Blackjack({ balance, username, onBalanceUpdate }) {
   const [dealerHand, setDealerHand] = useState([]);
   const [message, setMessage] = useState('Place your bet');
 
+  const suitMap = { '♠': 'spades', '♥': 'hearts', '♦': 'diamonds', '♣': 'clubs' };
+
   const calcValue = (hand) => {
     let val = 0, aces = 0;
     hand.forEach(c => {
@@ -305,7 +341,445 @@ function Blackjack({ balance, username, onBalanceUpdate }) {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-4xl font-bold text-center mb-6 bg-gradient-to-r from-red-500 to-white bg-clip-text text-transparent">🂡 Blackjack</h2>
+      <h2 className="text-4xl font-bold text-center mb-6 bg-gradient-to-r from-orange-500 to-white bg-clip-text text-transparent">💎 Mines</h2>
+      <div className="bg-gradient-to-br from-[#1a2c38] to-[#0f212e] rounded-2xl p-8 border border-[#2f4553] shadow-2xl">
+        <p className="text-center text-xl mb-6 text-[#00e701] font-bold">{message}</p>
+        <div className="grid grid-cols-5 gap-2 mb-6">
+          {Array(25).fill(0).map((_, i) => (
+            <button key={i} onClick={() => reveal(i)} disabled={!gameActive || revealed.includes(i)} className={`aspect-square rounded-xl font-bold text-2xl transition-all transform hover:scale-105 ${revealed.includes(i) ? 'bg-gradient-to-br from-green-500 to-green-700' : 'bg-gradient-to-br from-[#2f4553] to-[#1a2c38] hover:from-[#3f5563] hover:to-[#2a3c48]'} border-2 border-[#4a5f6f]`}>
+              {revealed.includes(i) ? '💎' : '?'}
+            </button>
+          ))}
+        </div>
+        {!gameActive ? (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm mb-2 text-gray-400 font-semibold">Bet Amount</label>
+              <input type="number" value={bet} onChange={(e) => setBet(Math.max(10, parseInt(e.target.value) || 10))} className="w-full p-4 bg-[#2f4553] border border-[#4a5f6f] rounded-lg text-white text-lg font-bold focus:border-[#00e701] focus:outline-none transition" />
+            </div>
+            <div>
+              <label className="block text-sm mb-2 text-gray-400 font-semibold">Mines: {mineCount}</label>
+              <input type="range" min="1" max="24" value={mineCount} onChange={(e) => setMineCount(parseInt(e.target.value))} className="w-full" />
+            </div>
+            <button onClick={start} className="w-full py-4 bg-gradient-to-r from-[#00e701] to-[#00a801] hover:from-[#00ff00] hover:to-[#00b801] rounded-xl font-bold text-black text-lg shadow-lg transform hover:scale-105 transition">
+              Start ${(bet/100).toFixed(2)}
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div className="text-center text-3xl font-bold text-[#00e701]">{multiplier.toFixed(2)}x</div>
+            <button onClick={cashout} className="w-full py-4 bg-gradient-to-r from-yellow-500 to-yellow-700 hover:from-yellow-400 hover:to-yellow-600 rounded-xl font-bold text-black text-lg shadow-lg transform hover:scale-105 transition">
+              Cashout ${((bet * multiplier)/100).toFixed(2)}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function Towers({ balance, username, onBalanceUpdate }) {
+  const [bet, setBet] = useState(100);
+  const [difficulty, setDifficulty] = useState('medium');
+  const [gameActive, setGameActive] = useState(false);
+  const [level, setLevel] = useState(0);
+  const [multiplier, setMultiplier] = useState(1);
+  const [message, setMessage] = useState('Select difficulty and bet');
+  const [clickedTiles, setClickedTiles] = useState([]);
+
+  const tilesPerLevel = difficulty === 'easy' ? 2 : difficulty === 'medium' ? 3 : 4;
+
+  const start = async () => {
+    if (bet > balance) { setMessage('Insufficient balance!'); return; }
+    try {
+      const res = await fetch(`${API_URL}/towers/start`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, bet, difficulty })
+      });
+      const data = await res.json();
+      if (data.error) { setMessage(data.error); return; }
+      setGameActive(true);
+      setLevel(0);
+      setMultiplier(1);
+      setClickedTiles([]);
+      setMessage('Climb the tower!');
+      onBalanceUpdate(balance - bet);
+    } catch (e) { setMessage('Connection error'); }
+  };
+
+  const click = async (pos) => {
+    if (!gameActive) return;
+    try {
+      const res = await fetch(`${API_URL}/towers/click`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, position: pos })
+      });
+      const data = await res.json();
+      setClickedTiles([...clickedTiles, `${level}-${pos}`]);
+      if (data.correct) {
+        if (data.won) {
+          setGameActive(false);
+          setMessage(`Won! +${(data.payout/100).toFixed(2)}`);
+          onBalanceUpdate(data.newBalance);
+        } else {
+          setLevel(data.level);
+          setMultiplier(data.multiplier);
+          setMessage(`Level ${data.level}! ${data.multiplier.toFixed(2)}x`);
+        }
+      } else {
+        setGameActive(false);
+        setMessage(`Wrong tile! -${(bet/100).toFixed(2)}`);
+        onBalanceUpdate(data.newBalance);
+      }
+    } catch (e) { setMessage('Connection error'); }
+  };
+
+  const cashout = async () => {
+    try {
+      const res = await fetch(`${API_URL}/towers/cashout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username })
+      });
+      const data = await res.json();
+      setGameActive(false);
+      setMessage(`Cashed out! +${(data.payout/100).toFixed(2)}`);
+      onBalanceUpdate(data.newBalance);
+    } catch (e) { setMessage('Connection error'); }
+  };
+
+  return (
+    <div className="space-y-6">
+      <h2 className="text-4xl font-bold text-center mb-6 bg-gradient-to-r from-purple-500 to-white bg-clip-text text-transparent">🏗️ Towers</h2>
+      <div className="bg-gradient-to-br from-[#1a2c38] to-[#0f212e] rounded-2xl p-8 border border-[#2f4553] shadow-2xl">
+        <p className="text-center text-xl mb-6 text-[#00e701] font-bold">{message}</p>
+        <div className="space-y-2 mb-6">
+          {[...Array(8)].map((_, lvl) => (
+            <div key={lvl} className="flex gap-2 justify-center">
+              {[...Array(tilesPerLevel)].map((_, pos) => (
+                <button key={pos} onClick={() => click(pos)} disabled={!gameActive || lvl !== level} className={`w-16 h-12 rounded-lg font-bold transition-all transform hover:scale-105 ${clickedTiles.includes(`${lvl}-${pos}`) ? 'bg-gradient-to-br from-green-500 to-green-700' : lvl === level && gameActive ? 'bg-gradient-to-br from-[#00e701] to-[#00a801] hover:from-[#00ff00] hover:to-[#00b801]' : 'bg-gradient-to-br from-[#2f4553] to-[#1a2c38]'} border-2 border-[#4a5f6f]`}>
+                  {lvl < level ? '✓' : ''}
+                </button>
+              ))}
+            </div>
+          ))}
+        </div>
+        {!gameActive ? (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm mb-2 text-gray-400 font-semibold">Bet Amount</label>
+              <input type="number" value={bet} onChange={(e) => setBet(Math.max(10, parseInt(e.target.value) || 10))} className="w-full p-4 bg-[#2f4553] border border-[#4a5f6f] rounded-lg text-white text-lg font-bold focus:border-[#00e701] focus:outline-none transition" />
+            </div>
+            <div className="flex gap-2">
+              {['easy', 'medium', 'hard'].map(d => (
+                <button key={d} onClick={() => setDifficulty(d)} className={`flex-1 py-3 rounded-lg font-bold transition ${difficulty === d ? 'bg-gradient-to-r from-[#00e701] to-[#00a801]' : 'bg-[#2f4553] hover:bg-[#3f5563]'}`}>
+                  {d.charAt(0).toUpperCase() + d.slice(1)}
+                </button>
+              ))}
+            </div>
+            <button onClick={start} className="w-full py-4 bg-gradient-to-r from-[#00e701] to-[#00a801] hover:from-[#00ff00] hover:to-[#00b801] rounded-xl font-bold text-black text-lg shadow-lg transform hover:scale-105 transition">
+              Start ${(bet/100).toFixed(2)}
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div className="text-center text-3xl font-bold text-[#00e701]">{multiplier.toFixed(2)}x</div>
+            <button onClick={cashout} className="w-full py-4 bg-gradient-to-r from-yellow-500 to-yellow-700 hover:from-yellow-400 hover:to-yellow-600 rounded-xl font-bold text-black text-lg shadow-lg transform hover:scale-105 transition">
+              Cashout ${((bet * multiplier)/100).toFixed(2)}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function Plinko({ balance, username, onBalanceUpdate }) {
+  const [bet, setBet] = useState(100);
+  const [risk, setRisk] = useState('medium');
+  const [message, setMessage] = useState('Select risk and bet');
+  const [dropping, setDropping] = useState(false);
+
+  const play = async () => {
+    if (bet > balance) { setMessage('Insufficient balance!'); return; }
+    setDropping(true);
+    try {
+      const res = await fetch(`${API_URL}/plinko/play`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, bet, risk })
+      });
+      const data = await res.json();
+      setTimeout(() => {
+        setMessage(`${data.multiplier.toFixed(1)}x - ${data.payout > bet ? 'Win!' : 'Lost'} ${data.payout > bet ? '+' : '-'}${(Math.abs(data.payout - bet)/100).toFixed(2)}`);
+        onBalanceUpdate(data.newBalance);
+        setDropping(false);
+      }, 1500);
+    } catch (e) { setMessage('Connection error'); setDropping(false); }
+  };
+
+  return (
+    <div className="space-y-6">
+      <h2 className="text-4xl font-bold text-center mb-6 bg-gradient-to-r from-pink-500 to-white bg-clip-text text-transparent">🎯 Plinko</h2>
+      <div className="bg-gradient-to-br from-[#1a2c38] to-[#0f212e] rounded-2xl p-8 border border-[#2f4553] shadow-2xl">
+        <p className="text-center text-xl mb-6 text-[#00e701] font-bold">{message}</p>
+        <div className="h-64 bg-[#2f4553] rounded-xl mb-6 flex items-center justify-center relative overflow-hidden">
+          {dropping && <div className="absolute top-0 w-6 h-6 bg-yellow-400 rounded-full animate-bounce"></div>}
+          <div className="text-6xl">{dropping ? '⚡' : '🎯'}</div>
+        </div>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm mb-2 text-gray-400 font-semibold">Bet Amount</label>
+            <input type="number" value={bet} onChange={(e) => setBet(Math.max(10, parseInt(e.target.value) || 10))} className="w-full p-4 bg-[#2f4553] border border-[#4a5f6f] rounded-lg text-white text-lg font-bold focus:border-[#00e701] focus:outline-none transition" />
+          </div>
+          <div className="flex gap-2">
+            {['low', 'medium', 'high'].map(r => (
+              <button key={r} onClick={() => setRisk(r)} className={`flex-1 py-3 rounded-lg font-bold transition ${risk === r ? 'bg-gradient-to-r from-[#00e701] to-[#00a801]' : 'bg-[#2f4553] hover:bg-[#3f5563]'}`}>
+                {r.charAt(0).toUpperCase() + r.slice(1)}
+              </button>
+            ))}
+          </div>
+          <button onClick={play} disabled={dropping} className="w-full py-4 bg-gradient-to-r from-[#00e701] to-[#00a801] hover:from-[#00ff00] hover:to-[#00b801] rounded-xl font-bold text-black text-lg shadow-lg transform hover:scale-105 transition disabled:opacity-50">
+            Drop ${(bet/100).toFixed(2)}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Roulette({ balance, username, onBalanceUpdate }) {
+  const [bet, setBet] = useState(100);
+  const [betType, setBetType] = useState('red');
+  const [message, setMessage] = useState('Place your bet');
+  const [spinning, setSpinning] = useState(false);
+  const [result, setResult] = useState(null);
+
+  const play = async () => {
+    if (bet > balance) { setMessage('Insufficient balance!'); return; }
+    setSpinning(true);
+    setResult(null);
+    try {
+      const res = await fetch(`${API_URL}/roulette/play`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, bet, betType })
+      });
+      const data = await res.json();
+      setTimeout(() => {
+        setResult(data.result);
+        setMessage(`${data.result} (${data.color}) - ${data.won ? 'Win!' : 'Lost'} ${data.won ? '+' : '-'}${(Math.abs(data.payout - bet)/100).toFixed(2)}`);
+        onBalanceUpdate(data.newBalance);
+        setSpinning(false);
+      }, 2000);
+    } catch (e) { setMessage('Connection error'); setSpinning(false); }
+  };
+
+  return (
+    <div className="space-y-6">
+      <h2 className="text-4xl font-bold text-center mb-6 bg-gradient-to-r from-green-500 to-white bg-clip-text text-transparent">🎰 Roulette</h2>
+      <div className="bg-gradient-to-br from-[#1a2c38] to-[#0f212e] rounded-2xl p-8 border border-[#2f4553] shadow-2xl">
+        <p className="text-center text-xl mb-6 text-[#00e701] font-bold">{message}</p>
+        <div className="w-48 h-48 mx-auto mb-6 rounded-full border-8 border-yellow-600 bg-gradient-to-br from-[#2f4553] to-[#1a2c38] flex items-center justify-center relative overflow-hidden">
+          {spinning && <div className="absolute inset-0 animate-spin border-t-4 border-[#00e701] rounded-full"></div>}
+          <div className="text-6xl">{spinning ? '🎡' : result !== null ? result : '🎰'}</div>
+        </div>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm mb-2 text-gray-400 font-semibold">Bet Amount</label>
+            <input type="number" value={bet} onChange={(e) => setBet(Math.max(10, parseInt(e.target.value) || 10))} className="w-full p-4 bg-[#2f4553] border border-[#4a5f6f] rounded-lg text-white text-lg font-bold focus:border-[#00e701] focus:outline-none transition" />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            {[{v:'red',c:'bg-red-600'},{v:'black',c:'bg-gray-900'},{v:'even',c:'bg-blue-600'},{v:'odd',c:'bg-purple-600'}].map(b => (
+              <button key={b.v} onClick={() => setBetType(b.v)} className={`py-3 rounded-lg font-bold transition ${betType === b.v ? 'ring-4 ring-[#00e701]' : ''} ${b.c}`}>
+                {b.v.charAt(0).toUpperCase() + b.v.slice(1)}
+              </button>
+            ))}
+          </div>
+          <button onClick={play} disabled={spinning} className="w-full py-4 bg-gradient-to-r from-[#00e701] to-[#00a801] hover:from-[#00ff00] hover:to-[#00b801] rounded-xl font-bold text-black text-lg shadow-lg transform hover:scale-105 transition disabled:opacity-50">
+            Spin ${(bet/100).toFixed(2)}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function HiLo({ balance, username, onBalanceUpdate }) {
+  const [bet, setBet] = useState(100);
+  const [gameActive, setGameActive] = useState(false);
+  const [currentCard, setCurrentCard] = useState(null);
+  const [streak, setStreak] = useState(0);
+  const [multiplier, setMultiplier] = useState(1);
+  const [message, setMessage] = useState('Place your bet');
+
+  const suitMap = { '♠': 'spades', '♥': 'hearts', '♦': 'diamonds', '♣': 'clubs' };
+
+  const start = async () => {
+    if (bet > balance) { setMessage('Insufficient balance!'); return; }
+    try {
+      const res = await fetch(`${API_URL}/hilo/start`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, bet })
+      });
+      const data = await res.json();
+      if (data.error) { setMessage(data.error); return; }
+      setCurrentCard(data.card);
+      setGameActive(true);
+      setStreak(0);
+      setMultiplier(1);
+      setMessage('Higher or Lower?');
+      onBalanceUpdate(balance - bet);
+    } catch (e) { setMessage('Connection error'); }
+  };
+
+  const guess = async (choice) => {
+    try {
+      const res = await fetch(`${API_URL}/hilo/guess`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, choice })
+      });
+      const data = await res.json();
+      setCurrentCard(data.newCard);
+      if (data.correct) {
+        setStreak(data.streak);
+        setMultiplier(data.multiplier);
+        setMessage(`Correct! Streak: ${data.streak} | ${data.multiplier.toFixed(2)}x`);
+      } else {
+        setGameActive(false);
+        setMessage(`Wrong! -${(bet/100).toFixed(2)}`);
+        onBalanceUpdate(data.newBalance);
+      }
+    } catch (e) { setMessage('Connection error'); }
+  };
+
+  const cashout = async () => {
+    try {
+      const res = await fetch(`${API_URL}/hilo/cashout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username })
+      });
+      const data = await res.json();
+      setGameActive(false);
+      setMessage(`Cashed out! +${(data.payout/100).toFixed(2)}`);
+      onBalanceUpdate(data.newBalance);
+    } catch (e) { setMessage('Connection error'); }
+  };
+
+  return (
+    <div className="space-y-6">
+      <h2 className="text-4xl font-bold text-center mb-6 bg-gradient-to-r from-yellow-500 to-white bg-clip-text text-transparent">🎲 Hi-Lo</h2>
+      <div className="bg-gradient-to-br from-[#1a2c38] to-[#0f212e] rounded-2xl p-8 border border-[#2f4553] shadow-2xl">
+        <p className="text-center text-xl mb-6 text-[#00e701] font-bold">{message}</p>
+        <div className="flex justify-center mb-6">
+          {currentCard ? <PlayingCard suit={suitMap[currentCard.suit]} value={currentCard.value} /> : <div className="w-20 h-28 bg-[#2f4553] rounded-xl"></div>}
+        </div>
+        {!gameActive ? (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm mb-2 text-gray-400 font-semibold">Bet Amount</label>
+              <input type="number" value={bet} onChange={(e) => setBet(Math.max(10, parseInt(e.target.value) || 10))} className="w-full p-4 bg-[#2f4553] border border-[#4a5f6f] rounded-lg text-white text-lg font-bold focus:border-[#00e701] focus:outline-none transition" />
+            </div>
+            <button onClick={start} className="w-full py-4 bg-gradient-to-r from-[#00e701] to-[#00a801] hover:from-[#00ff00] hover:to-[#00b801] rounded-xl font-bold text-black text-lg shadow-lg transform hover:scale-105 transition">
+              Start ${(bet/100).toFixed(2)}
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div className="text-center text-3xl font-bold text-[#00e701]">{multiplier.toFixed(2)}x</div>
+            <div className="flex gap-4">
+              <button onClick={() => guess('higher')} className="flex-1 py-4 bg-gradient-to-r from-green-600 to-green-800 hover:from-green-500 hover:to-green-700 rounded-xl font-bold shadow-lg transform hover:scale-105 transition">Higher</button>
+              <button onClick={() => guess('lower')} className="flex-1 py-4 bg-gradient-to-r from-red-600 to-red-800 hover:from-red-500 hover:to-red-700 rounded-xl font-bold shadow-lg transform hover:scale-105 transition">Lower</button>
+            </div>
+            <button onClick={cashout} className="w-full py-4 bg-gradient-to-r from-yellow-500 to-yellow-700 hover:from-yellow-400 hover:to-yellow-600 rounded-xl font-bold text-black text-lg shadow-lg transform hover:scale-105 transition">
+              Cashout ${((bet * multiplier)/100).toFixed(2)}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function HistoryModal({ history, onClose }) {
+  return (
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+      <div className="bg-[#1a2c38] rounded-2xl p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto border border-[#2f4553]">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-2xl font-bold">Game History</h3>
+          <button onClick={onClose} className="p-2 hover:bg-[#2f4553] rounded-lg transition"><X className="w-5 h-5" /></button>
+        </div>
+        <div className="space-y-2">
+          {history.length === 0 ? <p className="text-gray-400 text-center py-8">No games played yet</p> : history.map((h, i) => (
+            <div key={i} className="bg-[#2f4553] p-4 rounded-lg flex justify-between items-center">
+              <div>
+                <div className="font-semibold">{h.game}</div>
+                <div className="text-sm text-gray-400">{new Date(h.timestamp).toLocaleString()}</div>
+              </div>
+              <div className={`text-lg font-bold ${h.won ? 'text-green-500' : 'text-red-500'}`}>
+                {h.won ? '+' : '-'}${(h.amount/100).toFixed(2)}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AdminPanel({ username, onClose, onBalanceUpdate, onLogout }) {
+  const [amount, setAmount] = useState(1000);
+  const [token, setToken] = useState('');
+  const [msg, setMsg] = useState('');
+
+  const giveChips = async () => {
+    try {
+      const res = await fetch(`${API_URL}/admin/give`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, username, amount })
+      });
+      const data = await res.json();
+      if (data.error) { setMsg(data.error); return; }
+      setMsg('Chips added!');
+      onBalanceUpdate(username);
+      setTimeout(() => setMsg(''), 2000);
+    } catch (e) { setMsg('Failed'); }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+      <div className="bg-[#1a2c38] rounded-2xl p-6 max-w-md w-full border border-[#2f4553]">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-2xl font-bold">Settings</h3>
+          <button onClick={onClose} className="p-2 hover:bg-[#2f4553] rounded-lg transition"><X className="w-5 h-5" /></button>
+        </div>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm mb-2 text-gray-400">Admin Token</label>
+            <input type="password" value={token} onChange={(e) => setToken(e.target.value)} className="w-full p-3 bg-[#2f4553] border border-[#4a5f6f] rounded-lg text-white focus:border-[#00e701] focus:outline-none" />
+          </div>
+          <div>
+            <label className="block text-sm mb-2 text-gray-400">Add Chips</label>
+            <input type="number" value={amount} onChange={(e) => setAmount(parseInt(e.target.value) || 0)} className="w-full p-3 bg-[#2f4553] border border-[#4a5f6f] rounded-lg text-white focus:border-[#00e701] focus:outline-none" />
+          </div>
+          <button onClick={giveChips} className="w-full py-3 bg-gradient-to-r from-[#00e701] to-[#00a801] hover:from-[#00ff00] hover:to-[#00b801] rounded-lg font-bold transition">
+            Add ${(amount/100).toFixed(2)}
+          </button>
+          {msg && <div className="text-center text-sm text-[#00e701]">{msg}</div>}
+          <button onClick={onLogout} className="w-full py-3 bg-red-600 hover:bg-red-700 rounded-lg font-bold transition flex items-center justify-center gap-2">
+            <LogOut className="w-4 h-4" /> Logout
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}r from-red-500 to-white bg-clip-text text-transparent">🂡 Blackjack</h2>
       <div className="bg-gradient-to-br from-[#1a2c38] to-[#0f212e] rounded-2xl p-8 border border-[#2f4553] shadow-2xl">
         <p className="text-center text-xl mb-8 text-[#00e701] font-bold">{message}</p>
         {dealerHand.length > 0 && (
@@ -313,16 +787,9 @@ function Blackjack({ balance, username, onBalanceUpdate }) {
             <p className="text-sm text-gray-400 mb-3 font-semibold">Dealer ({gameState === 'betting' ? calcValue(dealerHand) : '?'})</p>
             <div className="flex gap-3 justify-center flex-wrap">
               {dealerHand.map((c, i) => (
-                <div key={i} className="w-16 h-24 bg-gradient-to-br from-white to-gray-200 rounded-xl flex flex-col items-center justify-center text-black font-bold text-2xl shadow-xl border-2 border-gray-300 transform hover:scale-105 transition">
-                  {gameState === 'playing' && i === 1 ? (
-                    <div className="text-4xl">🂠</div>
-                  ) : (
-                    <>
-                      <span className={c.suit === '♥' || c.suit === '♦' ? 'text-red-600' : 'text-black'}>{c.value}</span>
-                      <span className={c.suit === '♥' || c.suit === '♦' ? 'text-red-600' : 'text-black'}>{c.suit}</span>
-                    </>
-                  )}
-                </div>
+                gameState === 'playing' && i === 1 ? 
+                <PlayingCard key={i} suit="spades" value="?" faceDown={true} /> :
+                <PlayingCard key={i} suit={suitMap[c.suit]} value={c.value} />
               ))}
             </div>
           </div>
@@ -332,10 +799,7 @@ function Blackjack({ balance, username, onBalanceUpdate }) {
             <p className="text-sm text-gray-400 mb-3 font-semibold">You ({calcValue(playerHand)})</p>
             <div className="flex gap-3 justify-center flex-wrap">
               {playerHand.map((c, i) => (
-                <div key={i} className="w-16 h-24 bg-gradient-to-br from-white to-gray-200 rounded-xl flex flex-col items-center justify-center text-black font-bold text-2xl shadow-xl border-2 border-gray-300 transform hover:scale-105 transition">
-                  <span className={c.suit === '♥' || c.suit === '♦' ? 'text-red-600' : 'text-black'}>{c.value}</span>
-                  <span className={c.suit === '♥' || c.suit === '♦' ? 'text-red-600' : 'text-black'}>{c.suit}</span>
-                </div>
+                <PlayingCard key={i} suit={suitMap[c.suit]} value={c.value} />
               ))}
             </div>
           </div>
@@ -368,6 +832,8 @@ function ThreeCardPoker({ balance, username, onBalanceUpdate }) {
   const [dealerHand, setDealerHand] = useState([]);
   const [message, setMessage] = useState('Place your bet');
 
+  const suitMap = { '♠': 'spades', '♥': 'hearts', '♦': 'diamonds', '♣': 'clubs' };
+
   const play = async () => {
     if (bet > balance) { setMessage('Insufficient balance!'); return; }
     try {
@@ -397,10 +863,7 @@ function ThreeCardPoker({ balance, username, onBalanceUpdate }) {
             <p className="text-sm text-gray-400 mb-3 font-semibold">Dealer</p>
             <div className="flex gap-3 justify-center">
               {dealerHand.map((c, i) => (
-                <div key={i} className="w-16 h-24 bg-gradient-to-br from-white to-gray-200 rounded-xl flex flex-col items-center justify-center text-black font-bold text-2xl shadow-xl border-2 border-gray-300 transform hover:scale-105 transition">
-                  <span className={c.suit === '♥' || c.suit === '♦' ? 'text-red-600' : 'text-black'}>{c.value}</span>
-                  <span className={c.suit === '♥' || c.suit === '♦' ? 'text-red-600' : 'text-black'}>{c.suit}</span>
-                </div>
+                <PlayingCard key={i} suit={suitMap[c.suit]} value={c.value} />
               ))}
             </div>
           </div>
@@ -410,10 +873,7 @@ function ThreeCardPoker({ balance, username, onBalanceUpdate }) {
             <p className="text-sm text-gray-400 mb-3 font-semibold">You</p>
             <div className="flex gap-3 justify-center">
               {playerHand.map((c, i) => (
-                <div key={i} className="w-16 h-24 bg-gradient-to-br from-white to-gray-200 rounded-xl flex flex-col items-center justify-center text-black font-bold text-2xl shadow-xl border-2 border-gray-300 transform hover:scale-105 transition">
-                  <span className={c.suit === '♥' || c.suit === '♦' ? 'text-red-600' : 'text-black'}>{c.value}</span>
-                  <span className={c.suit === '♥' || c.suit === '♦' ? 'text-red-600' : 'text-black'}>{c.suit}</span>
-                </div>
+                <PlayingCard key={i} suit={suitMap[c.suit]} value={c.value} />
               ))}
             </div>
           </div>
@@ -497,485 +957,4 @@ function Mines({ balance, username, onBalanceUpdate }) {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-4xl font-bold text-center mb-6 bg-gradient-to-r from-orange-500 to-white bg-clip-text text-transparent">💎 Mines</h2>
-      <div className="bg-gradient-to-br from-[#1a2c38] to-[#0f212e] rounded-2xl p-8 border border-[#2f4553] shadow-2xl">
-        <p className="text-center text-xl mb-3 text-[#00e701] font-bold">{message}</p>
-        <p className="text-center text-3xl font-bold mb-8 text-yellow-400">{multiplier.toFixed(2)}x</p>
-        {!gameActive && (
-          <div className="space-y-4 mb-8">
-            <div>
-              <label className="block text-sm mb-2 text-gray-400 font-semibold">Bet Amount</label>
-              <input type="number" value={bet} onChange={(e) => setBet(Math.max(10, parseInt(e.target.value) || 10))} className="w-full p-4 bg-[#2f4553] border border-[#4a5f6f] rounded-lg text-white text-lg font-bold focus:border-[#00e701] focus:outline-none transition" />
-            </div>
-            <div>
-              <label className="block text-sm mb-2 text-gray-400 font-semibold">Mines (1-24)</label>
-              <input type="number" value={mineCount} onChange={(e) => setMineCount(Math.max(1, Math.min(24, parseInt(e.target.value) || 5)))} className="w-full p-4 bg-[#2f4553] border border-[#4a5f6f] rounded-lg text-white text-lg font-bold focus:border-[#00e701] focus:outline-none transition" />
-            </div>
-            <button onClick={start} className="w-full py-4 bg-gradient-to-r from-[#00e701] to-[#00a801] hover:from-[#00ff00] hover:to-[#00b801] rounded-xl font-bold text-black text-lg shadow-lg transform hover:scale-105 transition">
-              Start ${(bet/100).toFixed(2)}
-            </button>
-          </div>
-        )}
-        <div className="grid grid-cols-5 gap-3 mb-8">
-          {Array(25).fill(0).map((_, i) => (
-            <button key={i} onClick={() => reveal(i)} disabled={!gameActive || revealed.includes(i)} className={`aspect-square rounded-xl font-bold text-3xl transition transform hover:scale-110 shadow-lg ${revealed.includes(i) ? 'bg-gradient-to-br from-[#00e701] to-[#00a801] text-white' : gameActive ? 'bg-gradient-to-br from-[#2f4553] to-[#1a2c38] hover:from-[#3f5563] hover:to-[#2f4553]' : 'bg-[#1a2c38] opacity-50'}`}>
-              {revealed.includes(i) ? '💎' : ''}
-            </button>
-          ))}
-        </div>
-        {gameActive && revealed.length > 0 && (
-          <button onClick={cashout} className="w-full py-4 bg-gradient-to-r from-yellow-600 to-yellow-800 hover:from-yellow-500 hover:to-yellow-700 rounded-xl font-bold shadow-lg transform hover:scale-105 transition">
-            Cashout ${((bet * multiplier)/100).toFixed(2)}
-          </button>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function Towers({ balance, username, onBalanceUpdate }) {
-  const [bet, setBet] = useState(100);
-  const [difficulty, setDifficulty] = useState('medium');
-  const [gameActive, setGameActive] = useState(false);
-  const [level, setLevel] = useState(0);
-  const [multiplier, setMultiplier] = useState(1);
-  const [message, setMessage] = useState('Choose difficulty');
-  const [clickedTiles, setClickedTiles] = useState([]);
-
-  const start = async () => {
-    if (bet > balance) { setMessage('Insufficient balance!'); return; }
-    try {
-      const res = await fetch(`${API_URL}/towers/start`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, bet, difficulty })
-      });
-      const data = await res.json();
-      if (data.error) { setMessage(data.error); return; }
-      setGameActive(true);
-      setLevel(0);
-      setMultiplier(1);
-      setClickedTiles([]);
-      setMessage('Climb the tower!');
-      onBalanceUpdate(balance - bet);
-    } catch (e) { setMessage('Connection error'); }
-  };
-
-  const click = async (lvl, pos) => {
-    if (!gameActive || lvl !== level) return;
-    try {
-      const res = await fetch(`${API_URL}/towers/click`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, position: pos })
-      });
-      const data = await res.json();
-      setClickedTiles([...clickedTiles, { level: lvl, pos }]);
-      if (data.correct) {
-        if (data.won) {
-          setGameActive(false);
-          setMessage(`Top reached! +${(data.payout/100).toFixed(2)}`);
-          onBalanceUpdate(data.newBalance);
-        } else {
-          setLevel(data.level);
-          setMultiplier(data.multiplier);
-          setMessage(`Level ${data.level}! ${data.multiplier.toFixed(2)}x`);
-        }
-      } else {
-        setGameActive(false);
-        setMessage(`Wrong! -${(bet/100).toFixed(2)}`);
-        onBalanceUpdate(data.newBalance);
-      }
-    } catch (e) { setMessage('Connection error'); }
-  };
-
-  const cashout = async () => {
-    try {
-      const res = await fetch(`${API_URL}/towers/cashout`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username })
-      });
-      const data = await res.json();
-      setGameActive(false);
-      setMessage(`Cashed out! +${(data.payout/100).toFixed(2)}`);
-      onBalanceUpdate(data.newBalance);
-    } catch (e) { setMessage('Connection error'); }
-  };
-
-  const tiles = difficulty === 'easy' ? 2 : difficulty === 'medium' ? 3 : 4;
-
-  return (
-    <div className="space-y-6">
-      <h2 className="text-4xl font-bold text-center mb-6 bg-gradient-to-r from-purple-500 to-white bg-clip-text text-transparent">🏗️ Towers</h2>
-      <div className="bg-gradient-to-br from-[#1a2c38] to-[#0f212e] rounded-2xl p-8 border border-[#2f4553] shadow-2xl">
-        <p className="text-center text-xl mb-3 text-[#00e701] font-bold">{message}</p>
-        <p className="text-center text-3xl font-bold mb-8 text-yellow-400">{multiplier.toFixed(2)}x</p>
-        {!gameActive && (
-          <div className="space-y-4 mb-8">
-            <div>
-              <label className="block text-sm mb-2 text-gray-400 font-semibold">Bet Amount</label>
-              <input type="number" value={bet} onChange={(e) => setBet(Math.max(10, parseInt(e.target.value) || 10))} className="w-full p-4 bg-[#2f4553] border border-[#4a5f6f] rounded-lg text-white text-lg font-bold focus:border-[#00e701] focus:outline-none transition" />
-            </div>
-            <div>
-              <label className="block text-sm mb-2 text-gray-400 font-semibold">Difficulty</label>
-              <select value={difficulty} onChange={(e) => setDifficulty(e.target.value)} className="w-full p-4 bg-[#2f4553] border border-[#4a5f6f] rounded-lg text-white text-lg font-bold focus:border-[#00e701] focus:outline-none transition">
-                <option value="easy">Easy (2 tiles)</option>
-                <option value="medium">Medium (3 tiles)</option>
-                <option value="hard">Hard (4 tiles)</option>
-              </select>
-            </div>
-            <button onClick={start} className="w-full py-4 bg-gradient-to-r from-[#00e701] to-[#00a801] hover:from-[#00ff00] hover:to-[#00b801] rounded-xl font-bold text-black text-lg shadow-lg transform hover:scale-105 transition">
-              Start ${(bet/100).toFixed(2)}
-            </button>
-          </div>
-        )}
-        <div className="space-y-3 mb-8">
-          {[...Array(8)].map((_, lvl) => (
-            <div key={lvl} className="flex gap-3 justify-center">
-              {[...Array(tiles)].map((_, pos) => {
-                const clicked = clickedTiles.find(t => t.level === (7-lvl) && t.pos === pos);
-                return (
-                  <button key={pos} onClick={() => click(7-lvl, pos)} disabled={!gameActive || (7-lvl) !== level} className={`w-20 h-14 rounded-xl font-bold text-xl transition transform hover:scale-110 shadow-lg ${clicked ? 'bg-gradient-to-br from-[#00e701] to-[#00a801] text-white' : gameActive && (7-lvl) === level ? 'bg-gradient-to-br from-[#2f4553] to-[#1a2c38] hover:from-[#3f5563] hover:to-[#2f4553]' : 'bg-[#1a2c38] opacity-50'}`}>
-                    {clicked ? '✓' : ''}
-                  </button>
-                );
-              })}
-            </div>
-          ))}
-        </div>
-        {gameActive && level > 0 && (
-          <button onClick={cashout} className="w-full py-4 bg-gradient-to-r from-yellow-600 to-yellow-800 hover:from-yellow-500 hover:to-yellow-700 rounded-xl font-bold shadow-lg transform hover:scale-105 transition">
-            Cashout ${((bet * multiplier)/100).toFixed(2)}
-          </button>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function Plinko({ balance, username, onBalanceUpdate }) {
-  const [bet, setBet] = useState(100);
-  const [risk, setRisk] = useState('medium');
-  const [message, setMessage] = useState('Drop the ball');
-  const [lastResult, setLastResult] = useState(null);
-
-  const play = async () => {
-    if (bet > balance) { setMessage('Insufficient balance!'); return; }
-    try {
-      const res = await fetch(`${API_URL}/plinko/play`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, bet, risk })
-      });
-      const data = await res.json();
-      if (data.error) { setMessage(data.error); return; }
-      setLastResult(data);
-      setMessage(data.payout > bet ? `Win! +${((data.payout-bet)/100).toFixed(2)} (${data.multiplier}x)` : `Loss! -${((bet-data.payout)/100).toFixed(2)} (${data.multiplier}x)`);
-      onBalanceUpdate(data.newBalance);
-    } catch (e) { setMessage('Connection error'); }
-  };
-
-  return (
-    <div className="space-y-6">
-      <h2 className="text-4xl font-bold text-center mb-6 bg-gradient-to-r from-pink-500 to-white bg-clip-text text-transparent">🎯 Plinko</h2>
-      <div className="bg-gradient-to-br from-[#1a2c38] to-[#0f212e] rounded-2xl p-8 border border-[#2f4553] shadow-2xl">
-        <p className="text-center text-xl mb-8 text-[#00e701] font-bold">{message}</p>
-        <div className="mb-8 flex justify-center">
-          <div className="relative w-full max-w-md h-72 bg-gradient-to-b from-[#0f212e] to-[#1a2c38] rounded-2xl border-2 border-[#2f4553] flex items-end justify-center p-6 shadow-inner">
-            <div className="flex gap-1">
-              {[...Array(17)].map((_, i) => (
-                <div key={i} className={`w-7 h-14 rounded-lg flex items-center justify-center text-xs font-bold transition-all duration-300 ${lastResult?.position === i ? 'bg-gradient-to-t from-[#00e701] to-[#00a801] scale-110 shadow-lg shadow-[#00e701]/50' : 'bg-[#2f4553]'}`}>
-                  {lastResult?.position === i ? '⚪' : ''}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm mb-2 text-gray-400 font-semibold">Bet Amount</label>
-            <input type="number" value={bet} onChange={(e) => setBet(Math.max(10, parseInt(e.target.value) || 10))} className="w-full p-4 bg-[#2f4553] border border-[#4a5f6f] rounded-lg text-white text-lg font-bold focus:border-[#00e701] focus:outline-none transition" />
-          </div>
-          <div>
-            <label className="block text-sm mb-2 text-gray-400 font-semibold">Risk Level</label>
-            <select value={risk} onChange={(e) => setRisk(e.target.value)} className="w-full p-4 bg-[#2f4553] border border-[#4a5f6f] rounded-lg text-white text-lg font-bold focus:border-[#00e701] focus:outline-none transition">
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
-            </select>
-          </div>
-          <button onClick={play} className="w-full py-4 bg-gradient-to-r from-[#00e701] to-[#00a801] hover:from-[#00ff00] hover:to-[#00b801] rounded-xl font-bold text-black text-lg shadow-lg transform hover:scale-105 transition">
-            Drop ${(bet/100).toFixed(2)}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function Roulette({ balance, username, onBalanceUpdate }) {
-  const [bet, setBet] = useState(100);
-  const [betType, setBetType] = useState('red');
-  const [message, setMessage] = useState('Place your bet');
-  const [lastResult, setLastResult] = useState(null);
-  const [spinning, setSpinning] = useState(false);
-
-  const spin = async () => {
-    if (bet > balance) { setMessage('Insufficient balance!'); return; }
-    setSpinning(true);
-    try {
-      const res = await fetch(`${API_URL}/roulette/play`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, bet, betType })
-      });
-      const data = await res.json();
-      if (data.error) { setMessage(data.error); setSpinning(false); return; }
-      setTimeout(() => {
-        setLastResult(data);
-        setMessage(data.won ? `${data.result} ${data.color}! Win +${((data.payout-bet)/100).toFixed(2)}` : `${data.result} ${data.color}! Loss -${(bet/100).toFixed(2)}`);
-        onBalanceUpdate(data.newBalance);
-        setSpinning(false);
-      }, 2000);
-    } catch (e) { setMessage('Connection error'); setSpinning(false); }
-  };
-
-  return (
-    <div className="space-y-6">
-      <h2 className="text-4xl font-bold text-center mb-6 bg-gradient-to-r from-green-500 to-white bg-clip-text text-transparent">🎰 Roulette</h2>
-      <div className="bg-gradient-to-br from-[#1a2c38] to-[#0f212e] rounded-2xl p-8 border border-[#2f4553] shadow-2xl">
-        <p className="text-center text-xl mb-8 text-[#00e701] font-bold">{message}</p>
-        <div className="mb-8 flex justify-center">
-          <div className={`w-40 h-40 rounded-full border-8 ${spinning ? 'animate-spin' : ''} ${lastResult?.color === 'red' ? 'border-red-600 bg-gradient-to-br from-red-600 to-red-800 shadow-lg shadow-red-600/50' : lastResult?.color === 'black' ? 'border-gray-900 bg-gradient-to-br from-gray-900 to-black shadow-lg shadow-gray-900/50' : 'border-green-600 bg-gradient-to-br from-green-600 to-green-800 shadow-lg shadow-green-600/50'} flex items-center justify-center transition-all duration-500`}>
-            <div className="text-5xl font-bold text-white">{lastResult?.result ?? '?'}</div>
-          </div>
-        </div>
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm mb-2 text-gray-400 font-semibold">Bet Amount</label>
-            <input type="number" value={bet} onChange={(e) => setBet(Math.max(10, parseInt(e.target.value) || 10))} className="w-full p-4 bg-[#2f4553] border border-[#4a5f6f] rounded-lg text-white text-lg font-bold focus:border-[#00e701] focus:outline-none transition" />
-          </div>
-          <div>
-            <label className="block text-sm mb-2 text-gray-400 font-semibold">Bet Type</label>
-            <div className="grid grid-cols-2 gap-3">
-              <button onClick={() => setBetType('red')} className={`p-4 rounded-xl font-bold transition transform hover:scale-105 ${betType === 'red' ? 'bg-gradient-to-br from-red-600 to-red-800 shadow-lg' : 'bg-[#2f4553] hover:bg-[#3f5563]'}`}>Red</button>
-              <button onClick={() => setBetType('black')} className={`p-4 rounded-xl font-bold transition transform hover:scale-105 ${betType === 'black' ? 'bg-gradient-to-br from-gray-900 to-black shadow-lg' : 'bg-[#2f4553] hover:bg-[#3f5563]'}`}>Black</button>
-              <button onClick={() => setBetType('even')} className={`p-4 rounded-xl font-bold transition transform hover:scale-105 ${betType === 'even' ? 'bg-gradient-to-br from-blue-600 to-blue-800 shadow-lg' : 'bg-[#2f4553] hover:bg-[#3f5563]'}`}>Even</button>
-              <button onClick={() => setBetType('odd')} className={`p-4 rounded-xl font-bold transition transform hover:scale-105 ${betType === 'odd' ? 'bg-gradient-to-br from-blue-600 to-blue-800 shadow-lg' : 'bg-[#2f4553] hover:bg-[#3f5563]'}`}>Odd</button>
-            </div>
-          </div>
-          <button onClick={spin} disabled={spinning} className="w-full py-4 bg-gradient-to-r from-[#00e701] to-[#00a801] hover:from-[#00ff00] hover:to-[#00b801] rounded-xl font-bold text-black text-lg shadow-lg transform hover:scale-105 transition disabled:opacity-50 disabled:cursor-not-allowed">
-            {spinning ? 'Spinning...' : `Spin ${(bet/100).toFixed(2)}`}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function HiLo({ balance, username, onBalanceUpdate }) {
-  const [bet, setBet] = useState(100);
-  const [gameActive, setGameActive] = useState(false);
-  const [currentCard, setCurrentCard] = useState(null);
-  const [message, setMessage] = useState('Start game');
-  const [multiplier, setMultiplier] = useState(1);
-  const [streak, setStreak] = useState(0);
-
-  const start = async () => {
-    if (bet > balance) { setMessage('Insufficient balance!'); return; }
-    try {
-      const res = await fetch(`${API_URL}/hilo/start`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, bet })
-      });
-      const data = await res.json();
-      if (data.error) { setMessage(data.error); return; }
-      setGameActive(true);
-      setCurrentCard(data.card);
-      setMultiplier(1);
-      setStreak(0);
-      setMessage('Higher or Lower?');
-      onBalanceUpdate(balance - bet);
-    } catch (e) { setMessage('Connection error'); }
-  };
-
-  const guess = async (choice) => {
-    try {
-      const res = await fetch(`${API_URL}/hilo/guess`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, choice })
-      });
-      const data = await res.json();
-      setCurrentCard(data.newCard);
-      if (data.correct) {
-        setMultiplier(data.multiplier);
-        setStreak(data.streak);
-        setMessage(`Correct! ${data.multiplier.toFixed(2)}x`);
-      } else {
-        setGameActive(false);
-        setMessage(`Wrong! -${(bet/100).toFixed(2)}`);
-        onBalanceUpdate(data.newBalance);
-      }
-    } catch (e) { setMessage('Connection error'); }
-  };
-
-  const cashout = async () => {
-    try {
-      const res = await fetch(`${API_URL}/hilo/cashout`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username })
-      });
-      const data = await res.json();
-      setGameActive(false);
-      setMessage(`Cashed out! +${(data.payout/100).toFixed(2)}`);
-      onBalanceUpdate(data.newBalance);
-    } catch (e) { setMessage('Connection error'); }
-  };
-
-  return (
-    <div className="space-y-6">
-      <h2 className="text-4xl font-bold text-center mb-6 bg-gradient-to-r from-yellow-500 to-white bg-clip-text text-transparent">🎲 Hi-Lo</h2>
-      <div className="bg-gradient-to-br from-[#1a2c38] to-[#0f212e] rounded-2xl p-8 border border-[#2f4553] shadow-2xl">
-        <p className="text-center text-xl mb-3 text-[#00e701] font-bold">{message}</p>
-        <p className="text-center text-3xl font-bold mb-8 text-yellow-400">{multiplier.toFixed(2)}x • Streak: {streak}</p>
-        <div className="mb-8 flex justify-center">
-          {currentCard ? (
-            <div className="w-32 h-44 bg-gradient-to-br from-white to-gray-200 rounded-2xl flex flex-col items-center justify-center text-black font-bold text-5xl shadow-2xl border-4 border-gray-300 transform hover:scale-105 transition">
-              <span className={currentCard.suit === '♥' || currentCard.suit === '♦' ? 'text-red-600' : 'text-black'}>{currentCard.value}</span>
-              <span className={currentCard.suit === '♥' || currentCard.suit === '♦' ? 'text-red-600' : 'text-black'}>{currentCard.suit}</span>
-            </div>
-          ) : (
-            <div className="w-32 h-44 bg-gradient-to-br from-[#2f4553] to-[#1a2c38] rounded-2xl flex items-center justify-center text-6xl shadow-2xl border-2 border-[#4a5f6f]">
-              🂠
-            </div>
-          )}
-        </div>
-        {!gameActive ? (
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm mb-2 text-gray-400 font-semibold">Bet Amount</label>
-              <input type="number" value={bet} onChange={(e) => setBet(Math.max(10, parseInt(e.target.value) || 10))} className="w-full p-4 bg-[#2f4553] border border-[#4a5f6f] rounded-lg text-white text-lg font-bold focus:border-[#00e701] focus:outline-none transition" />
-            </div>
-            <button onClick={start} className="w-full py-4 bg-gradient-to-r from-[#00e701] to-[#00a801] hover:from-[#00ff00] hover:to-[#00b801] rounded-xl font-bold text-black text-lg shadow-lg transform hover:scale-105 transition">
-              Start ${(bet/100).toFixed(2)}
-            </button>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            <button onClick={() => guess('higher')} className="w-full py-4 bg-gradient-to-r from-green-600 to-green-800 hover:from-green-500 hover:to-green-700 rounded-xl font-bold text-lg shadow-lg transform hover:scale-105 transition">
-              Higher ▲
-            </button>
-            <button onClick={() => guess('lower')} className="w-full py-4 bg-gradient-to-r from-red-600 to-red-800 hover:from-red-500 hover:to-red-700 rounded-xl font-bold text-lg shadow-lg transform hover:scale-105 transition">
-              Lower ▼
-            </button>
-            {streak > 0 && (
-              <button onClick={cashout} className="w-full py-4 bg-gradient-to-r from-yellow-600 to-yellow-800 hover:from-yellow-500 hover:to-yellow-700 rounded-xl font-bold text-lg shadow-lg transform hover:scale-105 transition">
-                Cashout ${((bet * multiplier)/100).toFixed(2)}
-              </button>
-            )}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function HistoryModal({ history, onClose }) {
-  return (
-    <div className="fixed inset-0 bg-black/90 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
-      <div className="bg-gradient-to-br from-[#1a2c38] to-[#0f212e] rounded-2xl p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto border-2 border-[#2f4553] shadow-2xl">
-        <div className="flex justify-between items-center mb-6">
-          <h3 className="text-3xl font-bold bg-gradient-to-r from-[#00e701] to-white bg-clip-text text-transparent">Bet History</h3>
-          <button onClick={onClose} className="p-2 hover:bg-[#2f4553] rounded-lg transition transform hover:scale-110">
-            <X className="w-6 h-6" />
-          </button>
-        </div>
-        <div className="space-y-3">
-          {history.length === 0 ? (
-            <p className="text-center text-gray-400 py-12">No bets yet</p>
-          ) : (
-            history.map((h, i) => (
-              <div key={i} className="flex justify-between items-center p-4 bg-gradient-to-r from-[#2f4553] to-[#1a2c38] rounded-xl border border-[#4a5f6f] hover:scale-105 transition">
-                <div>
-                  <div className="font-bold text-lg">{h.game}</div>
-                  <div className="text-xs text-gray-400">{h.timestamp ? new Date(h.timestamp).toLocaleString() : 'Recent'}</div>
-                </div>
-                <div className={`font-bold text-2xl ${h.won ? 'text-[#00e701]' : 'text-red-500'}`}>
-                  {h.won ? '+' : '-'}${(h.amount/100).toFixed(2)}
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function AdminPanel({ username, onClose, onBalanceUpdate, onLogout }) {
-  const [adminToken, setAdminToken] = useState('');
-  const [giveUsername, setGiveUsername] = useState(username);
-  const [amount, setAmount] = useState(1000);
-  const [message, setMessage] = useState('');
-
-  const giveChips = async () => {
-    try {
-      const res = await fetch(`${API_URL}/admin/give`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: adminToken, username: giveUsername, amount })
-      });
-      const data = await res.json();
-      if (data.error) {
-        setMessage('Unauthorized or error');
-      } else {
-        setMessage(`Success! New balance: ${(data.newBalance/100).toFixed(2)}`);
-        if (giveUsername === username) {
-          onBalanceUpdate(username);
-        }
-      }
-    } catch (e) {
-      setMessage('Connection error');
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black/90 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
-      <div className="bg-gradient-to-br from-[#1a2c38] to-[#0f212e] rounded-2xl p-6 w-full max-w-md border-2 border-[#2f4553] shadow-2xl">
-        <div className="flex justify-between items-center mb-6">
-          <h3 className="text-3xl font-bold bg-gradient-to-r from-[#00e701] to-white bg-clip-text text-transparent">Settings</h3>
-          <button onClick={onClose} className="p-2 hover:bg-[#2f4553] rounded-lg transition transform hover:scale-110">
-            <X className="w-6 h-6" />
-          </button>
-        </div>
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm mb-2 text-gray-400 font-semibold">Admin Token</label>
-            <input type="password" value={adminToken} onChange={(e) => setAdminToken(e.target.value)} placeholder="Enter admin token" className="w-full p-3 bg-[#2f4553] border border-[#4a5f6f] rounded-lg text-white focus:border-[#00e701] focus:outline-none transition" />
-          </div>
-          <div>
-            <label className="block text-sm mb-2 text-gray-400 font-semibold">Username</label>
-            <input type="text" value={giveUsername} onChange={(e) => setGiveUsername(e.target.value)} className="w-full p-3 bg-[#2f4553] border border-[#4a5f6f] rounded-lg text-white focus:border-[#00e701] focus:outline-none transition" />
-          </div>
-          <div>
-            <label className="block text-sm mb-2 text-gray-400 font-semibold">Amount (chips)</label>
-            <input type="number" value={amount} onChange={(e) => setAmount(parseInt(e.target.value) || 0)} className="w-full p-3 bg-[#2f4553] border border-[#4a5f6f] rounded-lg text-white focus:border-[#00e701] focus:outline-none transition" />
-          </div>
-          <button onClick={giveChips} className="w-full py-3 bg-gradient-to-r from-[#00e701] to-[#00a801] hover:from-[#00ff00] hover:to-[#00b801] rounded-xl font-bold text-black shadow-lg transform hover:scale-105 transition">
-            Give Chips
-          </button>
-          {message && <p className="text-center text-sm text-[#00e701] font-semibold">{message}</p>}
-          <hr className="border-[#2f4553]" />
-          <button onClick={onLogout} className="w-full py-3 bg-gradient-to-r from-red-600 to-red-800 hover:from-red-500 hover:to-red-700 rounded-xl font-bold shadow-lg transform hover:scale-105 transition flex items-center justify-center gap-2">
-            <LogOut className="w-5 h-5" />
-            Logout
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
+      <h2 className="text-4xl font-bold text-center mb-6 bg-gradient-to-
