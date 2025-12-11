@@ -1,394 +1,846 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🐆 Merle Cam - Login</title>
-<style>
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+import React, { useState, useEffect } from 'react';
+import { Coins, Trophy, History, Dice1, Spade, Zap, TrendingDown, Circle, ChevronLeft, X } from 'lucide-react';
 
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
-  color: #f6e0b2;
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-}
+const API_URL = 'https://YOUR-WORKER.workers.dev';
 
-.login-container {
-  background: #2a1a0a;
-  padding: 40px;
-  border-radius: 20px;
-  border: 3px solid #d4a23c;
-  box-shadow: 0 0 50px rgba(212, 162, 60, 0.4);
-  max-width: 450px;
-  width: 100%;
-}
+export default function StakeCasino() {
+  const [user, setUser] = useState(null);
+  const [balance, setBalance] = useState(0);
+  const [currentGame, setCurrentGame] = useState(null);
+  const [showHistory, setShowHistory] = useState(false);
+  const [history, setHistory] = useState([]);
 
-.logo {
-  text-align: center;
-  margin-bottom: 30px;
-}
-
-.logo-icon {
-  font-size: 80px;
-}
-
-h1 {
-  font-size: 32px;
-  color: #d4a23c;
-  margin-bottom: 10px;
-}
-
-.subtitle {
-  color: #c4a872;
-  font-size: 14px;
-  margin-bottom: 30px;
-}
-
-.tabs {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 25px;
-}
-
-.tab {
-  flex: 1;
-  padding: 12px;
-  background: #1a1a1a;
-  border: 2px solid #5e4528;
-  border-radius: 8px;
-  cursor: pointer;
-  text-align: center;
-  font-weight: bold;
-  transition: all 0.3s;
-}
-
-.tab.active {
-  background: linear-gradient(135deg, #d4a23c, #b88a28);
-  color: #1a1a1a;
-  border-color: #d4a23c;
-}
-
-.tab:hover {
-  border-color: #d4a23c;
-}
-
-.form-group {
-  margin-bottom: 20px;
-}
-
-label {
-  display: block;
-  margin-bottom: 8px;
-  color: #d4a23c;
-  font-weight: bold;
-  font-size: 14px;
-}
-
-input {
-  width: 100%;
-  padding: 15px;
-  background: #1a1a1a;
-  border: 2px solid #5e4528;
-  border-radius: 8px;
-  color: #f6e0b2;
-  font-size: 16px;
-  font-family: inherit;
-}
-
-input:focus {
-  outline: none;
-  border-color: #d4a23c;
-}
-
-.btn {
-  width: 100%;
-  padding: 15px;
-  background: linear-gradient(135deg, #d4a23c, #b88a28);
-  border: none;
-  border-radius: 8px;
-  color: #1a1a1a;
-  font-weight: bold;
-  font-size: 16px;
-  cursor: pointer;
-  transition: all 0.3s;
-  margin-bottom: 15px;
-}
-
-.btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 20px rgba(212, 162, 60, 0.5);
-}
-
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.btn-guest {
-  background: rgba(255, 255, 255, 0.1);
-  color: #f6e0b2;
-}
-
-.btn-guest:hover {
-  background: rgba(255, 255, 255, 0.15);
-}
-
-.error {
-  background: rgba(248, 113, 113, 0.2);
-  color: #f87171;
-  padding: 12px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-  border-left: 3px solid #f87171;
-  font-size: 14px;
-}
-
-.success {
-  background: rgba(74, 222, 128, 0.2);
-  color: #4ade80;
-  padding: 12px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-  border-left: 3px solid #4ade80;
-  font-size: 14px;
-}
-
-.info-box {
-  background: rgba(212, 162, 60, 0.1);
-  border: 1px solid #d4a23c;
-  padding: 15px;
-  border-radius: 8px;
-  font-size: 13px;
-  color: #c4a872;
-  margin-top: 20px;
-}
-
-.loading {
-  display: inline-block;
-  width: 20px;
-  height: 20px;
-  border: 3px solid rgba(255, 255, 255, 0.3);
-  border-radius: 50%;
-  border-top-color: #1a1a1a;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-.hidden {
-  display: none;
-}
-</style>
-</head>
-<body>
-
-<div class="login-container">
-  <div class="logo">
-    <div class="logo-icon">🐆</div>
-    <h1>Merle Cam</h1>
-    <p class="subtitle">Advanced Surveillance System</p>
-  </div>
-
-  <div class="tabs">
-    <div class="tab active" onclick="switchTab('login')">Login</div>
-    <div class="tab" onclick="switchTab('register')">Sign Up</div>
-  </div>
-
-  <div id="errorMsg" class="error hidden"></div>
-  <div id="successMsg" class="success hidden"></div>
-
-  <!-- Login Form -->
-  <form id="loginForm" onsubmit="handleLogin(event)">
-    <div class="form-group">
-      <label>Username</label>
-      <input type="text" id="loginUsername" placeholder="Enter username" required>
-    </div>
-    <div class="form-group">
-      <label>Password</label>
-      <input type="password" id="loginPassword" placeholder="Enter password" required>
-    </div>
-    <button type="submit" class="btn" id="loginBtn">🔓 Login</button>
-    <button type="button" class="btn btn-guest" onclick="continueAsGuest()">👁️ Continue as Guest</button>
-  </form>
-
-  <!-- Register Form -->
-  <form id="registerForm" class="hidden" onsubmit="handleRegister(event)">
-    <div class="form-group">
-      <label>Username</label>
-      <input type="text" id="regUsername" placeholder="Choose a username" required>
-    </div>
-    <div class="form-group">
-      <label>Password</label>
-      <input type="password" id="regPassword" placeholder="Create password (min 6 chars)" required minlength="6">
-    </div>
-    <div class="form-group">
-      <label>Confirm Password</label>
-      <input type="password" id="regPasswordConfirm" placeholder="Confirm password" required>
-    </div>
-    <button type="submit" class="btn" id="registerBtn">✨ Create Account</button>
-    <button type="button" class="btn btn-guest" onclick="continueAsGuest()">👁️ Continue as Guest</button>
-  </form>
-
-  <div class="info-box">
-    <strong>ℹ️ About Accounts:</strong><br>
-    • Multiple people can use the same username<br>
-    • Your password makes your account unique<br>
-    • <strong>Guest mode:</strong> View stream & chat, but can't type<br>
-    • Blue checkmark ✓ = Verified by admin
-  </div>
-</div>
-
-<script>
-const API_URL = 'https://listen-evaluating-experiments-proudly.trycloudflare.com';
-
-function switchTab(tab) {
-  const tabs = document.querySelectorAll('.tab');
-  tabs.forEach(t => t.classList.remove('active'));
-  
-  if (tab === 'login') {
-    tabs[0].classList.add('active');
-    document.getElementById('loginForm').classList.remove('hidden');
-    document.getElementById('registerForm').classList.add('hidden');
-  } else {
-    tabs[1].classList.add('active');
-    document.getElementById('loginForm').classList.add('hidden');
-    document.getElementById('registerForm').classList.remove('hidden');
-  }
-  
-  hideMessages();
-}
-
-function showError(msg) {
-  const errorDiv = document.getElementById('errorMsg');
-  errorDiv.textContent = msg;
-  errorDiv.classList.remove('hidden');
-  document.getElementById('successMsg').classList.add('hidden');
-}
-
-function showSuccess(msg) {
-  const successDiv = document.getElementById('successMsg');
-  successDiv.textContent = msg;
-  successDiv.classList.remove('hidden');
-  document.getElementById('errorMsg').classList.add('hidden');
-}
-
-function hideMessages() {
-  document.getElementById('errorMsg').classList.add('hidden');
-  document.getElementById('successMsg').classList.add('hidden');
-}
-
-async function handleLogin(e) {
-  e.preventDefault();
-  hideMessages();
-  
-  const username = document.getElementById('loginUsername').value.trim();
-  const password = document.getElementById('loginPassword').value;
-  const btn = document.getElementById('loginBtn');
-  
-  btn.disabled = true;
-  btn.innerHTML = '<div class="loading"></div>';
-  
-  try {
-    const response = await fetch(`${API_URL}/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password })
-    });
-    
-    const result = await response.json();
-    
-    if (result.success) {
-      localStorage.setItem('session_token', result.session_token);
-      localStorage.setItem('username', result.username);
-      localStorage.setItem('verified', result.verified);
-      localStorage.setItem('guest_mode', 'false');
-      
-      showSuccess('Login successful! Redirecting...');
-      setTimeout(() => window.location.href = 'dashboard.html', 1000);
-    } else {
-      showError(result.error || 'Login failed');
+  useEffect(() => {
+    const savedUser = localStorage.getItem('stake_user');
+    if (savedUser) {
+      const userData = JSON.parse(savedUser);
+      setUser(userData);
+      loadBalance(userData.username);
     }
-  } catch (error) {
-    showError('Connection error. Please try again.');
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = '🔓 Login';
-  }
-}
+  }, []);
 
-async function handleRegister(e) {
-  e.preventDefault();
-  hideMessages();
-  
-  const username = document.getElementById('regUsername').value.trim();
-  const password = document.getElementById('regPassword').value;
-  const passwordConfirm = document.getElementById('regPasswordConfirm').value;
-  const btn = document.getElementById('registerBtn');
-  
-  if (password !== passwordConfirm) {
-    showError('Passwords do not match!');
-    return;
-  }
-  
-  btn.disabled = true;
-  btn.innerHTML = '<div class="loading"></div>';
-  
-  try {
-    const response = await fetch(`${API_URL}/auth/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password })
-    });
-    
-    const result = await response.json();
-    
-    if (result.success) {
-      localStorage.setItem('session_token', result.session_token);
-      localStorage.setItem('username', result.username);
-      localStorage.setItem('verified', result.verified);
-      localStorage.setItem('guest_mode', 'false');
-      
-      showSuccess('Account created! Redirecting...');
-      setTimeout(() => window.location.href = 'dashboard.html', 1000);
-    } else {
-      showError(result.error || 'Registration failed');
+  const loadBalance = async (username) => {
+    try {
+      const res = await fetch(`${API_URL}/balance/${username}`);
+      const data = await res.json();
+      setBalance(data.balance);
+    } catch (e) {
+      console.error('Balance load failed');
     }
-  } catch (error) {
-    showError('Connection error. Please try again.');
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = '✨ Create Account';
+  };
+
+  const login = async (username) => {
+    if (!username.trim()) return;
+    try {
+      const res = await fetch(`${API_URL}/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username })
+      });
+      const data = await res.json();
+      const userData = { username, id: data.userId };
+      setUser(userData);
+      setBalance(0);
+      localStorage.setItem('stake_user', JSON.stringify(userData));
+    } catch (e) {
+      alert('Login failed');
+    }
+  };
+
+  const loadHistory = async () => {
+    try {
+      const res = await fetch(`${API_URL}/history/${user.username}`);
+      const data = await res.json();
+      setHistory(data.history || []);
+      setShowHistory(true);
+    } catch (e) {
+      console.error('History load failed');
+    }
+  };
+
+  if (!user) {
+    return <LoginScreen onLogin={login} />;
   }
+
+  if (currentGame) {
+    return <GameScreen game={currentGame} balance={balance} username={user.username} onBack={() => setCurrentGame(null)} onBalanceUpdate={setBalance} />;
+  }
+
+  return (
+    <div className="min-h-screen bg-[#0f212e] text-white">
+      <header className="bg-[#1a2c38] border-b border-[#2f4553] px-4 py-3">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-[#00e701] to-[#00a801] rounded-lg flex items-center justify-center">
+              <Dice1 className="w-6 h-6 text-white" />
+            </div>
+            <h1 className="text-2xl font-bold">Stake</h1>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="bg-[#2f4553] px-4 py-2 rounded-lg">
+              <div className="text-xs text-gray-400">Balance</div>
+              <div className="text-lg font-bold text-[#00e701]">${(balance / 100).toFixed(2)}</div>
+            </div>
+            <button onClick={loadHistory} className="p-2 hover:bg-[#2f4553] rounded-lg transition">
+              <History className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-7xl mx-auto p-6">
+        <div className="mb-6">
+          <h2 className="text-xl font-bold mb-1">Welcome back, {user.username}</h2>
+          <p className="text-sm text-gray-400">Choose your game</p>
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <GameCard title="Blackjack" icon="🃏" gradient="from-red-600 to-red-800" onClick={() => setCurrentGame('blackjack')} />
+          <GameCard title="3 Card Poker" icon="🎴" gradient="from-blue-600 to-blue-800" onClick={() => setCurrentGame('poker')} />
+          <GameCard title="Mines" icon="💣" gradient="from-orange-600 to-orange-800" onClick={() => setCurrentGame('mines')} />
+          <GameCard title="Towers" icon="🗼" gradient="from-purple-600 to-purple-800" onClick={() => setCurrentGame('towers')} />
+          <GameCard title="Plinko" icon="⚪" gradient="from-pink-600 to-pink-800" onClick={() => setCurrentGame('plinko')} />
+          <GameCard title="Roulette" icon="🎡" gradient="from-green-600 to-green-800" onClick={() => setCurrentGame('roulette')} />
+          <GameCard title="Hi-Lo" icon="🎯" gradient="from-yellow-600 to-yellow-800" onClick={() => setCurrentGame('hilo')} />
+        </div>
+      </main>
+
+      {showHistory && (
+        <HistoryModal history={history} onClose={() => setShowHistory(false)} />
+      )}
+    </div>
+  );
 }
 
-function continueAsGuest() {
-  localStorage.setItem('guest_mode', 'true');
-  localStorage.setItem('username', 'Guest');
-  localStorage.removeItem('session_token');
-  localStorage.removeItem('verified');
-  
-  window.location.href = 'dashboard.html';
+function LoginScreen({ onLogin }) {
+  const [username, setUsername] = useState('');
+
+  return (
+    <div className="min-h-screen bg-[#0f212e] flex items-center justify-center p-4">
+      <div className="bg-[#1a2c38] rounded-2xl p-8 w-full max-w-md border border-[#2f4553]">
+        <div className="flex justify-center mb-6">
+          <div className="w-16 h-16 bg-gradient-to-br from-[#00e701] to-[#00a801] rounded-2xl flex items-center justify-center">
+            <Dice1 className="w-10 h-10 text-white" />
+          </div>
+        </div>
+        <h1 className="text-4xl font-bold text-center mb-2">Stake</h1>
+        <p className="text-center text-gray-400 mb-6">Enter your username to continue</p>
+        <input
+          type="text"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          onKeyPress={(e) => e.key === 'Enter' && onLogin(username)}
+          placeholder="Username"
+          className="w-full p-4 bg-[#2f4553] border border-[#4a5f6f] rounded-lg text-white placeholder-gray-500 mb-4 focus:outline-none focus:border-[#00e701]"
+        />
+        <button onClick={() => onLogin(username)} className="w-full py-4 bg-gradient-to-r from-[#00e701] to-[#00a801] hover:from-[#00ff00] hover:to-[#00b801] rounded-lg font-bold transition">
+          Continue
+        </button>
+        <p className="text-xs text-center text-gray-500 mt-4">Play responsibly • 18+ only • No real money</p>
+      </div>
+    </div>
+  );
 }
 
-// Check if already logged in
-window.onload = () => {
-  const token = localStorage.getItem('session_token');
-  if (token) {
-    window.location.href = 'dashboard.html';
-  }
-};
-</script>
+function GameCard({ title, icon, gradient, onClick }) {
+  return (
+    <button onClick={onClick} className={`bg-gradient-to-br ${gradient} p-6 rounded-xl hover:scale-105 transition-all duration-200 border border-white/10 shadow-lg`}>
+      <div className="text-4xl mb-3">{icon}</div>
+      <h3 className="text-lg font-bold">{title}</h3>
+    </button>
+  );
+}
 
-</body>
-</html>
+function GameScreen({ game, balance, username, onBack, onBalanceUpdate }) {
+  const games = {
+    blackjack: Blackjack,
+    poker: ThreeCardPoker,
+    mines: Mines,
+    towers: Towers,
+    plinko: Plinko,
+    roulette: Roulette,
+    hilo: HiLo
+  };
+
+  const GameComponent = games[game];
+
+  return (
+    <div className="min-h-screen bg-[#0f212e] text-white">
+      <header className="bg-[#1a2c38] border-b border-[#2f4553] px-4 py-3">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <button onClick={onBack} className="flex items-center gap-2 hover:text-[#00e701] transition">
+            <ChevronLeft className="w-5 h-5" />
+            <span className="font-medium">Back</span>
+          </button>
+          <div className="bg-[#2f4553] px-4 py-2 rounded-lg">
+            <div className="text-xs text-gray-400">Balance</div>
+            <div className="text-lg font-bold text-[#00e701]">${(balance / 100).toFixed(2)}</div>
+          </div>
+        </div>
+      </header>
+      <main className="max-w-5xl mx-auto p-4 md:p-6">
+        <GameComponent balance={balance} username={username} onBalanceUpdate={onBalanceUpdate} />
+      </main>
+    </div>
+  );
+}
+
+function Blackjack({ balance, username, onBalanceUpdate }) {
+  const [bet, setBet] = useState(100);
+  const [gameState, setGameState] = useState('betting');
+  const [playerHand, setPlayerHand] = useState([]);
+  const [dealerHand, setDealerHand] = useState([]);
+  const [message, setMessage] = useState('Place your bet');
+
+  const calcValue = (hand) => {
+    let val = 0, aces = 0;
+    hand.forEach(c => {
+      if (c.value === 'A') aces++;
+      else if (['K','Q','J'].includes(c.value)) val += 10;
+      else val += parseInt(c.value);
+    });
+    for (let i = 0; i < aces; i++) val += (val + 11 <= 21) ? 11 : 1;
+    return val;
+  };
+
+  const deal = async () => {
+    if (bet > balance) { setMessage('Insufficient balance!'); return; }
+    try {
+      const res = await fetch(`${API_URL}/blackjack/deal`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, bet })
+      });
+      const data = await res.json();
+      setPlayerHand(data.playerHand);
+      setDealerHand(data.dealerHand);
+      setGameState('playing');
+      setMessage('Hit or Stand?');
+    } catch (e) { setMessage('Error'); }
+  };
+
+  const hit = async () => {
+    try {
+      const res = await fetch(`${API_URL}/blackjack/hit`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username })
+      });
+      const data = await res.json();
+      setPlayerHand(data.playerHand);
+      if (calcValue(data.playerHand) > 21) {
+        setGameState('betting');
+        setMessage(`Bust! -$${(bet/100).toFixed(2)}`);
+        onBalanceUpdate(data.newBalance);
+      }
+    } catch (e) { setMessage('Error'); }
+  };
+
+  const stand = async () => {
+    try {
+      const res = await fetch(`${API_URL}/blackjack/stand`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username })
+      });
+      const data = await res.json();
+      setDealerHand(data.dealerHand);
+      setGameState('betting');
+      setMessage(data.result === 'win' ? `Win! +$${(bet/100).toFixed(2)}` : data.result === 'push' ? 'Push!' : `Lose! -$${(bet/100).toFixed(2)}`);
+      onBalanceUpdate(data.newBalance);
+    } catch (e) { setMessage('Error'); }
+  };
+
+  return (
+    <div className="space-y-4">
+      <h2 className="text-2xl font-bold text-center mb-6">Blackjack</h2>
+      <div className="bg-[#1a2c38] rounded-xl p-6 border border-[#2f4553]">
+        <p className="text-center text-lg mb-6 text-[#00e701]">{message}</p>
+        {dealerHand.length > 0 && (
+          <div className="mb-6">
+            <p className="text-sm text-gray-400 mb-2">Dealer ({gameState === 'betting' ? calcValue(dealerHand) : '?'})</p>
+            <div className="flex gap-2 justify-center flex-wrap">
+              {dealerHand.map((c, i) => (
+                <div key={i} className="w-14 h-20 bg-white rounded-lg flex items-center justify-center text-black font-bold text-lg shadow-lg">
+                  {gameState === 'playing' && i === 1 ? '🂠' : `${c.value}${c.suit}`}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        {playerHand.length > 0 && (
+          <div className="mb-6">
+            <p className="text-sm text-gray-400 mb-2">You ({calcValue(playerHand)})</p>
+            <div className="flex gap-2 justify-center flex-wrap">
+              {playerHand.map((c, i) => (
+                <div key={i} className="w-14 h-20 bg-white rounded-lg flex items-center justify-center text-black font-bold text-lg shadow-lg">
+                  {c.value}{c.suit}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        {gameState === 'betting' ? (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm mb-2 text-gray-400">Bet Amount</label>
+              <input type="number" value={bet} onChange={(e) => setBet(Math.max(10, parseInt(e.target.value) || 10))} className="w-full p-3 bg-[#2f4553] border border-[#4a5f6f] rounded-lg" />
+            </div>
+            <button onClick={deal} className="w-full py-3 bg-[#00e701] hover:bg-[#00ff00] rounded-lg font-bold text-black">
+              Deal ${(bet/100).toFixed(2)}
+            </button>
+          </div>
+        ) : (
+          <div className="flex gap-4">
+            <button onClick={hit} className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-bold">Hit</button>
+            <button onClick={stand} className="flex-1 py-3 bg-red-600 hover:bg-red-700 rounded-lg font-bold">Stand</button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ThreeCardPoker({ balance, username, onBalanceUpdate }) {
+  const [bet, setBet] = useState(100);
+  const [gameState, setGameState] = useState('betting');
+  const [playerHand, setPlayerHand] = useState([]);
+  const [dealerHand, setDealerHand] = useState([]);
+  const [message, setMessage] = useState('Place your bet');
+
+  const play = async () => {
+    if (bet > balance) { setMessage('Insufficient balance!'); return; }
+    try {
+      const res = await fetch(`${API_URL}/poker/play`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, bet })
+      });
+      const data = await res.json();
+      setPlayerHand(data.playerHand);
+      setDealerHand(data.dealerHand);
+      setGameState('result');
+      setMessage(data.result === 'win' ? `Win! +$${(data.payout/100).toFixed(2)}` : 'Dealer wins!');
+      onBalanceUpdate(data.newBalance);
+      setTimeout(() => { setGameState('betting'); setPlayerHand([]); setDealerHand([]); setMessage('Place your bet'); }, 3000);
+    } catch (e) { setMessage('Error'); }
+  };
+
+  return (
+    <div className="space-y-4">
+      <h2 className="text-2xl font-bold text-center mb-6">3 Card Poker</h2>
+      <div className="bg-[#1a2c38] rounded-xl p-6 border border-[#2f4553]">
+        <p className="text-center text-lg mb-6 text-[#00e701]">{message}</p>
+        {dealerHand.length > 0 && (
+          <div className="mb-6">
+            <p className="text-sm text-gray-400 mb-2">Dealer</p>
+            <div className="flex gap-2 justify-center">
+              {dealerHand.map((c, i) => (
+                <div key={i} className="w-14 h-20 bg-white rounded-lg flex items-center justify-center text-black font-bold shadow-lg">
+                  {c.value}{c.suit}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        {playerHand.length > 0 && (
+          <div className="mb-6">
+            <p className="text-sm text-gray-400 mb-2">You</p>
+            <div className="flex gap-2 justify-center">
+              {playerHand.map((c, i) => (
+                <div key={i} className="w-14 h-20 bg-white rounded-lg flex items-center justify-center text-black font-bold shadow-lg">
+                  {c.value}{c.suit}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        {gameState === 'betting' && (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm mb-2 text-gray-400">Bet Amount</label>
+              <input type="number" value={bet} onChange={(e) => setBet(Math.max(10, parseInt(e.target.value) || 10))} className="w-full p-3 bg-[#2f4553] border border-[#4a5f6f] rounded-lg" />
+            </div>
+            <button onClick={play} className="w-full py-3 bg-[#00e701] hover:bg-[#00ff00] rounded-lg font-bold text-black">
+              Play ${(bet/100).toFixed(2)}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function Mines({ balance, username, onBalanceUpdate }) {
+  const [bet, setBet] = useState(100);
+  const [mineCount, setMineCount] = useState(5);
+  const [gameActive, setGameActive] = useState(false);
+  const [revealed, setRevealed] = useState([]);
+  const [multiplier, setMultiplier] = useState(1);
+  const [message, setMessage] = useState('Select mines and bet');
+
+  const start = async () => {
+    if (bet > balance) { setMessage('Insufficient balance!'); return; }
+    try {
+      await fetch(`${API_URL}/mines/start`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, bet, mineCount })
+      });
+      setGameActive(true);
+      setRevealed([]);
+      setMultiplier(1);
+      setMessage('Click tiles! Avoid mines 💣');
+      onBalanceUpdate(balance - bet);
+    } catch (e) { setMessage('Error'); }
+  };
+
+  const reveal = async (pos) => {
+    if (!gameActive || revealed.includes(pos)) return;
+    try {
+      const res = await fetch(`${API_URL}/mines/reveal`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, position: pos })
+      });
+      const data = await res.json();
+      setRevealed([...revealed, pos]);
+      if (data.mine) {
+        setGameActive(false);
+        setMessage(`💥 Mine! -$${(bet/100).toFixed(2)}`);
+        onBalanceUpdate(data.newBalance);
+      } else {
+        setMultiplier(data.multiplier);
+        setMessage(`Safe! ${data.multiplier.toFixed(2)}x`);
+      }
+    } catch (e) { setMessage('Error'); }
+  };
+
+  const cashout = async () => {
+    try {
+      const res = await fetch(`${API_URL}/mines/cashout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username })
+      });
+      const data = await res.json();
+      setGameActive(false);
+      setMessage(`Cashed out! +$${(data.payout/100).toFixed(2)}`);
+      onBalanceUpdate(data.newBalance);
+    } catch (e) { setMessage('Error'); }
+  };
+
+  return (
+    <div className="space-y-4">
+      <h2 className="text-2xl font-bold text-center mb-6">Mines</h2>
+      <div className="bg-[#1a2c38] rounded-xl p-6 border border-[#2f4553]">
+        <p className="text-center text-lg mb-2 text-[#00e701]">{message}</p>
+        <p className="text-center text-2xl font-bold mb-6 text-yellow-400">{multiplier.toFixed(2)}x</p>
+        {!gameActive && (
+          <div className="space-y-4 mb-6">
+            <div>
+              <label className="block text-sm mb-2 text-gray-400">Bet Amount</label>
+              <input type="number" value={bet} onChange={(e) => setBet(Math.max(10, parseInt(e.target.value) || 10))} className="w-full p-3 bg-[#2f4553] border border-[#4a5f6f] rounded-lg" />
+            </div>
+            <div>
+              <label className="block text-sm mb-2 text-gray-400">Mines (1-24)</label>
+              <input type="number" value={mineCount} onChange={(e) => setMineCount(Math.max(1, Math.min(24, parseInt(e.target.value) || 5)))} className="w-full p-3 bg-[#2f4553] border border-[#4a5f6f] rounded-lg" />
+            </div>
+            <button onClick={start} className="w-full py-3 bg-[#00e701] hover:bg-[#00ff00] rounded-lg font-bold text-black">
+              Start ${(bet/100).toFixed(2)}
+            </button>
+          </div>
+        )}
+        <div className="grid grid-cols-5 gap-2 mb-6">
+          {Array(25).fill(0).map((_, i) => (
+            <button key={i} onClick={() => reveal(i)} disabled={!gameActive || revealed.includes(i)} className={`aspect-square rounded-lg font-bold text-2xl transition ${revealed.includes(i) ? 'bg-[#00e701] text-black' : gameActive ? 'bg-[#2f4553] hover:bg-[#3f5563]' : 'bg-[#1a2c38]'}`}>
+              {revealed.includes(i) ? '💎' : ''}
+            </button>
+          ))}
+        </div>
+        {gameActive && revealed.length > 0 && (
+          <button onClick={cashout} className="w-full py-3 bg-yellow-600 hover:bg-yellow-700 rounded-lg font-bold">
+            Cashout ${((bet * multiplier)/100).toFixed(2)}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function Towers({ balance, username, onBalanceUpdate }) {
+  const [bet, setBet] = useState(100);
+  const [difficulty, setDifficulty] = useState('medium');
+  const [gameActive, setGameActive] = useState(false);
+  const [level, setLevel] = useState(0);
+  const [multiplier, setMultiplier] = useState(1);
+  const [message, setMessage] = useState('Choose difficulty');
+  const [clickedTiles, setClickedTiles] = useState([]);
+
+  const start = async () => {
+    if (bet > balance) { setMessage('Insufficient balance!'); return; }
+    try {
+      await fetch(`${API_URL}/towers/start`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, bet, difficulty })
+      });
+      setGameActive(true);
+      setLevel(0);
+      setMultiplier(1);
+      setClickedTiles([]);
+      setMessage('Climb the tower!');
+      onBalanceUpdate(balance - bet);
+    } catch (e) { setMessage('Error'); }
+  };
+
+  const click = async (lvl, pos) => {
+    if (!gameActive || lvl !== level) return;
+    try {
+      const res = await fetch(`${API_URL}/towers/click`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, position: pos })
+      });
+      const data = await res.json();
+      setClickedTiles([...clickedTiles, { level: lvl, pos }]);
+      if (data.correct) {
+        if (data.won) {
+          setGameActive(false);
+          setMessage(`Top reached! +$${(data.payout/100).toFixed(2)}`);
+          onBalanceUpdate(data.newBalance);
+        } else {
+          setLevel(data.level);
+          setMultiplier(data.multiplier);
+          setMessage(`Level ${data.level}! ${data.multiplier.toFixed(2)}x`);
+        }
+      } else {
+        setGameActive(false);
+        setMessage(`Wrong! -$${(bet/100).toFixed(2)}`);
+        onBalanceUpdate(data.newBalance);
+      }
+    } catch (e) { setMessage('Error'); }
+  };
+
+  const cashout = async () => {
+    try {
+      const res = await fetch(`${API_URL}/towers/cashout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username })
+      });
+      const data = await res.json();
+      setGameActive(false);
+      setMessage(`Cashed out! +$${(data.payout/100).toFixed(2)}`);
+      onBalanceUpdate(data.newBalance);
+    } catch (e) { setMessage('Error'); }
+  };
+
+  const tiles = difficulty === 'easy' ? 2 : difficulty === 'medium' ? 3 : 4;
+
+  return (
+    <div className="space-y-4">
+      <h2 className="text-2xl font-bold text-center mb-6">Towers</h2>
+      <div className="bg-[#1a2c38] rounded-xl p-6 border border-[#2f4553]">
+        <p className="text-center text-lg mb-2 text-[#00e701]">{message}</p>
+        <p className="text-center text-2xl font-bold mb-6 text-yellow-400">{multiplier.toFixed(2)}x</p>
+        {!gameActive && (
+          <div className="space-y-4 mb-6">
+            <div>
+              <label className="block text-sm mb-2 text-gray-400">Bet Amount</label>
+              <input type="number" value={bet} onChange={(e) => setBet(Math.max(10, parseInt(e.target.value) || 10))} className="w-full p-3 bg-[#2f4553] border border-[#4a5f6f] rounded-lg" />
+            </div>
+            <div>
+              <label className="block text-sm mb-2 text-gray-400">Difficulty</label>
+              <select value={difficulty} onChange={(e) => setDifficulty(e.target.value)} className="w-full p-3 bg-[#2f4553] border border-[#4a5f6f] rounded-lg">
+                <option value="easy">Easy (2 tiles)</option>
+                <option value="medium">Medium (3 tiles)</option>
+                <option value="hard">Hard (4 tiles)</option>
+              </select>
+            </div>
+            <button onClick={start} className="w-full py-3 bg-[#00e701] hover:bg-[#00ff00] rounded-lg font-bold text-black">
+              Start ${(bet/100).toFixed(2)}
+            </button>
+          </div>
+        )}
+        <div className="space-y-2 mb-6">
+          {[...Array(8)].map((_, lvl) => (
+            <div key={lvl} className="flex gap-2 justify-center">
+              {[...Array(tiles)].map((_, pos) => {
+                const clicked = clickedTiles.find(t => t.level === (7-lvl) && t.pos === pos);
+                return (
+                  <button key={pos} onClick={() => click(7-lvl, pos)} disabled={!gameActive || (7-lvl) !== level} className={`w-16 h-12 rounded-lg font-bold transition ${clicked ? 'bg-[#00e701] text-black' : gameActive && (7-lvl) === level ? 'bg-[#2f4553] hover:bg-[#3f5563]' : 'bg-[#1a2c38]'}`}>
+                    {clicked ? '✓' : ''}
+                  </button>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+        {gameActive && level > 0 && (
+          <button onClick={cashout} className="w-full py-3 bg-yellow-600 hover:bg-yellow-700 rounded-lg font-bold">
+            Cashout ${((bet * multiplier)/100).toFixed(2)}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function Plinko({ balance, username, onBalanceUpdate }) {
+  const [bet, setBet] = useState(100);
+  const [risk, setRisk] = useState('medium');
+  const [message, setMessage] = useState('Drop the ball');
+  const [lastResult, setLastResult] = useState(null);
+
+  const play = async () => {
+    if (bet > balance) { setMessage('Insufficient balance!'); return; }
+    try {
+      const res = await fetch(`${API_URL}/plinko/play`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, bet, risk })
+      });
+      const data = await res.json();
+      setLastResult(data);
+      setMessage(data.payout > bet ? `Win! +${((data.payout-bet)/100).toFixed(2)} (${data.multiplier}x)` : `Loss! -${((bet-data.payout)/100).toFixed(2)} (${data.multiplier}x)`);
+      onBalanceUpdate(data.newBalance);
+    } catch (e) { setMessage('Error'); }
+  };
+
+  return (
+    <div className="space-y-4">
+      <h2 className="text-2xl font-bold text-center mb-6">Plinko</h2>
+      <div className="bg-[#1a2c38] rounded-xl p-6 border border-[#2f4553]">
+        <p className="text-center text-lg mb-6 text-[#00e701]">{message}</p>
+        <div className="mb-6 flex justify-center">
+          <div className="relative w-full max-w-md h-64 bg-[#0f212e] rounded-lg border border-[#2f4553] flex items-end justify-center p-4">
+            <div className="flex gap-1">
+              {[...Array(17)].map((_, i) => (
+                <div key={i} className={`w-6 h-12 rounded ${lastResult?.position === i ? 'bg-[#00e701]' : 'bg-[#2f4553]'} flex items-center justify-center text-xs`}>
+                  {lastResult?.position === i ? '⚪' : ''}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm mb-2 text-gray-400">Bet Amount</label>
+            <input type="number" value={bet} onChange={(e) => setBet(Math.max(10, parseInt(e.target.value) || 10))} className="w-full p-3 bg-[#2f4553] border border-[#4a5f6f] rounded-lg" />
+          </div>
+          <div>
+            <label className="block text-sm mb-2 text-gray-400">Risk Level</label>
+            <select value={risk} onChange={(e) => setRisk(e.target.value)} className="w-full p-3 bg-[#2f4553] border border-[#4a5f6f] rounded-lg">
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+            </select>
+          </div>
+          <button onClick={play} className="w-full py-3 bg-[#00e701] hover:bg-[#00ff00] rounded-lg font-bold text-black">
+            Drop ${(bet/100).toFixed(2)}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Roulette({ balance, username, onBalanceUpdate }) {
+  const [bet, setBet] = useState(100);
+  const [betType, setBetType] = useState('red');
+  const [message, setMessage] = useState('Place your bet');
+  const [lastResult, setLastResult] = useState(null);
+  const [spinning, setSpinning] = useState(false);
+
+  const spin = async () => {
+    if (bet > balance) { setMessage('Insufficient balance!'); return; }
+    setSpinning(true);
+    try {
+      const res = await fetch(`${API_URL}/roulette/play`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, bet, betType, betValue: null })
+      });
+      const data = await res.json();
+      setTimeout(() => {
+        setLastResult(data);
+        setMessage(data.won ? `${data.result} ${data.color}! Win +${((data.payout-bet)/100).toFixed(2)}` : `${data.result} ${data.color}! Loss -${(bet/100).toFixed(2)}`);
+        onBalanceUpdate(data.newBalance);
+        setSpinning(false);
+      }, 2000);
+    } catch (e) { setMessage('Error'); setSpinning(false); }
+  };
+
+  return (
+    <div className="space-y-4">
+      <h2 className="text-2xl font-bold text-center mb-6">Roulette</h2>
+      <div className="bg-[#1a2c38] rounded-xl p-6 border border-[#2f4553]">
+        <p className="text-center text-lg mb-6 text-[#00e701]">{message}</p>
+        <div className="mb-6 flex justify-center">
+          <div className={`w-32 h-32 rounded-full border-4 ${spinning ? 'animate-spin' : ''} ${lastResult?.color === 'red' ? 'border-red-600 bg-red-600/20' : lastResult?.color === 'black' ? 'border-gray-900 bg-gray-900/20' : 'border-green-600 bg-green-600/20'} flex items-center justify-center`}>
+            <div className="text-4xl font-bold">{lastResult?.result ?? '?'}</div>
+          </div>
+        </div>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm mb-2 text-gray-400">Bet Amount</label>
+            <input type="number" value={bet} onChange={(e) => setBet(Math.max(10, parseInt(e.target.value) || 10))} className="w-full p-3 bg-[#2f4553] border border-[#4a5f6f] rounded-lg" />
+          </div>
+          <div>
+            <label className="block text-sm mb-2 text-gray-400">Bet Type</label>
+            <div className="grid grid-cols-2 gap-2">
+              <button onClick={() => setBetType('red')} className={`p-3 rounded-lg font-bold ${betType === 'red' ? 'bg-red-600' : 'bg-[#2f4553] hover:bg-[#3f5563]'}`}>Red</button>
+              <button onClick={() => setBetType('black')} className={`p-3 rounded-lg font-bold ${betType === 'black' ? 'bg-gray-900' : 'bg-[#2f4553] hover:bg-[#3f5563]'}`}>Black</button>
+              <button onClick={() => setBetType('even')} className={`p-3 rounded-lg font-bold ${betType === 'even' ? 'bg-blue-600' : 'bg-[#2f4553] hover:bg-[#3f5563]'}`}>Even</button>
+              <button onClick={() => setBetType('odd')} className={`p-3 rounded-lg font-bold ${betType === 'odd' ? 'bg-blue-600' : 'bg-[#2f4553] hover:bg-[#3f5563]'}`}>Odd</button>
+            </div>
+          </div>
+          <button onClick={spin} disabled={spinning} className="w-full py-3 bg-[#00e701] hover:bg-[#00ff00] rounded-lg font-bold text-black disabled:opacity-50">
+            {spinning ? 'Spinning...' : `Spin ${(bet/100).toFixed(2)}`}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function HiLo({ balance, username, onBalanceUpdate }) {
+  const [bet, setBet] = useState(100);
+  const [gameActive, setGameActive] = useState(false);
+  const [currentCard, setCurrentCard] = useState(null);
+  const [message, setMessage] = useState('Start game');
+  const [multiplier, setMultiplier] = useState(1);
+  const [streak, setStreak] = useState(0);
+
+  const start = async () => {
+    if (bet > balance) { setMessage('Insufficient balance!'); return; }
+    try {
+      const res = await fetch(`${API_URL}/hilo/start`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, bet })
+      });
+      const data = await res.json();
+      setGameActive(true);
+      setCurrentCard(data.card);
+      setMultiplier(1);
+      setStreak(0);
+      setMessage('Higher or Lower?');
+      onBalanceUpdate(balance - bet);
+    } catch (e) { setMessage('Error'); }
+  };
+
+  const guess = async (choice) => {
+    try {
+      const res = await fetch(`${API_URL}/hilo/guess`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, choice })
+      });
+      const data = await res.json();
+      setCurrentCard(data.newCard);
+      if (data.correct) {
+        setMultiplier(data.multiplier);
+        setStreak(data.streak);
+        setMessage(`Correct! ${data.multiplier.toFixed(2)}x`);
+      } else {
+        setGameActive(false);
+        setMessage(`Wrong! -${(bet/100).toFixed(2)}`);
+        onBalanceUpdate(data.newBalance);
+      }
+    } catch (e) { setMessage('Error'); }
+  };
+
+  const cashout = async () => {
+    try {
+      const res = await fetch(`${API_URL}/hilo/cashout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username })
+      });
+      const data = await res.json();
+      setGameActive(false);
+      setMessage(`Cashed out! +${(data.payout/100).toFixed(2)}`);
+      onBalanceUpdate(data.newBalance);
+    } catch (e) { setMessage('Error'); }
+  };
+
+  return (
+    <div className="space-y-4">
+      <h2 className="text-2xl font-bold text-center mb-6">Hi-Lo</h2>
+      <div className="bg-[#1a2c38] rounded-xl p-6 border border-[#2f4553]">
+        <p className="text-center text-lg mb-2 text-[#00e701]">{message}</p>
+        <p className="text-center text-2xl font-bold mb-6 text-yellow-400">{multiplier.toFixed(2)}x • Streak: {streak}</p>
+        <div className="mb-6 flex justify-center">
+          {currentCard ? (
+            <div className="w-24 h-32 bg-white rounded-lg flex items-center justify-center text-black font-bold text-3xl shadow-lg">
+              {currentCard.value}{currentCard.suit}
+            </div>
+          ) : (
+            <div className="w-24 h-32 bg-[#2f4553] rounded-lg flex items-center justify-center text-4xl">
+              🂠
+            </div>
+          )}
+        </div>
+        {!gameActive ? (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm mb-2 text-gray-400">Bet Amount</label>
+              <input type="number" value={bet} onChange={(e) => setBet(Math.max(10, parseInt(e.target.value) || 10))} className="w-full p-3 bg-[#2f4553] border border-[#4a5f6f] rounded-lg" />
+            </div>
+            <button onClick={start} className="w-full py-3 bg-[#00e701] hover:bg-[#00ff00] rounded-lg font-bold text-black">
+              Start ${(bet/100).toFixed(2)}
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <button onClick={() => guess('higher')} className="w-full py-3 bg-green-600 hover:bg-green-700 rounded-lg font-bold">
+              Higher ▲
+            </button>
+            <button onClick={() => guess('lower')} className="w-full py-3 bg-red-600 hover:bg-red-700 rounded-lg font-bold">
+              Lower ▼
+            </button>
+            {streak > 0 && (
+              <button onClick={cashout} className="w-full py-3 bg-yellow-600 hover:bg-yellow-700 rounded-lg font-bold">
+                Cashout ${((bet * multiplier)/100).toFixed(2)}
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function HistoryModal({ history, onClose }) {
+  return (
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
+      <div className="bg-[#1a2c38] rounded-xl p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto border border-[#2f4553]">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-2xl font-bold">Bet History</h3>
+          <button onClick={onClose} className="p-2 hover:bg-[#2f4553] rounded-lg">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        <div className="space-y-2">
+          {history.length === 0 ? (
+            <p className="text-center text-gray-400 py-8">No bets yet</p>
+          ) : (
+            history.map((h, i) => (
+              <div key={i} className="flex justify-between items-center p-3 bg-[#2f4553] rounded-lg">
+                <div>
+                  <div className="font-medium">{h.game}</div>
+                  <div className="text-xs text-gray-400">{new Date(h.timestamp).toLocaleString()}</div>
+                </div>
+                <div className={`font-bold text-lg ${h.won ? 'text-[#00e701]' : 'text-red-500'}`}>
+                  {h.won ? '+' : '-'}${(h.amount/100).toFixed(2)}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
