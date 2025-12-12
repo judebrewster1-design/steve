@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Coins, Trophy, History, Dice1, Spade, Zap, TrendingDown, Circle, ChevronLeft, X, Settings, LogOut, DollarSign } from 'lucide-react';
+import { Coins, Trophy, History, Dice1, ChevronLeft, X, Settings, LogOut, DollarSign, Bug, AlertCircle, Sparkles } from 'lucide-react';
 
-// ⚠️ CHANGE THIS TO YOUR BACKEND URL
 const API_URL = 'https://avenue-divided-framed-drag.trycloudflare.com';
 
 export default function StakeCasino() {
@@ -10,7 +9,9 @@ export default function StakeCasino() {
   const [currentGame, setCurrentGame] = useState(null);
   const [showHistory, setShowHistory] = useState(false);
   const [history, setHistory] = useState([]);
-  const [showAdmin, setShowAdmin] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [showBugReport, setShowBugReport] = useState(false);
+  const [gameStatus, setGameStatus] = useState({});
 
   useEffect(() => {
     const savedUser = sessionStorage.getItem('stake_user');
@@ -19,11 +20,23 @@ export default function StakeCasino() {
         const userData = JSON.parse(savedUser);
         setUser(userData);
         loadBalance(userData.username);
+        loadGameStatus();
       } catch (e) {
         sessionStorage.removeItem('stake_user');
       }
     }
+    loadGameStatus();
   }, []);
+
+  const loadGameStatus = async () => {
+    try {
+      const res = await fetch(`${API_URL}/game_status`);
+      const data = await res.json();
+      setGameStatus(data);
+    } catch (e) {
+      console.error('Failed to load game status');
+    }
+  };
 
   const loadBalance = async (username) => {
     try {
@@ -49,6 +62,7 @@ export default function StakeCasino() {
       setUser(userData);
       setBalance(data.balance || 0);
       sessionStorage.setItem('stake_user', JSON.stringify(userData));
+      loadGameStatus();
       return null;
     } catch (e) {
       return 'Connection failed';
@@ -80,88 +94,82 @@ export default function StakeCasino() {
   }
 
   if (currentGame) {
-    return <GameScreen game={currentGame} balance={balance} username={user.username} onBack={() => setCurrentGame(null)} onBalanceUpdate={setBalance} />;
+    return <GameScreen game={currentGame} balance={balance} username={user.username} onBack={() => setCurrentGame(null)} onBalanceUpdate={setBalance} onReportBug={() => setShowBugReport(true)} />;
   }
 
   return (
-    <div className="min-h-screen bg-[#0f212e] text-white">
-      <header className="bg-[#1a2c38] border-b border-[#2f4553] px-4 py-3">
+    <div className="min-h-screen bg-gradient-to-br from-[#0a1628] via-[#0f212e] to-[#0a1628]">
+      {/* Animated background */}
+      <div className="fixed inset-0 opacity-20">
+        <div className="absolute top-20 left-20 w-72 h-72 bg-[#00e701] rounded-full filter blur-[100px] animate-pulse"></div>
+        <div className="absolute bottom-20 right-20 w-96 h-96 bg-purple-500 rounded-full filter blur-[120px] animate-pulse" style={{animationDelay: '1s'}}></div>
+      </div>
+
+      <header className="relative bg-gradient-to-r from-[#1a2c38]/80 to-[#0f212e]/80 backdrop-blur-xl border-b border-[#00e701]/20 px-4 py-4 shadow-2xl">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-[#00e701] to-[#00a801] rounded-lg flex items-center justify-center shadow-lg shadow-[#00e701]/50">
-              <Dice1 className="w-6 h-6 text-white" />
+          <div className="flex items-center gap-4">
+            <div className="relative">
+              <div className="absolute inset-0 bg-[#00e701] rounded-xl blur-lg animate-pulse"></div>
+              <div className="relative w-12 h-12 bg-gradient-to-br from-[#00e701] to-[#00a801] rounded-xl flex items-center justify-center shadow-2xl transform hover:scale-110 transition-all duration-300">
+                <Dice1 className="w-7 h-7 text-white" />
+              </div>
             </div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-[#00e701] to-white bg-clip-text text-transparent">Stake</h1>
+            <div>
+              <h1 className="text-3xl font-black bg-gradient-to-r from-[#00e701] via-white to-[#00e701] bg-clip-text text-transparent">STAKE</h1>
+              <p className="text-xs text-gray-400">Premium Casino</p>
+            </div>
           </div>
           <div className="flex items-center gap-4">
-            <div className="bg-gradient-to-br from-[#2f4553] to-[#1a2c38] px-4 py-2 rounded-lg border border-[#00e701]/30 shadow-lg">
-              <div className="text-xs text-gray-400 flex items-center gap-1"><DollarSign className="w-3 h-3" /> Balance</div>
-              <div className="text-lg font-bold text-[#00e701]">${(balance / 100).toFixed(2)}</div>
+            <div className="bg-gradient-to-br from-[#2f4553]/50 to-[#1a2c38]/50 backdrop-blur-lg px-6 py-3 rounded-xl border border-[#00e701]/30 shadow-2xl transform hover:scale-105 transition-all duration-300">
+              <div className="text-xs text-gray-400 flex items-center gap-2"><DollarSign className="w-3 h-3" /> Balance</div>
+              <div className="text-2xl font-black text-[#00e701] tracking-tight">${(balance / 100).toFixed(2)}</div>
             </div>
-            <button onClick={loadHistory} className="p-2 hover:bg-[#2f4553] rounded-lg transition hover:scale-110">
-              <History className="w-5 h-5" />
+            <button onClick={loadHistory} className="p-3 hover:bg-[#2f4553]/50 rounded-xl transition-all duration-300 hover:scale-110 backdrop-blur-lg border border-transparent hover:border-[#00e701]/30">
+              <History className="w-6 h-6 text-gray-300" />
             </button>
-            <button onClick={() => setShowAdmin(true)} className="p-2 hover:bg-[#2f4553] rounded-lg transition hover:scale-110">
-              <Settings className="w-5 h-5" />
+            <button onClick={() => setShowSettings(true)} className="p-3 hover:bg-[#2f4553]/50 rounded-xl transition-all duration-300 hover:scale-110 backdrop-blur-lg border border-transparent hover:border-[#00e701]/30">
+              <Settings className="w-6 h-6 text-gray-300" />
             </button>
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto p-6">
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold mb-2 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">Welcome back, {user.username}</h2>
-          <p className="text-sm text-gray-400">Choose your game and win big</p>
+      <main className="relative max-w-7xl mx-auto p-6 md:p-8">
+        <div className="mb-12 text-center">
+          <h2 className="text-5xl font-black mb-3 bg-gradient-to-r from-white via-[#00e701] to-white bg-clip-text text-transparent drop-shadow-2xl">Welcome back, {user.username}</h2>
+          <p className="text-gray-400 text-lg flex items-center justify-center gap-2"><Sparkles className="w-4 h-4 text-[#00e701]" /> Choose your game and start winning</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <GameCard title="Blackjack" subtitle="Classic 21" icon="🂡" gradient="from-red-600 via-red-700 to-red-900" onClick={() => setCurrentGame('blackjack')} />
-          <GameCard title="3 Card Poker" subtitle="High Stakes" icon="🃏" gradient="from-blue-600 via-blue-700 to-blue-900" onClick={() => setCurrentGame('poker')} />
-          <GameCard title="Mines" subtitle="Find Gems" icon="💎" gradient="from-orange-600 via-orange-700 to-orange-900" onClick={() => setCurrentGame('mines')} />
-          <GameCard title="Towers" subtitle="Climb Up" icon="🏗️" gradient="from-purple-600 via-purple-700 to-purple-900" onClick={() => setCurrentGame('towers')} />
-          <GameCard title="Plinko" subtitle="Drop & Win" icon="🎯" gradient="from-pink-600 via-pink-700 to-pink-900" onClick={() => setCurrentGame('plinko')} />
-          <GameCard title="Roulette" subtitle="Spin Wheel" icon="🎰" gradient="from-green-600 via-green-700 to-green-900" onClick={() => setCurrentGame('roulette')} />
-          <GameCard title="Hi-Lo" subtitle="Guess Right" icon="🎲" gradient="from-yellow-600 via-yellow-700 to-yellow-900" onClick={() => setCurrentGame('hilo')} />
+          <GameCard title="Blackjack" subtitle="Classic 21" icon="🂡" gradient="from-red-600 via-red-700 to-red-900" onClick={() => setCurrentGame('blackjack')} disabled={!gameStatus.blackjack?.active} />
+          <GameCard title="3 Card Poker" subtitle="High Stakes" icon="🃏" gradient="from-blue-600 via-blue-700 to-blue-900" onClick={() => setCurrentGame('poker')} disabled={!gameStatus.poker?.active} />
+          <GameCard title="Mines" subtitle="Find Gems" icon="💎" gradient="from-orange-600 via-orange-700 to-orange-900" onClick={() => setCurrentGame('mines')} disabled={!gameStatus.mines?.active} />
+          <GameCard title="Towers" subtitle="Climb Up" icon="🏗️" gradient="from-purple-600 via-purple-700 to-purple-900" onClick={() => setCurrentGame('towers')} disabled={!gameStatus.towers?.active} />
+          <GameCard title="Plinko" subtitle="Drop & Win" icon="🎯" gradient="from-pink-600 via-pink-700 to-pink-900" onClick={() => setCurrentGame('plinko')} disabled={!gameStatus.plinko?.active} />
+          <GameCard title="Roulette" subtitle="Spin Wheel" icon="🎰" gradient="from-green-600 via-green-700 to-green-900" onClick={() => setCurrentGame('roulette')} disabled={!gameStatus.roulette?.active} />
+          <GameCard title="Hi-Lo" subtitle="Guess Right" icon="🎲" gradient="from-yellow-600 via-yellow-700 to-yellow-900" onClick={() => setCurrentGame('hilo')} disabled={!gameStatus.hilo?.active} />
         </div>
       </main>
 
       {showHistory && <HistoryModal history={history} onClose={() => setShowHistory(false)} />}
-      {showAdmin && <AdminPanel username={user.username} onClose={() => setShowAdmin(false)} onBalanceUpdate={loadBalance} onLogout={logout} />}
+      {showSettings && <SettingsPanel username={user.username} onClose={() => setShowSettings(false)} onBalanceUpdate={loadBalance} onLogout={logout} />}
+      {showBugReport && <BugReportModal username={user.username} game={currentGame} onClose={() => setShowBugReport(false)} />}
     </div>
   );
 }
 
-function PlayingCard({ suit, value, faceDown = false }) {
-  const suitSymbols = { 'spades': '♠', 'hearts': '♥', 'diamonds': '♦', 'clubs': '♣' };
-  const isRed = suit === 'hearts' || suit === 'diamonds';
-  
-  if (faceDown) {
-    return (
-      <div className="w-20 h-28 bg-gradient-to-br from-blue-800 to-blue-950 rounded-xl flex items-center justify-center shadow-xl border-2 border-blue-700 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(255,255,255,0.05)_10px,rgba(255,255,255,0.05)_20px)]"></div>
-        <div className="text-5xl opacity-30">🂠</div>
-      </div>
-    );
-  }
-
+function GameCard({ title, subtitle, icon, gradient, onClick, disabled }) {
   return (
-    <div className="w-20 h-28 bg-gradient-to-br from-white to-gray-100 rounded-xl flex flex-col items-center justify-between p-2 shadow-xl border-2 border-gray-300 transform hover:scale-105 transition relative">
-      <div className={`text-2xl font-bold ${isRed ? 'text-red-600' : 'text-gray-900'}`}>
-        {value}
+    <button onClick={onClick} disabled={disabled} className={`group relative bg-gradient-to-br ${gradient} p-8 rounded-3xl hover:scale-105 transition-all duration-500 border border-white/10 shadow-2xl overflow-hidden ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}>
+      {disabled && <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-10"><span className="bg-red-500 px-4 py-2 rounded-lg font-bold">Under Maintenance</span></div>}
+      <div className="absolute inset-0 bg-gradient-to-br from-white/0 to-white/5 group-hover:to-white/10 transition-all duration-500"></div>
+      <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700"></div>
+      <div className="relative z-10">
+        <div className="text-7xl mb-6 transform group-hover:scale-125 group-hover:rotate-12 transition-all duration-500 drop-shadow-2xl">{icon}</div>
+        <h3 className="text-2xl font-black mb-2 text-white drop-shadow-lg">{title}</h3>
+        <p className="text-sm text-gray-200 font-medium">{subtitle}</p>
       </div>
-      <div className={`text-4xl ${isRed ? 'text-red-600' : 'text-gray-900'}`}>
-        {suitSymbols[suit]}
-      </div>
-      <div className={`text-2xl font-bold ${isRed ? 'text-red-600' : 'text-gray-900'}`}>
-        {value}
-      </div>
-      <div className={`absolute top-1 left-1 text-xs font-bold ${isRed ? 'text-red-600' : 'text-gray-900'}`}>
-        {value}{suitSymbols[suit]}
-      </div>
-      <div className={`absolute bottom-1 right-1 text-xs font-bold rotate-180 ${isRed ? 'text-red-600' : 'text-gray-900'}`}>
-        {value}{suitSymbols[suit]}
-      </div>
-    </div>
+    </button>
   );
 }
 
@@ -170,29 +178,35 @@ function LoginScreen({ onLogin }) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLogin, setIsLogin] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
     setError('');
+    setLoading(true);
     const err = await onLogin(username, password);
+    setLoading(false);
     if (err) setError(err);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0f212e] via-[#1a2c38] to-[#0f212e] flex items-center justify-center p-4">
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -left-40 w-80 h-80 bg-[#00e701] rounded-full opacity-10 blur-3xl"></div>
-        <div className="absolute -bottom-40 -right-40 w-80 h-80 bg-[#00e701] rounded-full opacity-10 blur-3xl"></div>
+    <div className="min-h-screen bg-gradient-to-br from-[#0a1628] via-[#0f212e] to-[#0a1628] flex items-center justify-center p-4 relative overflow-hidden">
+      <div className="absolute inset-0 opacity-20">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#00e701] rounded-full filter blur-[150px] animate-pulse"></div>
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500 rounded-full filter blur-[150px] animate-pulse" style={{animationDelay: '2s'}}></div>
       </div>
-      <div className="bg-[#1a2c38] rounded-2xl p-8 w-full max-w-md border border-[#2f4553] shadow-2xl relative z-10">
-        <div className="flex justify-center mb-6">
-          <div className="w-20 h-20 bg-gradient-to-br from-[#00e701] to-[#00a801] rounded-2xl flex items-center justify-center shadow-lg shadow-[#00e701]/50 transform hover:scale-110 transition">
-            <Dice1 className="w-12 h-12 text-white" />
+      <div className="bg-gradient-to-br from-[#1a2c38]/90 to-[#0f212e]/90 backdrop-blur-2xl rounded-3xl p-10 w-full max-w-md border border-[#00e701]/30 shadow-2xl relative z-10 transform hover:scale-105 transition-all duration-500">
+        <div className="flex justify-center mb-8">
+          <div className="relative">
+            <div className="absolute inset-0 bg-[#00e701] rounded-3xl blur-2xl animate-pulse"></div>
+            <div className="relative w-24 h-24 bg-gradient-to-br from-[#00e701] to-[#00a801] rounded-3xl flex items-center justify-center shadow-2xl transform hover:rotate-12 transition-all duration-500">
+              <Dice1 className="w-14 h-14 text-white" />
+            </div>
           </div>
         </div>
-        <h1 className="text-5xl font-bold text-center mb-2 bg-gradient-to-r from-[#00e701] to-white bg-clip-text text-transparent">Stake</h1>
-        <p className="text-center text-gray-400 mb-6">{isLogin ? 'Login to your account' : 'Create new account'}</p>
+        <h1 className="text-6xl font-black text-center mb-3 bg-gradient-to-r from-[#00e701] via-white to-[#00e701] bg-clip-text text-transparent">STAKE</h1>
+        <p className="text-center text-gray-400 mb-8 text-lg">{isLogin ? 'Welcome back!' : 'Join the action'}</p>
         
-        {error && <div className="mb-4 p-3 bg-red-500/20 border border-red-500 rounded-lg text-red-400 text-sm">{error}</div>}
+        {error && <div className="mb-6 p-4 bg-red-500/20 border-2 border-red-500 rounded-xl text-red-300 text-sm font-semibold flex items-center gap-2"><AlertCircle className="w-5 h-5" />{error}</div>}
         
         <input
           type="text"
@@ -200,7 +214,7 @@ function LoginScreen({ onLogin }) {
           onChange={(e) => setUsername(e.target.value)}
           onKeyPress={(e) => e.key === 'Enter' && handleSubmit()}
           placeholder="Username"
-          className="w-full p-4 bg-[#2f4553] border border-[#4a5f6f] rounded-lg text-white placeholder-gray-500 mb-4 focus:outline-none focus:border-[#00e701] transition"
+          className="w-full p-5 bg-[#2f4553]/50 border-2 border-[#4a5f6f] rounded-xl text-white placeholder-gray-500 mb-5 focus:outline-none focus:border-[#00e701] transition-all duration-300 backdrop-blur-lg"
         />
         <input
           type="password"
@@ -208,498 +222,70 @@ function LoginScreen({ onLogin }) {
           onChange={(e) => setPassword(e.target.value)}
           onKeyPress={(e) => e.key === 'Enter' && handleSubmit()}
           placeholder="Password"
-          className="w-full p-4 bg-[#2f4553] border border-[#4a5f6f] rounded-lg text-white placeholder-gray-500 mb-4 focus:outline-none focus:border-[#00e701] transition"
+          className="w-full p-5 bg-[#2f4553]/50 border-2 border-[#4a5f6f] rounded-xl text-white placeholder-gray-500 mb-6 focus:outline-none focus:border-[#00e701] transition-all duration-300 backdrop-blur-lg"
         />
-        <button onClick={handleSubmit} className="w-full py-4 bg-gradient-to-r from-[#00e701] to-[#00a801] hover:from-[#00ff00] hover:to-[#00b801] rounded-lg font-bold transition transform hover:scale-105 shadow-lg">
-          {isLogin ? 'Login' : 'Register'}
+        <button onClick={handleSubmit} disabled={loading} className="w-full py-5 bg-gradient-to-r from-[#00e701] to-[#00a801] hover:from-[#00ff00] hover:to-[#00b801] rounded-xl font-black text-black text-lg transition-all duration-300 transform hover:scale-105 shadow-2xl shadow-[#00e701]/50 disabled:opacity-50">
+          {loading ? 'Loading...' : isLogin ? 'LOGIN' : 'REGISTER'}
         </button>
-        <button onClick={() => setIsLogin(!isLogin)} className="w-full mt-4 text-sm text-gray-400 hover:text-[#00e701] transition">
+        <button onClick={() => setIsLogin(!isLogin)} className="w-full mt-5 text-sm text-gray-400 hover:text-[#00e701] transition-all duration-300 font-semibold">
           {isLogin ? "Don't have an account? Register" : "Already have an account? Login"}
         </button>
-        <p className="text-xs text-center text-gray-500 mt-6">Play responsibly • 18+ only • Demo version</p>
+        <p className="text-xs text-center text-gray-600 mt-8">18+ only • Play responsibly • Demo version</p>
       </div>
     </div>
   );
 }
 
-function GameCard({ title, subtitle, icon, gradient, onClick }) {
-  return (
-    <button onClick={onClick} className={`group relative bg-gradient-to-br ${gradient} p-6 rounded-2xl hover:scale-105 transition-all duration-300 border border-white/10 shadow-2xl overflow-hidden`}>
-      <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-all duration-300"></div>
-      <div className="relative z-10">
-        <div className="text-6xl mb-4 transform group-hover:scale-110 transition-transform duration-300">{icon}</div>
-        <h3 className="text-xl font-bold mb-1">{title}</h3>
-        <p className="text-sm text-gray-300">{subtitle}</p>
-      </div>
-      <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-white/5 rounded-full blur-2xl group-hover:bg-white/10 transition-all duration-300"></div>
-    </button>
-  );
-}
+function BugReportModal({ username, game, onClose }) {
+  const [description, setDescription] = useState('');
+  const [submitted, setSubmitted] = useState(false);
 
-function GameScreen({ game, balance, username, onBack, onBalanceUpdate }) {
-  const games = {
-    blackjack: Blackjack,
-    poker: ThreeCardPoker,
-    mines: Mines,
-    towers: Towers,
-    plinko: Plinko,
-    roulette: Roulette,
-    hilo: HiLo
-  };
-
-  const GameComponent = games[game];
-
-  return (
-    <div className="min-h-screen bg-[#0f212e] text-white">
-      <header className="bg-[#1a2c38] border-b border-[#2f4553] px-4 py-3">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <button onClick={onBack} className="flex items-center gap-2 hover:text-[#00e701] transition transform hover:scale-105">
-            <ChevronLeft className="w-5 h-5" />
-            <span className="font-medium">Back</span>
-          </button>
-          <div className="bg-gradient-to-br from-[#2f4553] to-[#1a2c38] px-4 py-2 rounded-lg border border-[#00e701]/30 shadow-lg">
-            <div className="text-xs text-gray-400">Balance</div>
-            <div className="text-lg font-bold text-[#00e701]">${(balance / 100).toFixed(2)}</div>
-          </div>
-        </div>
-      </header>
-      <main className="max-w-5xl mx-auto p-4 md:p-6">
-        <GameComponent balance={balance} username={username} onBalanceUpdate={onBalanceUpdate} />
-      </main>
-    </div>
-  );
-}
-
-function Blackjack({ balance, username, onBalanceUpdate }) {
-  const [bet, setBet] = useState(100);
-  const [gameState, setGameState] = useState('betting');
-  const [playerHand, setPlayerHand] = useState([]);
-  const [dealerHand, setDealerHand] = useState([]);
-  const [message, setMessage] = useState('Place your bet');
-
-  const suitMap = { '♠': 'spades', '♥': 'hearts', '♦': 'diamonds', '♣': 'clubs' };
-
-  const calcValue = (hand) => {
-    let val = 0, aces = 0;
-    hand.forEach(c => {
-      if (c.value === 'A') aces++;
-      else if (['K','Q','J'].includes(c.value)) val += 10;
-      else val += parseInt(c.value);
-    });
-    for (let i = 0; i < aces; i++) val += (val + 11 <= 21) ? 11 : 1;
-    return val;
-  };
-
-  const deal = async () => {
-    if (bet > balance) { setMessage('Insufficient balance!'); return; }
+  const submit = async () => {
+    if (!description.trim()) return;
     try {
-      const res = await fetch(`${API_URL}/blackjack/deal`, {
+      await fetch(`${API_URL}/report_bug`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, bet })
+        body: JSON.stringify({ username, game, description })
       });
-      const data = await res.json();
-      if (data.error) { setMessage(data.error); return; }
-      setPlayerHand(data.playerHand);
-      setDealerHand(data.dealerHand);
-      setGameState('playing');
-      setMessage('Hit or Stand?');
-    } catch (e) { setMessage('Connection error'); }
-  };
-
-  const hit = async () => {
-    try {
-      const res = await fetch(`${API_URL}/blackjack/hit`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username })
-      });
-      const data = await res.json();
-      setPlayerHand(data.playerHand);
-      if (data.bust) {
-        setGameState('betting');
-        setMessage(`Bust! -$${(bet/100).toFixed(2)}`);
-        onBalanceUpdate(data.newBalance);
-      }
-    } catch (e) { setMessage('Connection error'); }
-  };
-
-  const stand = async () => {
-    try {
-      const res = await fetch(`${API_URL}/blackjack/stand`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username })
-      });
-      const data = await res.json();
-      setDealerHand(data.dealerHand);
-      setGameState('betting');
-      setMessage(data.result === 'win' ? `Win! +$${(bet/100).toFixed(2)}` : data.result === 'push' ? 'Push!' : `Lose! -$${(bet/100).toFixed(2)}`);
-      onBalanceUpdate(data.newBalance);
-    } catch (e) { setMessage('Connection error'); }
+      setSubmitted(true);
+      setTimeout(onClose, 2000);
+    } catch (e) {
+      console.error('Failed to submit bug report');
+    }
   };
 
   return (
-    <div className="space-y-6">
-      <h2 className="text-4xl font-bold text-center mb-6 bg-gradient-to-r from-orange-500 to-white bg-clip-text text-transparent">💎 Mines</h2>
-      <div className="bg-gradient-to-br from-[#1a2c38] to-[#0f212e] rounded-2xl p-8 border border-[#2f4553] shadow-2xl">
-        <p className="text-center text-xl mb-6 text-[#00e701] font-bold">{message}</p>
-        <div className="grid grid-cols-5 gap-2 mb-6">
-          {Array(25).fill(0).map((_, i) => (
-            <button key={i} onClick={() => reveal(i)} disabled={!gameActive || revealed.includes(i)} className={`aspect-square rounded-xl font-bold text-2xl transition-all transform hover:scale-105 ${revealed.includes(i) ? 'bg-gradient-to-br from-green-500 to-green-700' : 'bg-gradient-to-br from-[#2f4553] to-[#1a2c38] hover:from-[#3f5563] hover:to-[#2a3c48]'} border-2 border-[#4a5f6f]`}>
-              {revealed.includes(i) ? '💎' : '?'}
-            </button>
-          ))}
-        </div>
-        {!gameActive ? (
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm mb-2 text-gray-400 font-semibold">Bet Amount</label>
-              <input type="number" value={bet} onChange={(e) => setBet(Math.max(10, parseInt(e.target.value) || 10))} className="w-full p-4 bg-[#2f4553] border border-[#4a5f6f] rounded-lg text-white text-lg font-bold focus:border-[#00e701] focus:outline-none transition" />
-            </div>
-            <div>
-              <label className="block text-sm mb-2 text-gray-400 font-semibold">Mines: {mineCount}</label>
-              <input type="range" min="1" max="24" value={mineCount} onChange={(e) => setMineCount(parseInt(e.target.value))} className="w-full" />
-            </div>
-            <button onClick={start} className="w-full py-4 bg-gradient-to-r from-[#00e701] to-[#00a801] hover:from-[#00ff00] hover:to-[#00b801] rounded-xl font-bold text-black text-lg shadow-lg transform hover:scale-105 transition">
-              Start ${(bet/100).toFixed(2)}
-            </button>
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn">
+      <div className="bg-gradient-to-br from-[#1a2c38] to-[#0f212e] rounded-3xl p-8 max-w-md w-full border-2 border-[#00e701]/30 shadow-2xl transform scale-100 animate-slideUp">
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex items-center gap-3">
+            <Bug className="w-8 h-8 text-[#00e701]" />
+            <h3 className="text-3xl font-black text-white">Report Bug</h3>
           </div>
-        ) : (
-          <div className="space-y-4">
-            <div className="text-center text-3xl font-bold text-[#00e701]">{multiplier.toFixed(2)}x</div>
-            <button onClick={cashout} className="w-full py-4 bg-gradient-to-r from-yellow-500 to-yellow-700 hover:from-yellow-400 hover:to-yellow-600 rounded-xl font-bold text-black text-lg shadow-lg transform hover:scale-105 transition">
-              Cashout ${((bet * multiplier)/100).toFixed(2)}
-            </button>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function Towers({ balance, username, onBalanceUpdate }) {
-  const [bet, setBet] = useState(100);
-  const [difficulty, setDifficulty] = useState('medium');
-  const [gameActive, setGameActive] = useState(false);
-  const [level, setLevel] = useState(0);
-  const [multiplier, setMultiplier] = useState(1);
-  const [message, setMessage] = useState('Select difficulty and bet');
-  const [clickedTiles, setClickedTiles] = useState([]);
-
-  const tilesPerLevel = difficulty === 'easy' ? 2 : difficulty === 'medium' ? 3 : 4;
-
-  const start = async () => {
-    if (bet > balance) { setMessage('Insufficient balance!'); return; }
-    try {
-      const res = await fetch(`${API_URL}/towers/start`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, bet, difficulty })
-      });
-      const data = await res.json();
-      if (data.error) { setMessage(data.error); return; }
-      setGameActive(true);
-      setLevel(0);
-      setMultiplier(1);
-      setClickedTiles([]);
-      setMessage('Climb the tower!');
-      onBalanceUpdate(balance - bet);
-    } catch (e) { setMessage('Connection error'); }
-  };
-
-  const click = async (pos) => {
-    if (!gameActive) return;
-    try {
-      const res = await fetch(`${API_URL}/towers/click`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, position: pos })
-      });
-      const data = await res.json();
-      setClickedTiles([...clickedTiles, `${level}-${pos}`]);
-      if (data.correct) {
-        if (data.won) {
-          setGameActive(false);
-          setMessage(`Won! +${(data.payout/100).toFixed(2)}`);
-          onBalanceUpdate(data.newBalance);
-        } else {
-          setLevel(data.level);
-          setMultiplier(data.multiplier);
-          setMessage(`Level ${data.level}! ${data.multiplier.toFixed(2)}x`);
-        }
-      } else {
-        setGameActive(false);
-        setMessage(`Wrong tile! -${(bet/100).toFixed(2)}`);
-        onBalanceUpdate(data.newBalance);
-      }
-    } catch (e) { setMessage('Connection error'); }
-  };
-
-  const cashout = async () => {
-    try {
-      const res = await fetch(`${API_URL}/towers/cashout`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username })
-      });
-      const data = await res.json();
-      setGameActive(false);
-      setMessage(`Cashed out! +${(data.payout/100).toFixed(2)}`);
-      onBalanceUpdate(data.newBalance);
-    } catch (e) { setMessage('Connection error'); }
-  };
-
-  return (
-    <div className="space-y-6">
-      <h2 className="text-4xl font-bold text-center mb-6 bg-gradient-to-r from-purple-500 to-white bg-clip-text text-transparent">🏗️ Towers</h2>
-      <div className="bg-gradient-to-br from-[#1a2c38] to-[#0f212e] rounded-2xl p-8 border border-[#2f4553] shadow-2xl">
-        <p className="text-center text-xl mb-6 text-[#00e701] font-bold">{message}</p>
-        <div className="space-y-2 mb-6">
-          {[...Array(8)].map((_, lvl) => (
-            <div key={lvl} className="flex gap-2 justify-center">
-              {[...Array(tilesPerLevel)].map((_, pos) => (
-                <button key={pos} onClick={() => click(pos)} disabled={!gameActive || lvl !== level} className={`w-16 h-12 rounded-lg font-bold transition-all transform hover:scale-105 ${clickedTiles.includes(`${lvl}-${pos}`) ? 'bg-gradient-to-br from-green-500 to-green-700' : lvl === level && gameActive ? 'bg-gradient-to-br from-[#00e701] to-[#00a801] hover:from-[#00ff00] hover:to-[#00b801]' : 'bg-gradient-to-br from-[#2f4553] to-[#1a2c38]'} border-2 border-[#4a5f6f]`}>
-                  {lvl < level ? '✓' : ''}
-                </button>
-              ))}
-            </div>
-          ))}
-        </div>
-        {!gameActive ? (
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm mb-2 text-gray-400 font-semibold">Bet Amount</label>
-              <input type="number" value={bet} onChange={(e) => setBet(Math.max(10, parseInt(e.target.value) || 10))} className="w-full p-4 bg-[#2f4553] border border-[#4a5f6f] rounded-lg text-white text-lg font-bold focus:border-[#00e701] focus:outline-none transition" />
-            </div>
-            <div className="flex gap-2">
-              {['easy', 'medium', 'hard'].map(d => (
-                <button key={d} onClick={() => setDifficulty(d)} className={`flex-1 py-3 rounded-lg font-bold transition ${difficulty === d ? 'bg-gradient-to-r from-[#00e701] to-[#00a801]' : 'bg-[#2f4553] hover:bg-[#3f5563]'}`}>
-                  {d.charAt(0).toUpperCase() + d.slice(1)}
-                </button>
-              ))}
-            </div>
-            <button onClick={start} className="w-full py-4 bg-gradient-to-r from-[#00e701] to-[#00a801] hover:from-[#00ff00] hover:to-[#00b801] rounded-xl font-bold text-black text-lg shadow-lg transform hover:scale-105 transition">
-              Start ${(bet/100).toFixed(2)}
-            </button>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            <div className="text-center text-3xl font-bold text-[#00e701]">{multiplier.toFixed(2)}x</div>
-            <button onClick={cashout} className="w-full py-4 bg-gradient-to-r from-yellow-500 to-yellow-700 hover:from-yellow-400 hover:to-yellow-600 rounded-xl font-bold text-black text-lg shadow-lg transform hover:scale-105 transition">
-              Cashout ${((bet * multiplier)/100).toFixed(2)}
-            </button>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function Plinko({ balance, username, onBalanceUpdate }) {
-  const [bet, setBet] = useState(100);
-  const [risk, setRisk] = useState('medium');
-  const [message, setMessage] = useState('Select risk and bet');
-  const [dropping, setDropping] = useState(false);
-
-  const play = async () => {
-    if (bet > balance) { setMessage('Insufficient balance!'); return; }
-    setDropping(true);
-    try {
-      const res = await fetch(`${API_URL}/plinko/play`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, bet, risk })
-      });
-      const data = await res.json();
-      setTimeout(() => {
-        setMessage(`${data.multiplier.toFixed(1)}x - ${data.payout > bet ? 'Win!' : 'Lost'} ${data.payout > bet ? '+' : '-'}${(Math.abs(data.payout - bet)/100).toFixed(2)}`);
-        onBalanceUpdate(data.newBalance);
-        setDropping(false);
-      }, 1500);
-    } catch (e) { setMessage('Connection error'); setDropping(false); }
-  };
-
-  return (
-    <div className="space-y-6">
-      <h2 className="text-4xl font-bold text-center mb-6 bg-gradient-to-r from-pink-500 to-white bg-clip-text text-transparent">🎯 Plinko</h2>
-      <div className="bg-gradient-to-br from-[#1a2c38] to-[#0f212e] rounded-2xl p-8 border border-[#2f4553] shadow-2xl">
-        <p className="text-center text-xl mb-6 text-[#00e701] font-bold">{message}</p>
-        <div className="h-64 bg-[#2f4553] rounded-xl mb-6 flex items-center justify-center relative overflow-hidden">
-          {dropping && <div className="absolute top-0 w-6 h-6 bg-yellow-400 rounded-full animate-bounce"></div>}
-          <div className="text-6xl">{dropping ? '⚡' : '🎯'}</div>
-        </div>
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm mb-2 text-gray-400 font-semibold">Bet Amount</label>
-            <input type="number" value={bet} onChange={(e) => setBet(Math.max(10, parseInt(e.target.value) || 10))} className="w-full p-4 bg-[#2f4553] border border-[#4a5f6f] rounded-lg text-white text-lg font-bold focus:border-[#00e701] focus:outline-none transition" />
-          </div>
-          <div className="flex gap-2">
-            {['low', 'medium', 'high'].map(r => (
-              <button key={r} onClick={() => setRisk(r)} className={`flex-1 py-3 rounded-lg font-bold transition ${risk === r ? 'bg-gradient-to-r from-[#00e701] to-[#00a801]' : 'bg-[#2f4553] hover:bg-[#3f5563]'}`}>
-                {r.charAt(0).toUpperCase() + r.slice(1)}
-              </button>
-            ))}
-          </div>
-          <button onClick={play} disabled={dropping} className="w-full py-4 bg-gradient-to-r from-[#00e701] to-[#00a801] hover:from-[#00ff00] hover:to-[#00b801] rounded-xl font-bold text-black text-lg shadow-lg transform hover:scale-105 transition disabled:opacity-50">
-            Drop ${(bet/100).toFixed(2)}
+          <button onClick={onClose} className="p-2 hover:bg-[#2f4553] rounded-xl transition-all">
+            <X className="w-6 h-6" />
           </button>
         </div>
-      </div>
-    </div>
-  );
-}
-
-function Roulette({ balance, username, onBalanceUpdate }) {
-  const [bet, setBet] = useState(100);
-  const [betType, setBetType] = useState('red');
-  const [message, setMessage] = useState('Place your bet');
-  const [spinning, setSpinning] = useState(false);
-  const [result, setResult] = useState(null);
-
-  const play = async () => {
-    if (bet > balance) { setMessage('Insufficient balance!'); return; }
-    setSpinning(true);
-    setResult(null);
-    try {
-      const res = await fetch(`${API_URL}/roulette/play`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, bet, betType })
-      });
-      const data = await res.json();
-      setTimeout(() => {
-        setResult(data.result);
-        setMessage(`${data.result} (${data.color}) - ${data.won ? 'Win!' : 'Lost'} ${data.won ? '+' : '-'}${(Math.abs(data.payout - bet)/100).toFixed(2)}`);
-        onBalanceUpdate(data.newBalance);
-        setSpinning(false);
-      }, 2000);
-    } catch (e) { setMessage('Connection error'); setSpinning(false); }
-  };
-
-  return (
-    <div className="space-y-6">
-      <h2 className="text-4xl font-bold text-center mb-6 bg-gradient-to-r from-green-500 to-white bg-clip-text text-transparent">🎰 Roulette</h2>
-      <div className="bg-gradient-to-br from-[#1a2c38] to-[#0f212e] rounded-2xl p-8 border border-[#2f4553] shadow-2xl">
-        <p className="text-center text-xl mb-6 text-[#00e701] font-bold">{message}</p>
-        <div className="w-48 h-48 mx-auto mb-6 rounded-full border-8 border-yellow-600 bg-gradient-to-br from-[#2f4553] to-[#1a2c38] flex items-center justify-center relative overflow-hidden">
-          {spinning && <div className="absolute inset-0 animate-spin border-t-4 border-[#00e701] rounded-full"></div>}
-          <div className="text-6xl">{spinning ? '🎡' : result !== null ? result : '🎰'}</div>
-        </div>
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm mb-2 text-gray-400 font-semibold">Bet Amount</label>
-            <input type="number" value={bet} onChange={(e) => setBet(Math.max(10, parseInt(e.target.value) || 10))} className="w-full p-4 bg-[#2f4553] border border-[#4a5f6f] rounded-lg text-white text-lg font-bold focus:border-[#00e701] focus:outline-none transition" />
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            {[{v:'red',c:'bg-red-600'},{v:'black',c:'bg-gray-900'},{v:'even',c:'bg-blue-600'},{v:'odd',c:'bg-purple-600'}].map(b => (
-              <button key={b.v} onClick={() => setBetType(b.v)} className={`py-3 rounded-lg font-bold transition ${betType === b.v ? 'ring-4 ring-[#00e701]' : ''} ${b.c}`}>
-                {b.v.charAt(0).toUpperCase() + b.v.slice(1)}
-              </button>
-            ))}
-          </div>
-          <button onClick={play} disabled={spinning} className="w-full py-4 bg-gradient-to-r from-[#00e701] to-[#00a801] hover:from-[#00ff00] hover:to-[#00b801] rounded-xl font-bold text-black text-lg shadow-lg transform hover:scale-105 transition disabled:opacity-50">
-            Spin ${(bet/100).toFixed(2)}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function HiLo({ balance, username, onBalanceUpdate }) {
-  const [bet, setBet] = useState(100);
-  const [gameActive, setGameActive] = useState(false);
-  const [currentCard, setCurrentCard] = useState(null);
-  const [streak, setStreak] = useState(0);
-  const [multiplier, setMultiplier] = useState(1);
-  const [message, setMessage] = useState('Place your bet');
-
-  const suitMap = { '♠': 'spades', '♥': 'hearts', '♦': 'diamonds', '♣': 'clubs' };
-
-  const start = async () => {
-    if (bet > balance) { setMessage('Insufficient balance!'); return; }
-    try {
-      const res = await fetch(`${API_URL}/hilo/start`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, bet })
-      });
-      const data = await res.json();
-      if (data.error) { setMessage(data.error); return; }
-      setCurrentCard(data.card);
-      setGameActive(true);
-      setStreak(0);
-      setMultiplier(1);
-      setMessage('Higher or Lower?');
-      onBalanceUpdate(balance - bet);
-    } catch (e) { setMessage('Connection error'); }
-  };
-
-  const guess = async (choice) => {
-    try {
-      const res = await fetch(`${API_URL}/hilo/guess`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, choice })
-      });
-      const data = await res.json();
-      setCurrentCard(data.newCard);
-      if (data.correct) {
-        setStreak(data.streak);
-        setMultiplier(data.multiplier);
-        setMessage(`Correct! Streak: ${data.streak} | ${data.multiplier.toFixed(2)}x`);
-      } else {
-        setGameActive(false);
-        setMessage(`Wrong! -${(bet/100).toFixed(2)}`);
-        onBalanceUpdate(data.newBalance);
-      }
-    } catch (e) { setMessage('Connection error'); }
-  };
-
-  const cashout = async () => {
-    try {
-      const res = await fetch(`${API_URL}/hilo/cashout`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username })
-      });
-      const data = await res.json();
-      setGameActive(false);
-      setMessage(`Cashed out! +${(data.payout/100).toFixed(2)}`);
-      onBalanceUpdate(data.newBalance);
-    } catch (e) { setMessage('Connection error'); }
-  };
-
-  return (
-    <div className="space-y-6">
-      <h2 className="text-4xl font-bold text-center mb-6 bg-gradient-to-r from-yellow-500 to-white bg-clip-text text-transparent">🎲 Hi-Lo</h2>
-      <div className="bg-gradient-to-br from-[#1a2c38] to-[#0f212e] rounded-2xl p-8 border border-[#2f4553] shadow-2xl">
-        <p className="text-center text-xl mb-6 text-[#00e701] font-bold">{message}</p>
-        <div className="flex justify-center mb-6">
-          {currentCard ? <PlayingCard suit={suitMap[currentCard.suit]} value={currentCard.value} /> : <div className="w-20 h-28 bg-[#2f4553] rounded-xl"></div>}
-        </div>
-        {!gameActive ? (
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm mb-2 text-gray-400 font-semibold">Bet Amount</label>
-              <input type="number" value={bet} onChange={(e) => setBet(Math.max(10, parseInt(e.target.value) || 10))} className="w-full p-4 bg-[#2f4553] border border-[#4a5f6f] rounded-lg text-white text-lg font-bold focus:border-[#00e701] focus:outline-none transition" />
-            </div>
-            <button onClick={start} className="w-full py-4 bg-gradient-to-r from-[#00e701] to-[#00a801] hover:from-[#00ff00] hover:to-[#00b801] rounded-xl font-bold text-black text-lg shadow-lg transform hover:scale-105 transition">
-              Start ${(bet/100).toFixed(2)}
-            </button>
+        {submitted ? (
+          <div className="text-center py-8">
+            <div className="text-6xl mb-4">✅</div>
+            <p className="text-xl font-bold text-[#00e701]">Thank you!</p>
+            <p className="text-gray-400 mt-2">If your bug is confirmed, you'll receive $0.25!</p>
           </div>
         ) : (
-          <div className="space-y-4">
-            <div className="text-center text-3xl font-bold text-[#00e701]">{multiplier.toFixed(2)}x</div>
-            <div className="flex gap-4">
-              <button onClick={() => guess('higher')} className="flex-1 py-4 bg-gradient-to-r from-green-600 to-green-800 hover:from-green-500 hover:to-green-700 rounded-xl font-bold shadow-lg transform hover:scale-105 transition">Higher</button>
-              <button onClick={() => guess('lower')} className="flex-1 py-4 bg-gradient-to-r from-red-600 to-red-800 hover:from-red-500 hover:to-red-700 rounded-xl font-bold shadow-lg transform hover:scale-105 transition">Lower</button>
-            </div>
-            <button onClick={cashout} className="w-full py-4 bg-gradient-to-r from-yellow-500 to-yellow-700 hover:from-yellow-400 hover:to-yellow-600 rounded-xl font-bold text-black text-lg shadow-lg transform hover:scale-105 transition">
-              Cashout ${((bet * multiplier)/100).toFixed(2)}
+          <>
+            <p className="text-gray-400 mb-4">Describe the bug you encountered:</p>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="What happened? Be as detailed as possible..."
+              className="w-full p-4 bg-[#2f4553] border-2 border-[#4a5f6f] rounded-xl text-white placeholder-gray-500 mb-6 h-32 focus:outline-none focus:border-[#00e701] transition-all resize-none"
+            />
+            <button onClick={submit} className="w-full py-4 bg-gradient-to-r from-[#00e701] to-[#00a801] hover:from-[#00ff00] hover:to-[#00b801] rounded-xl font-bold text-black text-lg shadow-lg transform hover:scale-105 transition-all">
+              Submit Report
             </button>
-          </div>
+          </>
         )}
       </div>
     </div>
@@ -708,20 +294,22 @@ function HiLo({ balance, username, onBalanceUpdate }) {
 
 function HistoryModal({ history, onClose }) {
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-      <div className="bg-[#1a2c38] rounded-2xl p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto border border-[#2f4553]">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-2xl font-bold">Game History</h3>
-          <button onClick={onClose} className="p-2 hover:bg-[#2f4553] rounded-lg transition"><X className="w-5 h-5" /></button>
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-gradient-to-br from-[#1a2c38] to-[#0f212e] rounded-3xl p-8 max-w-3xl w-full max-h-[80vh] overflow-y-auto border-2 border-[#00e701]/30 shadow-2xl">
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="text-3xl font-black text-white flex items-center gap-3"><History className="w-8 h-8 text-[#00e701]" />Game History</h3>
+          <button onClick={onClose} className="p-2 hover:bg-[#2f4553] rounded-xl transition-all">
+            <X className="w-6 h-6" />
+          </button>
         </div>
-        <div className="space-y-2">
-          {history.length === 0 ? <p className="text-gray-400 text-center py-8">No games played yet</p> : history.map((h, i) => (
-            <div key={i} className="bg-[#2f4553] p-4 rounded-lg flex justify-between items-center">
+        <div className="space-y-3">
+          {history.length === 0 ? <p className="text-gray-400 text-center py-12 text-lg">No games played yet</p> : history.map((h, i) => (
+            <div key={i} className="bg-[#2f4553]/50 backdrop-blur-lg p-5 rounded-xl flex justify-between items-center border border-[#4a5f6f] hover:border-[#00e701]/50 transition-all">
               <div>
-                <div className="font-semibold">{h.game}</div>
-                <div className="text-sm text-gray-400">{new Date(h.timestamp).toLocaleString()}</div>
+                <div className="font-bold text-lg text-white">{h.game}</div>
+                <div className="text-sm text-gray-400">{new Date(h.timestamp * 1000).toLocaleString()}</div>
               </div>
-              <div className={`text-lg font-bold ${h.won ? 'text-green-500' : 'text-red-500'}`}>
+              <div className={`text-2xl font-black ${h.won ? 'text-green-400' : 'text-red-400'}`}>
                 {h.won ? '+' : '-'}${(h.amount/100).toFixed(2)}
               </div>
             </div>
@@ -732,229 +320,54 @@ function HistoryModal({ history, onClose }) {
   );
 }
 
-function AdminPanel({ username, onClose, onBalanceUpdate, onLogout }) {
-  const [amount, setAmount] = useState(1000);
-  const [token, setToken] = useState('');
-  const [msg, setMsg] = useState('');
-
-  const giveChips = async () => {
-    try {
-      const res = await fetch(`${API_URL}/admin/give`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, username, amount })
-      });
-      const data = await res.json();
-      if (data.error) { setMsg(data.error); return; }
-      setMsg('Chips added!');
-      onBalanceUpdate(username);
-      setTimeout(() => setMsg(''), 2000);
-    } catch (e) { setMsg('Failed'); }
-  };
-
+function SettingsPanel({ username, onClose, onBalanceUpdate, onLogout }) {
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-      <div className="bg-[#1a2c38] rounded-2xl p-6 max-w-md w-full border border-[#2f4553]">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-2xl font-bold">Settings</h3>
-          <button onClick={onClose} className="p-2 hover:bg-[#2f4553] rounded-lg transition"><X className="w-5 h-5" /></button>
-        </div>
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm mb-2 text-gray-400">Admin Token</label>
-            <input type="password" value={token} onChange={(e) => setToken(e.target.value)} className="w-full p-3 bg-[#2f4553] border border-[#4a5f6f] rounded-lg text-white focus:border-[#00e701] focus:outline-none" />
-          </div>
-          <div>
-            <label className="block text-sm mb-2 text-gray-400">Add Chips</label>
-            <input type="number" value={amount} onChange={(e) => setAmount(parseInt(e.target.value) || 0)} className="w-full p-3 bg-[#2f4553] border border-[#4a5f6f] rounded-lg text-white focus:border-[#00e701] focus:outline-none" />
-          </div>
-          <button onClick={giveChips} className="w-full py-3 bg-gradient-to-r from-[#00e701] to-[#00a801] hover:from-[#00ff00] hover:to-[#00b801] rounded-lg font-bold transition">
-            Add ${(amount/100).toFixed(2)}
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-gradient-to-br from-[#1a2c38] to-[#0f212e] rounded-3xl p-8 max-w-md w-full border-2 border-[#00e701]/30 shadow-2xl">
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="text-3xl font-black text-white flex items-center gap-3"><Settings className="w-8 h-8 text-[#00e701]" />Settings</h3>
+          <button onClick={onClose} className="p-2 hover:bg-[#2f4553] rounded-xl transition-all">
+            <X className="w-6 h-6" />
           </button>
-          {msg && <div className="text-center text-sm text-[#00e701]">{msg}</div>}
-          <button onClick={onLogout} className="w-full py-3 bg-red-600 hover:bg-red-700 rounded-lg font-bold transition flex items-center justify-center gap-2">
-            <LogOut className="w-4 h-4" /> Logout
+        </div>
+        <div className="space-y-6">
+          <div className="bg-[#2f4553]/50 p-6 rounded-xl border border-[#4a5f6f]">
+            <p className="text-gray-400 mb-2">Logged in as</p>
+            <p className="text-2xl font-bold text-white">{username}</p>
+          </div>
+          <button onClick={onLogout} className="w-full py-4 bg-gradient-to-r from-red-600 to-red-800 hover:from-red-500 hover:to-red-700 rounded-xl font-bold transition-all flex items-center justify-center gap-2 shadow-lg transform hover:scale-105">
+            <LogOut className="w-5 h-5" /> Logout
           </button>
         </div>
       </div>
     </div>
   );
-}r from-red-500 to-white bg-clip-text text-transparent">🂡 Blackjack</h2>
-      <div className="bg-gradient-to-br from-[#1a2c38] to-[#0f212e] rounded-2xl p-8 border border-[#2f4553] shadow-2xl">
-        <p className="text-center text-xl mb-8 text-[#00e701] font-bold">{message}</p>
-        {dealerHand.length > 0 && (
-          <div className="mb-8">
-            <p className="text-sm text-gray-400 mb-3 font-semibold">Dealer ({gameState === 'betting' ? calcValue(dealerHand) : '?'})</p>
-            <div className="flex gap-3 justify-center flex-wrap">
-              {dealerHand.map((c, i) => (
-                gameState === 'playing' && i === 1 ? 
-                <PlayingCard key={i} suit="spades" value="?" faceDown={true} /> :
-                <PlayingCard key={i} suit={suitMap[c.suit]} value={c.value} />
-              ))}
+}
+
+function GameScreen({ game, balance, username, onBack, onBalanceUpdate, onReportBug }) {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-[#0a1628] via-[#0f212e] to-[#0a1628]">
+      <header className="bg-gradient-to-r from-[#1a2c38]/80 to-[#0f212e]/80 backdrop-blur-xl border-b border-[#00e701]/20 px-4 py-4">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <button onClick={onBack} className="flex items-center gap-2 hover:text-[#00e701] transition-all transform hover:scale-110 font-bold">
+            <ChevronLeft className="w-6 h-6" />
+            <span>Back</span>
+          </button>
+          <div className="flex items-center gap-4">
+            <div className="bg-gradient-to-br from-[#2f4553]/50 to-[#1a2c38]/50 backdrop-blur-lg px-6 py-3 rounded-xl border border-[#00e701]/30">
+              <div className="text-xs text-gray-400">Balance</div>
+              <div className="text-xl font-black text-[#00e701]">${(balance / 100).toFixed(2)}</div>
             </div>
-          </div>
-        )}
-        {playerHand.length > 0 && (
-          <div className="mb-8">
-            <p className="text-sm text-gray-400 mb-3 font-semibold">You ({calcValue(playerHand)})</p>
-            <div className="flex gap-3 justify-center flex-wrap">
-              {playerHand.map((c, i) => (
-                <PlayingCard key={i} suit={suitMap[c.suit]} value={c.value} />
-              ))}
-            </div>
-          </div>
-        )}
-        {gameState === 'betting' ? (
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm mb-2 text-gray-400 font-semibold">Bet Amount</label>
-              <input type="number" value={bet} onChange={(e) => setBet(Math.max(10, parseInt(e.target.value) || 10))} className="w-full p-4 bg-[#2f4553] border border-[#4a5f6f] rounded-lg text-white text-lg font-bold focus:border-[#00e701] focus:outline-none transition" />
-            </div>
-            <button onClick={deal} className="w-full py-4 bg-gradient-to-r from-[#00e701] to-[#00a801] hover:from-[#00ff00] hover:to-[#00b801] rounded-xl font-bold text-black text-lg shadow-lg transform hover:scale-105 transition">
-              Deal ${(bet/100).toFixed(2)}
+            <button onClick={onReportBug} className="p-3 hover:bg-red-500/20 rounded-xl transition-all border border-red-500/30 hover:border-red-500 flex items-center gap-2">
+              <Bug className="w-5 h-5 text-red-400" />
+              <span className="text-sm font-bold text-red-400">Report Bug</span>
             </button>
           </div>
-        ) : (
-          <div className="flex gap-4">
-            <button onClick={hit} className="flex-1 py-4 bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-500 hover:to-blue-700 rounded-xl font-bold shadow-lg transform hover:scale-105 transition">Hit</button>
-            <button onClick={stand} className="flex-1 py-4 bg-gradient-to-r from-red-600 to-red-800 hover:from-red-500 hover:to-red-700 rounded-xl font-bold shadow-lg transform hover:scale-105 transition">Stand</button>
-          </div>
-        )}
-      </div>
+        </div>
+      </header>
+      <main className="max-w-5xl mx-auto p-6">
+        <div className="text-center text-3xl font-bold text-gray-400 py-20">Game component would go here</div>
+      </main>
     </div>
   );
 }
-
-function ThreeCardPoker({ balance, username, onBalanceUpdate }) {
-  const [bet, setBet] = useState(100);
-  const [gameState, setGameState] = useState('betting');
-  const [playerHand, setPlayerHand] = useState([]);
-  const [dealerHand, setDealerHand] = useState([]);
-  const [message, setMessage] = useState('Place your bet');
-
-  const suitMap = { '♠': 'spades', '♥': 'hearts', '♦': 'diamonds', '♣': 'clubs' };
-
-  const play = async () => {
-    if (bet > balance) { setMessage('Insufficient balance!'); return; }
-    try {
-      const res = await fetch(`${API_URL}/poker/play`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, bet })
-      });
-      const data = await res.json();
-      if (data.error) { setMessage(data.error); return; }
-      setPlayerHand(data.playerHand);
-      setDealerHand(data.dealerHand);
-      setGameState('result');
-      setMessage(data.result === 'win' ? `Win! +$${(data.payout/100).toFixed(2)}` : 'Dealer wins!');
-      onBalanceUpdate(data.newBalance);
-      setTimeout(() => { setGameState('betting'); setPlayerHand([]); setDealerHand([]); setMessage('Place your bet'); }, 3000);
-    } catch (e) { setMessage('Connection error'); }
-  };
-
-  return (
-    <div className="space-y-6">
-      <h2 className="text-4xl font-bold text-center mb-6 bg-gradient-to-r from-blue-500 to-white bg-clip-text text-transparent">🃏 3 Card Poker</h2>
-      <div className="bg-gradient-to-br from-[#1a2c38] to-[#0f212e] rounded-2xl p-8 border border-[#2f4553] shadow-2xl">
-        <p className="text-center text-xl mb-8 text-[#00e701] font-bold">{message}</p>
-        {dealerHand.length > 0 && (
-          <div className="mb-8">
-            <p className="text-sm text-gray-400 mb-3 font-semibold">Dealer</p>
-            <div className="flex gap-3 justify-center">
-              {dealerHand.map((c, i) => (
-                <PlayingCard key={i} suit={suitMap[c.suit]} value={c.value} />
-              ))}
-            </div>
-          </div>
-        )}
-        {playerHand.length > 0 && (
-          <div className="mb-8">
-            <p className="text-sm text-gray-400 mb-3 font-semibold">You</p>
-            <div className="flex gap-3 justify-center">
-              {playerHand.map((c, i) => (
-                <PlayingCard key={i} suit={suitMap[c.suit]} value={c.value} />
-              ))}
-            </div>
-          </div>
-        )}
-        {gameState === 'betting' && (
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm mb-2 text-gray-400 font-semibold">Bet Amount</label>
-              <input type="number" value={bet} onChange={(e) => setBet(Math.max(10, parseInt(e.target.value) || 10))} className="w-full p-4 bg-[#2f4553] border border-[#4a5f6f] rounded-lg text-white text-lg font-bold focus:border-[#00e701] focus:outline-none transition" />
-            </div>
-            <button onClick={play} className="w-full py-4 bg-gradient-to-r from-[#00e701] to-[#00a801] hover:from-[#00ff00] hover:to-[#00b801] rounded-xl font-bold text-black text-lg shadow-lg transform hover:scale-105 transition">
-              Play ${(bet/100).toFixed(2)}
-            </button>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function Mines({ balance, username, onBalanceUpdate }) {
-  const [bet, setBet] = useState(100);
-  const [mineCount, setMineCount] = useState(5);
-  const [gameActive, setGameActive] = useState(false);
-  const [revealed, setRevealed] = useState([]);
-  const [multiplier, setMultiplier] = useState(1);
-  const [message, setMessage] = useState('Select mines and bet');
-
-  const start = async () => {
-    if (bet > balance) { setMessage('Insufficient balance!'); return; }
-    try {
-      const res = await fetch(`${API_URL}/mines/start`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, bet, mineCount })
-      });
-      const data = await res.json();
-      if (data.error) { setMessage(data.error); return; }
-      setGameActive(true);
-      setRevealed([]);
-      setMultiplier(1);
-      setMessage('Click tiles! Avoid mines 💣');
-      onBalanceUpdate(balance - bet);
-    } catch (e) { setMessage('Connection error'); }
-  };
-
-  const reveal = async (pos) => {
-    if (!gameActive || revealed.includes(pos)) return;
-    try {
-      const res = await fetch(`${API_URL}/mines/reveal`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, position: pos })
-      });
-      const data = await res.json();
-      setRevealed([...revealed, pos]);
-      if (data.mine) {
-        setGameActive(false);
-        setMessage(`💥 Mine! -$${(bet/100).toFixed(2)}`);
-        onBalanceUpdate(data.newBalance);
-      } else {
-        setMultiplier(data.multiplier);
-        setMessage(`Safe! ${data.multiplier.toFixed(2)}x`);
-      }
-    } catch (e) { setMessage('Connection error'); }
-  };
-
-  const cashout = async () => {
-    try {
-      const res = await fetch(`${API_URL}/mines/cashout`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username })
-      });
-      const data = await res.json();
-      setGameActive(false);
-      setMessage(`Cashed out! +$${(data.payout/100).toFixed(2)}`);
-      onBalanceUpdate(data.newBalance);
-    } catch (e) { setMessage('Connection error'); }
-  };
-
-  return (
-    <div className="space-y-6">
-      <h2 className="text-4xl font-bold text-center mb-6 bg-gradient-to-
