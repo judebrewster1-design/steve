@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -14,6 +15,7 @@
                 extend: {
                     animation: {
                         'float': 'float 6s ease-in-out infinite',
+                        'spin-slow': 'spin 3s linear infinite',
                     }
                 }
             }
@@ -47,6 +49,7 @@
         margin: 0;
         overflow-x: hidden;
       }
+      
       .glass-panel {
         background: rgba(255, 255, 255, 0.03);
         backdrop-filter: blur(16px);
@@ -54,11 +57,13 @@
         border: 1px solid rgba(255, 255, 255, 0.05);
         box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
       }
+
       @keyframes float {
         0% { transform: translateY(0px); }
         50% { transform: translateY(-10px); }
         100% { transform: translateY(0px); }
       }
+
       /* Custom Scrollbar */
       ::-webkit-scrollbar {
         width: 8px;
@@ -70,9 +75,52 @@
         background: #1e3a5f; 
         border-radius: 4px;
       }
-      /* 3D Flip Utility */
+
+      /* 3D Utility Classes */
       .perspective-1000 {
         perspective: 1000px;
+      }
+      .transform-style-3d {
+        transform-style: preserve-3d;
+      }
+      .backface-hidden {
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
+      }
+      
+      /* Animation Utilities */
+      .animate-in {
+        animation-duration: 0.5s;
+        animation-fill-mode: both;
+      }
+      .fade-in {
+        animation-name: fadeIn;
+      }
+      .zoom-in {
+        animation-name: zoomIn;
+      }
+      .slide-in-from-bottom-2 {
+        animation-name: slideInBottom;
+      }
+      .slide-in-from-right {
+        animation-name: slideInRight;
+      }
+
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      @keyframes zoomIn {
+        from { opacity: 0; transform: scale(0.95); }
+        to { opacity: 1; transform: scale(1); }
+      }
+      @keyframes slideInBottom {
+        from { transform: translateY(10px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+      }
+      @keyframes slideInRight {
+        from { transform: translateX(20px); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
       }
     </style>
 </head>
@@ -89,10 +137,10 @@
         } from 'lucide-react';
 
         // ==========================================
-        // 1. CONSTANTS & UTILS
+        // 1. CONFIGURATION & TYPES
         // ==========================================
         
-        const BACKEND_URL = "http://localhost:5000";
+        const BACKEND_URL = "http://localhost:5000"; // Replace with your backend URL if deployed
         
         const GameType = {
             BLACKJACK: 'blackjack',
@@ -159,6 +207,7 @@
 
         const api = {
             login: async (username, password) => {
+                // Try Local Mock first if backend isn't configured/available
                 if (!isBackendConfigured()) {
                     await new Promise(r => setTimeout(r, 600));
                     return mockLogin(username);
@@ -343,7 +392,7 @@ ${log.amountWon !== undefined ? `💵 Payout: $${log.amountWon}` : ''}
         };
 
         // ==========================================
-        // 4. GAMES (FULL LOGIC)
+        // 4. GAME COMPONENT LOGIC
         // ==========================================
 
         const Blackjack = ({ user, onUpdateBalance, isDemo }) => {
@@ -375,9 +424,7 @@ ${log.amountWon !== undefined ? `💵 Payout: $${log.amountWon}` : ''}
                 setGameState('playing');
                 setMessage('');
                 const pScore = calculateScore(pHand);
-                
                 api.sendGameLog({ username: user.username, game: 'Blackjack', bet: bet, action: 'DEAL', details: `Player: ${pScore}` });
-
                 if (pScore === 21) endGame(pHand, dHand, 'blackjack');
             };
 
@@ -387,9 +434,7 @@ ${log.amountWon !== undefined ? `💵 Payout: $${log.amountWon}` : ''}
                 setPlayerHand(newHand);
                 setDeck(deck.slice(1));
                 const newScore = calculateScore(newHand);
-                
                 api.sendGameLog({ username: user.username, game: 'Blackjack', bet: bet, action: 'HIT', details: `Drew: ${newCard.value} (${newScore})` });
-
                 if (newScore > 21) {
                     setGameState('ended');
                     setMessage('BUST! You Lose.');
@@ -423,7 +468,6 @@ ${log.amountWon !== undefined ? `💵 Payout: $${log.amountWon}` : ''}
                 const dScore = calculateScore(dHand);
                 let winAmount = 0;
                 let msg = '';
-
                 if (reason === 'blackjack') {
                     if (dScore === 21) { winAmount = bet; msg = 'Push! Both Blackjack.'; }
                     else { winAmount = bet * 2.5; msg = 'BLACKJACK! You Win!'; }
@@ -438,10 +482,8 @@ ${log.amountWon !== undefined ? `💵 Payout: $${log.amountWon}` : ''}
                 } else {
                     msg = 'Dealer Wins.';
                 }
-
                 setMessage(msg);
                 if (winAmount > 0) onUpdateBalance(winAmount);
-                
                 api.sendGameLog({ username: user.username, game: 'Blackjack', bet: bet, action: 'RESULT', details: msg, amountWon: winAmount });
             };
 
@@ -666,8 +708,8 @@ ${log.amountWon !== undefined ? `💵 Payout: $${log.amountWon}` : ''}
                 <div className="flex flex-col items-center gap-10 w-full max-w-4xl">
                     <div className="relative perspective-1000 h-80 flex items-center justify-center">
                         <div className="w-64 h-64 md:w-80 md:h-80 relative transition-transform duration-[2000ms] cubic-bezier(0.25, 1, 0.5, 1)" style={{ transformStyle: 'preserve-3d', transform: `rotateY(${rotation}deg)` }}>
-                            <div className="absolute inset-0 rounded-full flex items-center justify-center border-[12px] border-yellow-600 bg-yellow-400" style={{ backfaceVisibility: 'hidden' }}><span className="text-9xl">👑</span></div>
-                            <div className="absolute inset-0 rounded-full flex items-center justify-center border-[12px] border-slate-600 bg-slate-400" style={{ transform: 'rotateY(180deg)', backfaceVisibility: 'hidden' }}><span className="text-9xl">🦅</span></div>
+                            <div className="absolute inset-0 rounded-full flex items-center justify-center border-[12px] border-yellow-600 bg-yellow-400 backface-hidden"><span className="text-9xl">👑</span></div>
+                            <div className="absolute inset-0 rounded-full flex items-center justify-center border-[12px] border-slate-600 bg-slate-400 backface-hidden" style={{ transform: 'rotateY(180deg)' }}><span className="text-9xl">🦅</span></div>
                         </div>
                         {lastResult && <div className={`absolute top-0 text-4xl font-black ${lastResult === 'win' ? 'text-green-400' : 'text-white/20'}`}>{lastResult === 'win' ? `+$${(bet*multiplier).toFixed(2)}` : 'RIP'}</div>}
                     </div>
@@ -1120,6 +1162,7 @@ ${log.amountWon !== undefined ? `💵 Payout: $${log.amountWon}` : ''}
                             <div className="absolute -top-[20%] -left-[10%] w-[700px] h-[700px] bg-purple-600/30 rounded-full blur-[120px] animate-float opacity-40 mix-blend-color-dodge"></div>
                             <div className="absolute bottom-[10%] -right-[10%] w-[600px] h-[600px] bg-blue-600/20 rounded-full blur-[100px] animate-float opacity-40 mix-blend-color-dodge" style={{ animationDelay: '3s' }}></div>
                             <div className="absolute top-[40%] left-[40%] w-[400px] h-[400px] bg-emerald-500/10 rounded-full blur-[80px] animate-pulse opacity-30 mix-blend-screen" style={{ animationDelay: '5s' }}></div>
+                            <div className="absolute inset-0 opacity-20 z-0 brightness-150 contrast-150 pointer-events-none" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.15'/%3E%3C/svg%3E")` }}></div>
                         </div>
                         <div className="w-full max-w-md relative z-10 perspective-1000">
                              <div className="flex flex-col items-center mb-10 relative">
@@ -1197,7 +1240,7 @@ ${log.amountWon !== undefined ? `💵 Payout: $${log.amountWon}` : ''}
                                     {gameMode === 'free' && <button onClick={resetFreeFunds}><RotateCcw size={14} className="text-blue-400" /></button>}
                                 </div>
                             </div>
-                            <button onClick={() => { setUser(null); setActiveGame(null); }} className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center">👤</button>
+                            <button onClick={handleLogout} className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10 transition-colors">👤</button>
                         </div>
                     </nav>
 
@@ -1207,7 +1250,7 @@ ${log.amountWon !== undefined ? `💵 Payout: $${log.amountWon}` : ''}
                                 <div className="flex justify-between items-center glass-panel p-4 rounded-xl">
                                     <button onClick={() => setActiveGame(null)} className="text-white/60 hover:text-white font-bold">← BACK TO LOBBY</button>
                                     <h2 className="text-2xl font-black uppercase">{GAMES.find(g => g.id === activeGame)?.name}</h2>
-                                    <button onClick={() => setShowBugModal(true)} className="bg-red-500/10 text-red-400 px-4 py-2 rounded-lg text-sm font-bold">REPORT BUG 🐛</button>
+                                    <button onClick={() => setShowBugModal(true)} className="bg-red-500/10 text-red-400 px-4 py-2 rounded-lg text-sm font-bold hover:bg-red-500/20 transition-colors">REPORT BUG 🐛</button>
                                 </div>
                                 <div className="min-h-[600px] flex items-center justify-center">
                                     {activeGame === GameType.BLACKJACK && <Blackjack user={activeUser} onUpdateBalance={updateBalance} isDemo={gameMode === 'free'} />}
