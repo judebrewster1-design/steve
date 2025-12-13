@@ -1,373 +1,1247 @@
-import React, { useState, useEffect } from 'react';
-import { Coins, Trophy, History, Dice1, ChevronLeft, X, Settings, LogOut, DollarSign, Bug, AlertCircle, Sparkles } from 'lucide-react';
 
-const API_URL = 'https://avenue-divided-framed-drag.trycloudflare.com';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Judeceno Casino</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    
+    <!-- React & Babel Support -->
+    <script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@18.2.0",
+    "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+    "lucide-react": "https://esm.sh/lucide-react@0.300.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "vite": "https://esm.sh/vite@^7.2.7",
+    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2"
+  }
+}
+</script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-export default function StakeCasino() {
-  const [user, setUser] = useState(null);
-  const [balance, setBalance] = useState(0);
-  const [currentGame, setCurrentGame] = useState(null);
-  const [showHistory, setShowHistory] = useState(false);
-  const [history, setHistory] = useState([]);
-  const [showSettings, setShowSettings] = useState(false);
-  const [showBugReport, setShowBugReport] = useState(false);
-  const [gameStatus, setGameStatus] = useState({});
-
-  useEffect(() => {
-    const savedUser = sessionStorage.getItem('stake_user');
-    if (savedUser) {
-      try {
-        const userData = JSON.parse(savedUser);
-        setUser(userData);
-        loadBalance(userData.username);
-        loadGameStatus();
-      } catch (e) {
-        sessionStorage.removeItem('stake_user');
+    <style>
+      body {
+        font-family: 'Inter', sans-serif;
+        background-color: #050b14;
+        color: white;
+        margin: 0;
+        overflow-x: hidden;
       }
-    }
-    loadGameStatus();
-  }, []);
+      .glass-panel {
+        background: rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+      }
+      @keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+        100% { transform: translateY(0px); }
+      }
+      /* Custom Scrollbar */
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #0a1628; 
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #1e3a5f; 
+        border-radius: 4px;
+      }
+      /* 3D Flip Utility */
+      .perspective-1000 {
+        perspective: 1000px;
+      }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
 
-  const loadGameStatus = async () => {
-    try {
-      const res = await fetch(`${API_URL}/game_status`);
-      const data = await res.json();
-      setGameStatus(data);
-    } catch (e) {
-      console.error('Failed to load game status');
-    }
-  };
+    <!-- MAIN APPLICATION SCRIPT -->
+    <script type="text/babel" data-type="module" data-presets="typescript,react">
+        import React, { useState, useEffect, useRef, useMemo } from 'react';
+        import ReactDOM from 'react-dom/client';
+        import { 
+            RotateCcw, AlertCircle, LogIn, UserPlus, Bug, X, Send, Loader2, 
+            Diamond, Bomb, ArrowUp, ArrowDown, History, Skull, CheckCircle 
+        } from 'lucide-react';
 
-  const loadBalance = async (username) => {
-    try {
-      const res = await fetch(`${API_URL}/balance/${username}`);
-      const data = await res.json();
-      setBalance(data.balance || 0);
-    } catch (e) {
-      console.error('Balance load failed:', e);
-    }
-  };
-
-  const login = async (username, password) => {
-    if (!username.trim() || !password.trim()) return 'Username and password required';
-    try {
-      const res = await fetch(`${API_URL}/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: username.trim(), password })
-      });
-      const data = await res.json();
-      if (data.error) return data.error;
-      const userData = { username: username.trim(), id: data.userId };
-      setUser(userData);
-      setBalance(data.balance || 0);
-      sessionStorage.setItem('stake_user', JSON.stringify(userData));
-      loadGameStatus();
-      return null;
-    } catch (e) {
-      return 'Connection failed';
-    }
-  };
-
-  const loadHistory = async () => {
-    try {
-      const res = await fetch(`${API_URL}/history/${user.username}`);
-      const data = await res.json();
-      setHistory(data.history || []);
-      setShowHistory(true);
-    } catch (e) {
-      console.error('History load failed:', e);
-      setHistory([]);
-      setShowHistory(true);
-    }
-  };
-
-  const logout = () => {
-    sessionStorage.removeItem('stake_user');
-    setUser(null);
-    setBalance(0);
-    setCurrentGame(null);
-  };
-
-  if (!user) {
-    return <LoginScreen onLogin={login} />;
-  }
-
-  if (currentGame) {
-    return <GameScreen game={currentGame} balance={balance} username={user.username} onBack={() => setCurrentGame(null)} onBalanceUpdate={setBalance} onReportBug={() => setShowBugReport(true)} />;
-  }
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0a1628] via-[#0f212e] to-[#0a1628]">
-      {/* Animated background */}
-      <div className="fixed inset-0 opacity-20">
-        <div className="absolute top-20 left-20 w-72 h-72 bg-[#00e701] rounded-full filter blur-[100px] animate-pulse"></div>
-        <div className="absolute bottom-20 right-20 w-96 h-96 bg-purple-500 rounded-full filter blur-[120px] animate-pulse" style={{animationDelay: '1s'}}></div>
-      </div>
-
-      <header className="relative bg-gradient-to-r from-[#1a2c38]/80 to-[#0f212e]/80 backdrop-blur-xl border-b border-[#00e701]/20 px-4 py-4 shadow-2xl">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <div className="relative">
-              <div className="absolute inset-0 bg-[#00e701] rounded-xl blur-lg animate-pulse"></div>
-              <div className="relative w-12 h-12 bg-gradient-to-br from-[#00e701] to-[#00a801] rounded-xl flex items-center justify-center shadow-2xl transform hover:scale-110 transition-all duration-300">
-                <Dice1 className="w-7 h-7 text-white" />
-              </div>
-            </div>
-            <div>
-              <h1 className="text-3xl font-black bg-gradient-to-r from-[#00e701] via-white to-[#00e701] bg-clip-text text-transparent">STAKE</h1>
-              <p className="text-xs text-gray-400">Premium Casino</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="bg-gradient-to-br from-[#2f4553]/50 to-[#1a2c38]/50 backdrop-blur-lg px-6 py-3 rounded-xl border border-[#00e701]/30 shadow-2xl transform hover:scale-105 transition-all duration-300">
-              <div className="text-xs text-gray-400 flex items-center gap-2"><DollarSign className="w-3 h-3" /> Balance</div>
-              <div className="text-2xl font-black text-[#00e701] tracking-tight">${(balance / 100).toFixed(2)}</div>
-            </div>
-            <button onClick={loadHistory} className="p-3 hover:bg-[#2f4553]/50 rounded-xl transition-all duration-300 hover:scale-110 backdrop-blur-lg border border-transparent hover:border-[#00e701]/30">
-              <History className="w-6 h-6 text-gray-300" />
-            </button>
-            <button onClick={() => setShowSettings(true)} className="p-3 hover:bg-[#2f4553]/50 rounded-xl transition-all duration-300 hover:scale-110 backdrop-blur-lg border border-transparent hover:border-[#00e701]/30">
-              <Settings className="w-6 h-6 text-gray-300" />
-            </button>
-          </div>
-        </div>
-      </header>
-
-      <main className="relative max-w-7xl mx-auto p-6 md:p-8">
-        <div className="mb-12 text-center">
-          <h2 className="text-5xl font-black mb-3 bg-gradient-to-r from-white via-[#00e701] to-white bg-clip-text text-transparent drop-shadow-2xl">Welcome back, {user.username}</h2>
-          <p className="text-gray-400 text-lg flex items-center justify-center gap-2"><Sparkles className="w-4 h-4 text-[#00e701]" /> Choose your game and start winning</p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <GameCard title="Blackjack" subtitle="Classic 21" icon="🂡" gradient="from-red-600 via-red-700 to-red-900" onClick={() => setCurrentGame('blackjack')} disabled={!gameStatus.blackjack?.active} />
-          <GameCard title="3 Card Poker" subtitle="High Stakes" icon="🃏" gradient="from-blue-600 via-blue-700 to-blue-900" onClick={() => setCurrentGame('poker')} disabled={!gameStatus.poker?.active} />
-          <GameCard title="Mines" subtitle="Find Gems" icon="💎" gradient="from-orange-600 via-orange-700 to-orange-900" onClick={() => setCurrentGame('mines')} disabled={!gameStatus.mines?.active} />
-          <GameCard title="Towers" subtitle="Climb Up" icon="🏗️" gradient="from-purple-600 via-purple-700 to-purple-900" onClick={() => setCurrentGame('towers')} disabled={!gameStatus.towers?.active} />
-          <GameCard title="Plinko" subtitle="Drop & Win" icon="🎯" gradient="from-pink-600 via-pink-700 to-pink-900" onClick={() => setCurrentGame('plinko')} disabled={!gameStatus.plinko?.active} />
-          <GameCard title="Roulette" subtitle="Spin Wheel" icon="🎰" gradient="from-green-600 via-green-700 to-green-900" onClick={() => setCurrentGame('roulette')} disabled={!gameStatus.roulette?.active} />
-          <GameCard title="Hi-Lo" subtitle="Guess Right" icon="🎲" gradient="from-yellow-600 via-yellow-700 to-yellow-900" onClick={() => setCurrentGame('hilo')} disabled={!gameStatus.hilo?.active} />
-        </div>
-      </main>
-
-      {showHistory && <HistoryModal history={history} onClose={() => setShowHistory(false)} />}
-      {showSettings && <SettingsPanel username={user.username} onClose={() => setShowSettings(false)} onBalanceUpdate={loadBalance} onLogout={logout} />}
-      {showBugReport && <BugReportModal username={user.username} game={currentGame} onClose={() => setShowBugReport(false)} />}
-    </div>
-  );
-}
-
-function GameCard({ title, subtitle, icon, gradient, onClick, disabled }) {
-  return (
-    <button onClick={onClick} disabled={disabled} className={`group relative bg-gradient-to-br ${gradient} p-8 rounded-3xl hover:scale-105 transition-all duration-500 border border-white/10 shadow-2xl overflow-hidden ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}>
-      {disabled && <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-10"><span className="bg-red-500 px-4 py-2 rounded-lg font-bold">Under Maintenance</span></div>}
-      <div className="absolute inset-0 bg-gradient-to-br from-white/0 to-white/5 group-hover:to-white/10 transition-all duration-500"></div>
-      <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700"></div>
-      <div className="relative z-10">
-        <div className="text-7xl mb-6 transform group-hover:scale-125 group-hover:rotate-12 transition-all duration-500 drop-shadow-2xl">{icon}</div>
-        <h3 className="text-2xl font-black mb-2 text-white drop-shadow-lg">{title}</h3>
-        <p className="text-sm text-gray-200 font-medium">{subtitle}</p>
-      </div>
-    </button>
-  );
-}
-
-function LoginScreen({ onLogin }) {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [isLogin, setIsLogin] = useState(true);
-  const [loading, setLoading] = useState(false);
-
-  const handleSubmit = async () => {
-    setError('');
-    setLoading(true);
-    const err = await onLogin(username, password);
-    setLoading(false);
-    if (err) setError(err);
-  };
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0a1628] via-[#0f212e] to-[#0a1628] flex items-center justify-center p-4 relative overflow-hidden">
-      <div className="absolute inset-0 opacity-20">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#00e701] rounded-full filter blur-[150px] animate-pulse"></div>
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500 rounded-full filter blur-[150px] animate-pulse" style={{animationDelay: '2s'}}></div>
-      </div>
-      <div className="bg-gradient-to-br from-[#1a2c38]/90 to-[#0f212e]/90 backdrop-blur-2xl rounded-3xl p-10 w-full max-w-md border border-[#00e701]/30 shadow-2xl relative z-10 transform hover:scale-105 transition-all duration-500">
-        <div className="flex justify-center mb-8">
-          <div className="relative">
-            <div className="absolute inset-0 bg-[#00e701] rounded-3xl blur-2xl animate-pulse"></div>
-            <div className="relative w-24 h-24 bg-gradient-to-br from-[#00e701] to-[#00a801] rounded-3xl flex items-center justify-center shadow-2xl transform hover:rotate-12 transition-all duration-500">
-              <Dice1 className="w-14 h-14 text-white" />
-            </div>
-          </div>
-        </div>
-        <h1 className="text-6xl font-black text-center mb-3 bg-gradient-to-r from-[#00e701] via-white to-[#00e701] bg-clip-text text-transparent">STAKE</h1>
-        <p className="text-center text-gray-400 mb-8 text-lg">{isLogin ? 'Welcome back!' : 'Join the action'}</p>
+        // ==========================================
+        // 1. CONSTANTS & UTILS
+        // ==========================================
         
-        {error && <div className="mb-6 p-4 bg-red-500/20 border-2 border-red-500 rounded-xl text-red-300 text-sm font-semibold flex items-center gap-2"><AlertCircle className="w-5 h-5" />{error}</div>}
+        const BACKEND_URL = "http://localhost:5000";
         
-        <input
-          type="text"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          onKeyPress={(e) => e.key === 'Enter' && handleSubmit()}
-          placeholder="Username"
-          className="w-full p-5 bg-[#2f4553]/50 border-2 border-[#4a5f6f] rounded-xl text-white placeholder-gray-500 mb-5 focus:outline-none focus:border-[#00e701] transition-all duration-300 backdrop-blur-lg"
-        />
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          onKeyPress={(e) => e.key === 'Enter' && handleSubmit()}
-          placeholder="Password"
-          className="w-full p-5 bg-[#2f4553]/50 border-2 border-[#4a5f6f] rounded-xl text-white placeholder-gray-500 mb-6 focus:outline-none focus:border-[#00e701] transition-all duration-300 backdrop-blur-lg"
-        />
-        <button onClick={handleSubmit} disabled={loading} className="w-full py-5 bg-gradient-to-r from-[#00e701] to-[#00a801] hover:from-[#00ff00] hover:to-[#00b801] rounded-xl font-black text-black text-lg transition-all duration-300 transform hover:scale-105 shadow-2xl shadow-[#00e701]/50 disabled:opacity-50">
-          {loading ? 'Loading...' : isLogin ? 'LOGIN' : 'REGISTER'}
-        </button>
-        <button onClick={() => setIsLogin(!isLogin)} className="w-full mt-5 text-sm text-gray-400 hover:text-[#00e701] transition-all duration-300 font-semibold">
-          {isLogin ? "Don't have an account? Register" : "Already have an account? Login"}
-        </button>
-        <p className="text-xs text-center text-gray-600 mt-8">18+ only • Play responsibly • Demo version</p>
-      </div>
-    </div>
-  );
-}
+        const GameType = {
+            BLACKJACK: 'blackjack',
+            POKER: 'poker',
+            MINES: 'mines',
+            TOWERS: 'towers',
+            PLINKO: 'plinko',
+            ROULETTE: 'roulette',
+            HILO: 'hilo',
+            COINFLIP: 'coinflip'
+        };
 
-function BugReportModal({ username, game, onClose }) {
-  const [description, setDescription] = useState('');
-  const [submitted, setSubmitted] = useState(false);
+        const GAMES = [
+            { id: GameType.BLACKJACK, name: "Blackjack", description: "Beat the dealer to 21", icon: "🂡", color: "from-red-900 to-red-600", active: true },
+            { id: GameType.POKER, name: "3 Card Poker", description: "Classic casino poker", icon: "🃏", color: "from-blue-900 to-blue-600", active: true },
+            { id: GameType.MINES, name: "Mines", description: "Don't hit the bomb", icon: "💎", color: "from-orange-900 to-orange-600", active: true },
+            { id: GameType.TOWERS, name: "Towers", description: "Climb to the top", icon: "🏗️", color: "from-purple-900 to-purple-600", active: true },
+            { id: GameType.PLINKO, name: "Plinko", description: "Drop the ball", icon: "🎯", color: "from-pink-900 to-pink-600", active: true },
+            { id: GameType.ROULETTE, name: "Roulette", description: "Spin the wheel", icon: "🎰", color: "from-green-900 to-green-600", active: true },
+            { id: GameType.HILO, name: "Hi-Lo", description: "Guess higher or lower", icon: "🎲", color: "from-yellow-900 to-yellow-600", active: true },
+            { id: GameType.COINFLIP, name: "Coin Flip", description: "Double or nothing", icon: "🪙", color: "from-cyan-900 to-cyan-600", active: true }
+        ];
 
-  const submit = async () => {
-    if (!description.trim()) return;
-    try {
-      await fetch(`${API_URL}/report_bug`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, game, description })
-      });
-      setSubmitted(true);
-      setTimeout(onClose, 2000);
-    } catch (e) {
-      console.error('Failed to submit bug report');
-    }
-  };
+        const generateDeck = () => {
+            const suits = ['hearts', 'diamonds', 'clubs', 'spades'];
+            const values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+            const deck = [];
 
-  return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn">
-      <div className="bg-gradient-to-br from-[#1a2c38] to-[#0f212e] rounded-3xl p-8 max-w-md w-full border-2 border-[#00e701]/30 shadow-2xl transform scale-100 animate-slideUp">
-        <div className="flex justify-between items-center mb-6">
-          <div className="flex items-center gap-3">
-            <Bug className="w-8 h-8 text-[#00e701]" />
-            <h3 className="text-3xl font-black text-white">Report Bug</h3>
-          </div>
-          <button onClick={onClose} className="p-2 hover:bg-[#2f4553] rounded-xl transition-all">
-            <X className="w-6 h-6" />
-          </button>
-        </div>
-        {submitted ? (
-          <div className="text-center py-8">
-            <div className="text-6xl mb-4">✅</div>
-            <p className="text-xl font-bold text-[#00e701]">Thank you!</p>
-            <p className="text-gray-400 mt-2">If your bug is confirmed, you'll receive $0.25!</p>
-          </div>
-        ) : (
-          <>
-            <p className="text-gray-400 mb-4">Describe the bug you encountered:</p>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="What happened? Be as detailed as possible..."
-              className="w-full p-4 bg-[#2f4553] border-2 border-[#4a5f6f] rounded-xl text-white placeholder-gray-500 mb-6 h-32 focus:outline-none focus:border-[#00e701] transition-all resize-none"
-            />
-            <button onClick={submit} className="w-full py-4 bg-gradient-to-r from-[#00e701] to-[#00a801] hover:from-[#00ff00] hover:to-[#00b801] rounded-xl font-bold text-black text-lg shadow-lg transform hover:scale-105 transition-all">
-              Submit Report
-            </button>
-          </>
-        )}
-      </div>
-    </div>
-  );
-}
+            for (const suit of suits) {
+                for (const value of values) {
+                    let num = parseInt(value);
+                    if (value === 'J' || value === 'Q' || value === 'K') num = 10;
+                    if (value === 'A') num = 11;
+                    
+                    deck.push({
+                        suit,
+                        value,
+                        numericValue: num,
+                        color: (suit === 'hearts' || suit === 'diamonds') ? 'red' : 'black'
+                    });
+                }
+            }
+            return deck.sort(() => Math.random() - 0.5);
+        };
 
-function HistoryModal({ history, onClose }) {
-  return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-gradient-to-br from-[#1a2c38] to-[#0f212e] rounded-3xl p-8 max-w-3xl w-full max-h-[80vh] overflow-y-auto border-2 border-[#00e701]/30 shadow-2xl">
-        <div className="flex justify-between items-center mb-6">
-          <h3 className="text-3xl font-black text-white flex items-center gap-3"><History className="w-8 h-8 text-[#00e701]" />Game History</h3>
-          <button onClick={onClose} className="p-2 hover:bg-[#2f4553] rounded-xl transition-all">
-            <X className="w-6 h-6" />
-          </button>
-        </div>
-        <div className="space-y-3">
-          {history.length === 0 ? <p className="text-gray-400 text-center py-12 text-lg">No games played yet</p> : history.map((h, i) => (
-            <div key={i} className="bg-[#2f4553]/50 backdrop-blur-lg p-5 rounded-xl flex justify-between items-center border border-[#4a5f6f] hover:border-[#00e701]/50 transition-all">
-              <div>
-                <div className="font-bold text-lg text-white">{h.game}</div>
-                <div className="text-sm text-gray-400">{new Date(h.timestamp * 1000).toLocaleString()}</div>
-              </div>
-              <div className={`text-2xl font-black ${h.won ? 'text-green-400' : 'text-red-400'}`}>
-                {h.won ? '+' : '-'}${(h.amount/100).toFixed(2)}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
+        // ==========================================
+        // 2. API SERVICE
+        // ==========================================
+        
+        const isBackendConfigured = () => {
+            return BACKEND_URL && !BACKEND_URL.includes("your-tunnel-url");
+        };
 
-function SettingsPanel({ username, onClose, onBalanceUpdate, onLogout }) {
-  return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-gradient-to-br from-[#1a2c38] to-[#0f212e] rounded-3xl p-8 max-w-md w-full border-2 border-[#00e701]/30 shadow-2xl">
-        <div className="flex justify-between items-center mb-6">
-          <h3 className="text-3xl font-black text-white flex items-center gap-3"><Settings className="w-8 h-8 text-[#00e701]" />Settings</h3>
-          <button onClick={onClose} className="p-2 hover:bg-[#2f4553] rounded-xl transition-all">
-            <X className="w-6 h-6" />
-          </button>
-        </div>
-        <div className="space-y-6">
-          <div className="bg-[#2f4553]/50 p-6 rounded-xl border border-[#4a5f6f]">
-            <p className="text-gray-400 mb-2">Logged in as</p>
-            <p className="text-2xl font-bold text-white">{username}</p>
-          </div>
-          <button onClick={onLogout} className="w-full py-4 bg-gradient-to-r from-red-600 to-red-800 hover:from-red-500 hover:to-red-700 rounded-xl font-bold transition-all flex items-center justify-center gap-2 shadow-lg transform hover:scale-105">
-            <LogOut className="w-5 h-5" /> Logout
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
+        const mockLogin = (username) => {
+            const storedBal = localStorage.getItem(`balance_${username}`);
+            const storedFree = localStorage.getItem(`free_balance_${username}`);
+            return {
+                username,
+                balance: storedBal ? parseFloat(storedBal) : 0, 
+                freeBalance: storedFree ? parseFloat(storedFree) : 10000,
+                token: 'mock-token'
+            };
+        };
 
-function GameScreen({ game, balance, username, onBack, onBalanceUpdate, onReportBug }) {
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0a1628] via-[#0f212e] to-[#0a1628]">
-      <header className="bg-gradient-to-r from-[#1a2c38]/80 to-[#0f212e]/80 backdrop-blur-xl border-b border-[#00e701]/20 px-4 py-4">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <button onClick={onBack} className="flex items-center gap-2 hover:text-[#00e701] transition-all transform hover:scale-110 font-bold">
-            <ChevronLeft className="w-6 h-6" />
-            <span>Back</span>
-          </button>
-          <div className="flex items-center gap-4">
-            <div className="bg-gradient-to-br from-[#2f4553]/50 to-[#1a2c38]/50 backdrop-blur-lg px-6 py-3 rounded-xl border border-[#00e701]/30">
-              <div className="text-xs text-gray-400">Balance</div>
-              <div className="text-xl font-black text-[#00e701]">${(balance / 100).toFixed(2)}</div>
-            </div>
-            <button onClick={onReportBug} className="p-3 hover:bg-red-500/20 rounded-xl transition-all border border-red-500/30 hover:border-red-500 flex items-center gap-2">
-              <Bug className="w-5 h-5 text-red-400" />
-              <span className="text-sm font-bold text-red-400">Report Bug</span>
-            </button>
-          </div>
-        </div>
-      </header>
-      <main className="max-w-5xl mx-auto p-6">
-        <div className="text-center text-3xl font-bold text-gray-400 py-20">Game component would go here</div>
-      </main>
-    </div>
-  );
-}
+        const api = {
+            login: async (username, password) => {
+                if (!isBackendConfigured()) {
+                    await new Promise(r => setTimeout(r, 600));
+                    return mockLogin(username);
+                }
+                try {
+                    const response = await fetch(`${BACKEND_URL}/login`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username, password })
+                    });
+                    if (!response.ok) throw new Error("Invalid Credentials");
+                    return await response.json();
+                } catch (e) {
+                    console.warn("Backend unavailable, using mock");
+                    return mockLogin(username);
+                }
+            },
+            
+            register: async (username, password) => {
+                if (!isBackendConfigured()) {
+                    await new Promise(r => setTimeout(r, 600));
+                    return mockLogin(username);
+                }
+                try {
+                    const response = await fetch(`${BACKEND_URL}/register`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username, password })
+                    });
+                    if (!response.ok) {
+                        const err = await response.json();
+                        throw new Error(err.error || "Registration Failed");
+                    }
+                    return await response.json();
+                } catch (e) {
+                    throw new Error(e.message || "Server Error");
+                }
+            },
+
+            updateBalance: async (username, newBalance, isFreeMode = false) => {
+                if (isFreeMode) {
+                    localStorage.setItem(`free_balance_${username}`, newBalance.toString());
+                } else {
+                    localStorage.setItem(`balance_${username}`, newBalance.toString());
+                }
+
+                if (isBackendConfigured()) {
+                    try {
+                        await fetch(`${BACKEND_URL}/api/balance`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ username, amount: newBalance, isFree: isFreeMode })
+                        });
+                    } catch (e) {
+                        // Ignore connection errors
+                    }
+                }
+                return newBalance;
+            },
+
+            reportBug: async (report) => {
+                if (!isBackendConfigured()) return true;
+                try {
+                    await fetch(`${BACKEND_URL}/api/bug-report`, { 
+                        method: 'POST', 
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(report) 
+                    });
+                    return true;
+                } catch (e) {
+                    return false;
+                }
+            },
+
+            sendGameLog: async (log) => {
+                if (!isBackendConfigured()) return;
+                try {
+                    const message = `
+🎮 <b>${log.game.toUpperCase()}</b>
+👤 Player: ${log.username}
+💰 Bet: $${log.bet}
+📝 Action: ${log.action}
+ℹ️ Details: ${log.details}
+${log.amountWon !== undefined ? `💵 Payout: $${log.amountWon}` : ''}
+                    `.trim();
+
+                    await fetch(`${BACKEND_URL}/api/log-game`, { 
+                        method: 'POST', 
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ message }) 
+                    });
+                } catch (e) {
+                    // Silent fail
+                }
+            }
+        };
+
+        // ==========================================
+        // 3. SHARED COMPONENTS
+        // ==========================================
+
+        const PlayingCard = ({ card, hidden, className = '' }) => {
+            const getSuitIcon = (suit) => {
+                switch (suit) {
+                    case 'hearts': return '♥';
+                    case 'diamonds': return '♦';
+                    case 'clubs': return '♣';
+                    case 'spades': return '♠';
+                    default: return '?';
+                }
+            };
+
+            if (hidden || !card) {
+                return (
+                    <div className={`w-24 h-36 bg-blue-900 rounded-lg border-2 border-white/20 shadow-xl flex items-center justify-center ${className}`}>
+                        <div className="w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-50 rounded-lg"></div>
+                    </div>
+                );
+            }
+
+            const isRed = card.color === 'red';
+
+            return (
+                <div className={`w-24 h-36 bg-white rounded-lg shadow-xl relative flex flex-col items-center justify-between p-2 select-none transform hover:-translate-y-2 transition-transform duration-300 ${className}`}>
+                    <div className={`text-xl font-bold self-start ${isRed ? 'text-red-600' : 'text-black'}`}>
+                        {card.value}
+                        <span className="block text-sm">{getSuitIcon(card.suit)}</span>
+                    </div>
+                    <div className={`text-4xl ${isRed ? 'text-red-600' : 'text-black'}`}>
+                        {getSuitIcon(card.suit)}
+                    </div>
+                    <div className={`text-xl font-bold self-end rotate-180 ${isRed ? 'text-red-600' : 'text-black'}`}>
+                        {card.value}
+                        <span className="block text-sm">{getSuitIcon(card.suit)}</span>
+                    </div>
+                </div>
+            );
+        };
+
+        const BugModal = ({ isOpen, onClose, username, gameId }) => {
+            const [description, setDescription] = useState('');
+            const [loading, setLoading] = useState(false);
+            const [sent, setSent] = useState(false);
+
+            if (!isOpen) return null;
+
+            const handleSubmit = async () => {
+                if (!description.trim()) return;
+                setLoading(true);
+                await api.reportBug({ username, game: gameId, description });
+                setLoading(false);
+                setSent(true);
+                setTimeout(() => {
+                    setSent(false);
+                    setDescription('');
+                    onClose();
+                }, 2000);
+            };
+
+            return (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+                    <div className="glass-panel w-full max-w-md p-6 rounded-2xl relative animate-float">
+                        <button onClick={onClose} className="absolute top-4 right-4 text-white/50 hover:text-white"><X size={24} /></button>
+                        <h2 className="text-2xl font-bold flex items-center gap-2 mb-4 text-white"><Bug className="text-red-500" /> Report Bug</h2>
+                        {sent ? (
+                            <div className="text-center py-8">
+                                <div className="text-green-400 text-xl font-bold mb-2">Report Sent!</div>
+                                <p className="text-white/60">If accepted, you'll receive $0.25.</p>
+                            </div>
+                        ) : (
+                            <>
+                                <p className="text-white/70 mb-4 text-sm">Found a glitch? Verified bugs reward <span className="text-green-400 font-bold">$0.25</span>.</p>
+                                <textarea className="w-full bg-black/30 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-green-500/50 min-h-[120px]" placeholder="Describe what happened..." value={description} onChange={(e) => setDescription(e.target.value)} />
+                                <button onClick={handleSubmit} disabled={loading || !description.trim()} className="w-full mt-4 bg-red-600 hover:bg-red-500 text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50">
+                                    {loading ? <Loader2 className="animate-spin" /> : <Send size={18} />} Submit Report
+                                </button>
+                            </>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        // ==========================================
+        // 4. GAMES (FULL LOGIC)
+        // ==========================================
+
+        const Blackjack = ({ user, onUpdateBalance, isDemo }) => {
+            const [bet, setBet] = useState(10);
+            const [deck, setDeck] = useState([]);
+            const [playerHand, setPlayerHand] = useState([]);
+            const [dealerHand, setDealerHand] = useState([]);
+            const [gameState, setGameState] = useState('betting');
+            const [message, setMessage] = useState('');
+
+            const calculateScore = (hand) => {
+                let score = 0; let aces = 0;
+                hand.forEach(card => { score += card.numericValue; if (card.value === 'A') aces += 1; });
+                while (score > 21 && aces > 0) { score -= 10; aces -= 1; }
+                return score;
+            };
+
+            const formatHand = (hand) => hand.map(c => `${c.value}${c.suit === 'hearts' || c.suit === 'diamonds' ? '🟥' : '⬛'}`).join(' ');
+
+            const dealGame = () => {
+                if (user.balance < bet) return;
+                onUpdateBalance(-bet);
+                const newDeck = generateDeck();
+                const pHand = [newDeck[0], newDeck[2]];
+                const dHand = [newDeck[1], newDeck[3]];
+                setDeck(newDeck.slice(4));
+                setPlayerHand(pHand);
+                setDealerHand(dHand);
+                setGameState('playing');
+                setMessage('');
+                const pScore = calculateScore(pHand);
+                
+                api.sendGameLog({ username: user.username, game: 'Blackjack', bet: bet, action: 'DEAL', details: `Player: ${pScore}` });
+
+                if (pScore === 21) endGame(pHand, dHand, 'blackjack');
+            };
+
+            const hit = () => {
+                const newCard = deck[0];
+                const newHand = [...playerHand, newCard];
+                setPlayerHand(newHand);
+                setDeck(deck.slice(1));
+                const newScore = calculateScore(newHand);
+                
+                api.sendGameLog({ username: user.username, game: 'Blackjack', bet: bet, action: 'HIT', details: `Drew: ${newCard.value} (${newScore})` });
+
+                if (newScore > 21) {
+                    setGameState('ended');
+                    setMessage('BUST! You Lose.');
+                }
+            };
+
+            const stand = async () => {
+                setGameState('dealerTurn');
+                let currentDealerHand = [...dealerHand];
+                let currentDeck = [...deck];
+                while (calculateScore(currentDealerHand) < 17) {
+                    await new Promise(r => setTimeout(r, 600));
+                    let newCard = currentDeck[0];
+                    if (!isDemo && (calculateScore(currentDealerHand) + newCard.numericValue) > 21) {
+                        if (Math.random() < 0.10) { 
+                             const safeIndex = currentDeck.slice(0, 10).findIndex(c => (calculateScore(currentDealerHand) + c.numericValue) <= 21);
+                             if (safeIndex !== -1) { newCard = currentDeck[safeIndex]; currentDeck.splice(safeIndex, 1); }
+                        }
+                    }
+                    currentDealerHand = [...currentDealerHand, newCard];
+                    if (currentDeck.includes(newCard)) currentDeck = currentDeck.slice(1);
+                    setDealerHand(currentDealerHand);
+                    setDeck(currentDeck);
+                }
+                endGame(playerHand, currentDealerHand, 'stand');
+            };
+
+            const endGame = (pHand, dHand, reason) => {
+                setGameState('ended');
+                const pScore = calculateScore(pHand);
+                const dScore = calculateScore(dHand);
+                let winAmount = 0;
+                let msg = '';
+
+                if (reason === 'blackjack') {
+                    if (dScore === 21) { winAmount = bet; msg = 'Push! Both Blackjack.'; }
+                    else { winAmount = bet * 2.5; msg = 'BLACKJACK! You Win!'; }
+                } else if (pScore > 21) {
+                    msg = 'Bust! You Lose.';
+                } else if (dScore > 21) {
+                    winAmount = bet * 2; msg = 'Dealer Busts! You Win!';
+                } else if (pScore > dScore) {
+                    winAmount = bet * 2; msg = 'You Win!';
+                } else if (pScore === dScore) {
+                    winAmount = bet; msg = 'Push.';
+                } else {
+                    msg = 'Dealer Wins.';
+                }
+
+                setMessage(msg);
+                if (winAmount > 0) onUpdateBalance(winAmount);
+                
+                api.sendGameLog({ username: user.username, game: 'Blackjack', bet: bet, action: 'RESULT', details: msg, amountWon: winAmount });
+            };
+
+            return (
+                <div className="flex flex-col items-center gap-8 w-full">
+                    <div className="flex flex-col items-center min-h-[180px]">
+                        <h3 className="text-white/50 mb-4 font-bold uppercase tracking-wider">Dealer {gameState === 'ended' ? calculateScore(dealerHand) : ''}</h3>
+                        <div className="flex -space-x-12">
+                            {dealerHand.map((card, i) => <PlayingCard key={i} card={card} hidden={gameState === 'playing' && i === 1} className={i > 0 ? 'origin-bottom-left rotate-3' : ''} />)}
+                        </div>
+                    </div>
+                    <div className="h-12 flex items-center justify-center">
+                        {message && <div className="px-6 py-2 rounded-full glass-panel bg-green-500/20 text-green-400 font-black text-xl animate-pulse border-green-500/50">{message}</div>}
+                    </div>
+                    <div className="flex flex-col items-center min-h-[180px]">
+                        <h3 className="text-white/50 mb-4 font-bold uppercase tracking-wider">You {calculateScore(playerHand)}</h3>
+                        <div className="flex -space-x-12">
+                            {playerHand.map((card, i) => <PlayingCard key={i} card={card} className={i > 0 ? 'origin-bottom-left -rotate-3' : ''} />)}
+                        </div>
+                    </div>
+                    <div className="w-full max-w-md glass-panel p-6 rounded-2xl">
+                        {gameState === 'betting' || gameState === 'ended' ? (
+                            <div className="flex flex-col gap-4">
+                                <input type="range" min="10" max={user.balance} step="10" value={bet} onChange={(e) => setBet(Number(e.target.value))} className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-green-500" />
+                                <button onClick={dealGame} className="w-full py-4 bg-green-600 hover:bg-green-500 text-white font-black text-xl rounded-xl transition-all">DEAL</button>
+                            </div>
+                        ) : (
+                            <div className="flex gap-4">
+                                <button onClick={hit} className="flex-1 py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xl rounded-xl">HIT</button>
+                                <button onClick={stand} className="flex-1 py-4 bg-red-600 hover:bg-red-500 text-white font-bold text-xl rounded-xl">STAND</button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        const Poker = ({ user, onUpdateBalance, isDemo }) => {
+            const [bet, setBet] = useState(10);
+            const [playerHand, setPlayerHand] = useState([]);
+            const [dealerHand, setDealerHand] = useState([]);
+            const [gameState, setGameState] = useState('betting');
+            const [message, setMessage] = useState('');
+
+            const getHandRank = (hand) => {
+                const sorted = [...hand].sort((a, b) => b.numericValue - a.numericValue);
+                const v = sorted.map(c => c.numericValue);
+                const s = sorted.map(c => c.suit);
+                const isFlush = s[0] === s[1] && s[1] === s[2];
+                const isStraight = (v[0] === v[1] + 1 && v[1] === v[2] + 1) || (v[0] === 14 && v[1] === 3 && v[2] === 2);
+                const isTrips = v[0] === v[1] && v[1] === v[2];
+                const isPair = v[0] === v[1] || v[1] === v[2];
+                let value = v[0] * 10000 + v[1] * 100 + v[2];
+                
+                if (isStraight && isFlush) return { rank: 5, name: 'Straight Flush', value };
+                if (isTrips) return { rank: 4, name: 'Three of a Kind', value };
+                if (isStraight) return { rank: 3, name: 'Straight', value };
+                if (isFlush) return { rank: 2, name: 'Flush', value };
+                if (isPair) return { rank: 1, name: 'Pair', value: (v[0] === v[1] ? v[0] : v[1]) * 100 + (v[0] === v[1] ? v[2] : v[0]) };
+                return { rank: 0, name: 'High Card', value };
+            };
+
+            const deal = () => {
+                if (user.balance < bet) return;
+                onUpdateBalance(-bet);
+                let deck = generateDeck();
+                let pHand = [deck[0], deck[2], deck[4]];
+                let dHand = [deck[1], deck[3], deck[5]];
+                
+                if (!isDemo) {
+                     const pRank = getHandRank(pHand);
+                     const dRank = getHandRank(dHand);
+                     if ((pRank.rank > dRank.rank || (pRank.rank === dRank.rank && pRank.value > dRank.value)) && Math.random() < 0.10) {
+                         deck = generateDeck();
+                         dHand = [deck[1], deck[3], deck[5]];
+                     }
+                }
+
+                setPlayerHand(pHand);
+                setDealerHand(dHand);
+                setGameState('playing');
+                setMessage('');
+                setTimeout(() => resolveGame(pHand, dHand), 1000);
+            };
+
+            const resolveGame = (pHand, dHand) => {
+                setGameState('ended');
+                const pRank = getHandRank(pHand);
+                const dRank = getHandRank(dHand);
+                let won = false;
+                if (pRank.rank > dRank.rank) won = true;
+                else if (pRank.rank === dRank.rank && pRank.value > dRank.value) won = true;
+
+                if (won) {
+                    let multiplier = 2;
+                    if (pRank.rank >= 3) multiplier += (pRank.rank - 2);
+                    onUpdateBalance(bet * multiplier);
+                    setMessage(`You Win! ${pRank.name}`);
+                } else if (pRank.rank === dRank.rank && pRank.value === dRank.value) {
+                     setMessage("Push");
+                     onUpdateBalance(bet);
+                } else {
+                    setMessage(`Dealer Wins with ${dRank.name}`);
+                }
+            };
+
+            return (
+                <div className="flex flex-col items-center gap-10 w-full">
+                    <div className="flex flex-col items-center">
+                        <h3 className="text-white/50 mb-4 font-bold uppercase tracking-wider">Dealer</h3>
+                        <div className="flex -space-x-4">
+                            {dealerHand.length === 0 ? [1,2,3].map(i => <PlayingCard key={i} hidden />) : dealerHand.map((c, i) => <PlayingCard key={i} card={c} hidden={gameState === 'playing'} />)}
+                        </div>
+                    </div>
+                    <div className="h-12 flex items-center justify-center">
+                        {message && <div className="px-8 py-3 rounded-full glass-panel bg-blue-900/50 text-white font-black text-xl animate-pulse">{message}</div>}
+                    </div>
+                    <div className="flex flex-col items-center">
+                        <h3 className="text-white/50 mb-4 font-bold uppercase tracking-wider">You</h3>
+                        <div className="flex -space-x-4">
+                            {playerHand.length === 0 ? [1,2,3].map(i => <PlayingCard key={i} hidden />) : playerHand.map((c, i) => <PlayingCard key={i} card={c} />)}
+                        </div>
+                    </div>
+                    <div className="glass-panel p-6 rounded-2xl w-full max-w-md flex flex-col gap-4">
+                        <input type="range" min="10" max={user.balance} step="10" value={bet} onChange={(e) => setBet(Number(e.target.value))} disabled={gameState === 'playing'} className="w-full h-2 bg-gray-700 rounded-lg accent-green-500" />
+                        <button onClick={deal} disabled={gameState === 'playing'} className="w-full py-4 bg-green-600 hover:bg-green-500 text-white font-black text-xl rounded-xl transition-all disabled:opacity-50">{gameState === 'playing' ? 'DEALING...' : 'DEAL HAND'}</button>
+                    </div>
+                </div>
+            );
+        };
+
+        const Mines = ({ user, onUpdateBalance, isDemo }) => {
+            const [bet, setBet] = useState(10);
+            const [mineCount, setMineCount] = useState(3);
+            const [revealed, setRevealed] = useState(Array(25).fill(false));
+            const [gameState, setGameState] = useState('betting');
+            const [multiplier, setMultiplier] = useState(1.0);
+            const [minesLoc, setMinesLoc] = useState([]);
+
+            const startGame = () => {
+                if (user.balance < bet) return;
+                onUpdateBalance(-bet);
+                const indices = Array.from({ length: 25 }, (_, i) => i);
+                setMinesLoc(indices.sort(() => Math.random() - 0.5).slice(0, mineCount));
+                setRevealed(Array(25).fill(false));
+                setGameState('playing');
+                setMultiplier(1.0);
+            };
+
+            const handleTileClick = (index) => {
+                if (gameState !== 'playing' || revealed[index]) return;
+                const newRevealed = [...revealed];
+                newRevealed[index] = true;
+                setRevealed(newRevealed);
+
+                if (minesLoc.includes(index)) {
+                    setGameState('ended');
+                } else {
+                    const safeRevealedBefore = newRevealed.filter(Boolean).length - 1;
+                    const prob = (25 - mineCount - safeRevealedBefore) / (25 - safeRevealedBefore);
+                    setMultiplier(prev => parseFloat((prev * (1/prob) * (isDemo?0.98:0.9)).toFixed(2)));
+                }
+            };
+
+            const cashout = () => {
+                onUpdateBalance(bet * multiplier);
+                setGameState('ended');
+            };
+
+            return (
+                <div className="flex flex-col md:flex-row gap-8 w-full max-w-4xl items-start">
+                    <div className="w-full md:w-1/3 glass-panel p-6 rounded-2xl flex flex-col gap-6">
+                        <div><label className="text-gray-400 font-bold text-xs">BET</label><input type="number" value={bet} onChange={(e) => setBet(Number(e.target.value))} className="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-white mt-1" disabled={gameState === 'playing'} /></div>
+                        <div><label className="text-gray-400 font-bold text-xs">MINES: {mineCount}</label><input type="range" min="1" max="24" value={mineCount} onChange={(e) => setMineCount(Number(e.target.value))} className="w-full h-2 bg-gray-700 rounded-lg mt-2 accent-orange-500" disabled={gameState === 'playing'} /></div>
+                        {gameState === 'playing' ? (
+                            <button onClick={cashout} className="w-full py-4 bg-green-600 hover:bg-green-500 text-white font-black rounded-xl">CASHOUT ({multiplier}x)</button>
+                        ) : (
+                            <button onClick={startGame} className="w-full py-4 bg-green-600 hover:bg-green-500 text-white font-black rounded-xl">START GAME</button>
+                        )}
+                    </div>
+                    <div className="w-full md:w-2/3 grid grid-cols-5 gap-3">
+                        {Array(25).fill(0).map((_, i) => (
+                            <button key={i} onClick={() => handleTileClick(i)} disabled={gameState !== 'playing' || revealed[i]} className={`aspect-square rounded-xl flex items-center justify-center text-2xl ${revealed[i] ? (minesLoc.includes(i) ? 'bg-red-500/80' : 'bg-green-500/20 border-2 border-green-500/50') : 'bg-white/5 hover:bg-white/10'}`}>
+                                {revealed[i] && (minesLoc.includes(i) ? <Bomb /> : <Diamond className="text-green-400" />)}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        const CoinFlip = ({ user, onUpdateBalance, isDemo }) => {
+            const [bet, setBet] = useState(10);
+            const [choice, setChoice] = useState('heads');
+            const [flipping, setFlipping] = useState(false);
+            const [rotation, setRotation] = useState(0);
+            const [lastResult, setLastResult] = useState(null);
+            const multiplier = isDemo ? 1.96 : 1.8;
+
+            const flip = () => {
+                if (user.balance < bet || flipping) return;
+                onUpdateBalance(-bet);
+                setFlipping(true);
+                setLastResult(null);
+                
+                const isWin = Math.random() < 0.5;
+                const outcome = isWin ? choice : (choice === 'heads' ? 'tails' : 'heads');
+                const spins = 5;
+                const nextRot = Math.ceil(rotation / 360) * 360 + (360 * spins) + (outcome === 'heads' ? 0 : 180);
+                
+                setRotation(nextRot);
+                setTimeout(() => {
+                    setFlipping(false);
+                    if (isWin) {
+                        onUpdateBalance(bet * multiplier);
+                        setLastResult('win');
+                    } else setLastResult('loss');
+                }, 2000);
+            };
+
+            return (
+                <div className="flex flex-col items-center gap-10 w-full max-w-4xl">
+                    <div className="relative perspective-1000 h-80 flex items-center justify-center">
+                        <div className="w-64 h-64 md:w-80 md:h-80 relative transition-transform duration-[2000ms] cubic-bezier(0.25, 1, 0.5, 1)" style={{ transformStyle: 'preserve-3d', transform: `rotateY(${rotation}deg)` }}>
+                            <div className="absolute inset-0 rounded-full flex items-center justify-center border-[12px] border-yellow-600 bg-yellow-400" style={{ backfaceVisibility: 'hidden' }}><span className="text-9xl">👑</span></div>
+                            <div className="absolute inset-0 rounded-full flex items-center justify-center border-[12px] border-slate-600 bg-slate-400" style={{ transform: 'rotateY(180deg)', backfaceVisibility: 'hidden' }}><span className="text-9xl">🦅</span></div>
+                        </div>
+                        {lastResult && <div className={`absolute top-0 text-4xl font-black ${lastResult === 'win' ? 'text-green-400' : 'text-white/20'}`}>{lastResult === 'win' ? `+$${(bet*multiplier).toFixed(2)}` : 'RIP'}</div>}
+                    </div>
+                    <div className="glass-panel p-6 rounded-3xl w-full max-w-xl flex flex-col gap-6">
+                        <div className="grid grid-cols-2 gap-4">
+                            <button onClick={() => setChoice('heads')} disabled={flipping} className={`py-6 rounded-2xl flex flex-col items-center border-2 ${choice === 'heads' ? 'bg-yellow-500/20 border-yellow-500' : 'bg-black/20 border-transparent grayscale'}`}><span className="text-4xl">👑</span> HEADS</button>
+                            <button onClick={() => setChoice('tails')} disabled={flipping} className={`py-6 rounded-2xl flex flex-col items-center border-2 ${choice === 'tails' ? 'bg-slate-500/20 border-slate-400' : 'bg-black/20 border-transparent grayscale'}`}><span className="text-4xl">🦅</span> TAILS</button>
+                        </div>
+                        <input type="range" min="10" max={user.balance} step="10" value={bet} onChange={(e) => setBet(Number(e.target.value))} disabled={flipping} className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-white" />
+                        <button onClick={flip} disabled={flipping} className="w-full py-5 bg-white text-black font-black text-2xl rounded-xl hover:scale-[1.02] transition-all disabled:opacity-50">FLIP COIN</button>
+                    </div>
+                </div>
+            );
+        };
+
+        const Roulette = ({ user, onUpdateBalance, isDemo }) => {
+           const [bet, setBet] = useState(10);
+           const [spinning, setSpinning] = useState(false);
+           const [result, setResult] = useState(null);
+           const [rotation, setRotation] = useState(0);
+           const [selectedBet, setSelectedBet] = useState(null);
+           const WHEEL = [0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26];
+           const REDS = [1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36];
+           
+           const spin = () => {
+               if(user.balance < bet || !selectedBet || spinning) return;
+               onUpdateBalance(-bet);
+               setSpinning(true); setResult(null);
+               const outcome = Math.floor(Math.random() * 37);
+               const sliceAngle = 360/37;
+               const index = WHEEL.indexOf(outcome);
+               const targetRot = 360 - (index * sliceAngle);
+               const newRot = rotation + (5 * 360) + (targetRot - (rotation % 360));
+               
+               setRotation(newRot);
+               setTimeout(() => {
+                   setSpinning(false); setResult(outcome);
+                   const isRed = REDS.includes(outcome);
+                   const isEven = outcome !== 0 && outcome % 2 === 0;
+                   const won = (selectedBet === 'red' && isRed) || (selectedBet === 'black' && outcome !== 0 && !isRed) || (selectedBet === 'green' && outcome === 0) || (selectedBet === 'even' && isEven) || (selectedBet === 'odd' && !isEven && outcome !== 0);
+                   if(won) onUpdateBalance(bet * (selectedBet === 'green' ? 36 : 2));
+               }, 3000);
+           };
+
+           return (
+               <div className="flex flex-col items-center gap-8 w-full">
+                   <div className="relative w-72 h-72 rounded-full border-[12px] border-yellow-600 overflow-hidden bg-gray-900">
+                       <div className="w-full h-full transition-transform duration-[3000ms] cubic-bezier(0.15, 0.2, 0.1, 1)" style={{ transform: `rotate(${rotation}deg)`, background: 'conic-gradient(green 0deg 9.7deg, red 9.7deg 19.4deg, black 19.4deg 29.1deg, red 29.1deg 38.8deg, black 38.8deg 48.5deg)' }}></div>
+                       <div className="absolute top-0 left-1/2 -translate-x-1/2 border-[12px] border-transparent border-t-white z-20"></div>
+                       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 bg-yellow-600 rounded-full flex items-center justify-center text-3xl font-black z-20">{result ?? '?'}</div>
+                   </div>
+                   <div className="glass-panel p-6 rounded-2xl w-full max-w-xl flex flex-col gap-4">
+                       <input type="range" min="10" max={user.balance} step="10" value={bet} onChange={(e)=>setBet(Number(e.target.value))} className="w-full accent-green-500 h-2 bg-black/40 rounded-lg" />
+                       <div className="grid grid-cols-5 gap-2">
+                           <button onClick={()=>setSelectedBet('green')} className={`p-4 bg-green-600 rounded-xl col-span-5 ${selectedBet === 'green' ? 'ring-2 ring-white' : ''}`}>GREEN (0)</button>
+                           <button onClick={()=>setSelectedBet('red')} className={`p-4 bg-red-600 rounded-xl col-span-2 ${selectedBet === 'red' ? 'ring-2 ring-white' : ''}`}>RED</button>
+                           <button onClick={()=>setSelectedBet('black')} className={`p-4 bg-gray-900 rounded-xl col-span-2 ${selectedBet === 'black' ? 'ring-2 ring-white' : ''}`}>BLACK</button>
+                           <button onClick={()=>setSelectedBet('even')} className={`p-4 bg-blue-600 rounded-xl ${selectedBet === 'even' ? 'ring-2 ring-white' : ''}`}>EVEN</button>
+                           <button onClick={()=>setSelectedBet('odd')} className={`p-4 bg-blue-600 rounded-xl ${selectedBet === 'odd' ? 'ring-2 ring-white' : ''}`}>ODD</button>
+                       </div>
+                       <button onClick={spin} disabled={spinning || !selectedBet} className="w-full py-4 bg-yellow-500 text-black font-black rounded-xl">SPIN</button>
+                   </div>
+               </div>
+           );
+        };
+
+        const Towers = ({ user, onUpdateBalance, isDemo }) => {
+            const [bet, setBet] = useState(10);
+            const [difficulty, setDifficulty] = useState('easy');
+            const [gameState, setGameState] = useState('betting');
+            const [currentRow, setCurrentRow] = useState(0);
+            const [grid, setGrid] = useState([]);
+            const [revealed, setRevealed] = useState([]);
+            const ROWS = 8;
+            
+            const getMultipliers = () => {
+                const edge = isDemo ? 0.98 : 0.90;
+                const probability = difficulty === 'easy' ? (2/3) : (1/3);
+                const mults = [];
+                let cumulativeProb = 1.0;
+                for (let i = 0; i < ROWS; i++) {
+                    cumulativeProb *= probability;
+                    mults.push(parseFloat(((1 / cumulativeProb) * edge).toFixed(2)));
+                }
+                return mults;
+            };
+            const multipliers = getMultipliers();
+
+            const startGame = () => {
+                if (user.balance < bet) return;
+                onUpdateBalance(-bet);
+                const newGrid = [];
+                for(let r=0; r<ROWS; r++) {
+                  const row = [0, 0, 0];
+                  const bombCount = difficulty === 'easy' ? 1 : 2;
+                  let placed = 0;
+                  while(placed < bombCount) {
+                    const col = Math.floor(Math.random() * 3);
+                    if(row[col] === 0) { row[col] = 1; placed++; }
+                  }
+                  newGrid.push(row);
+                }
+                setGrid(newGrid);
+                setRevealed(Array(ROWS).fill([0, 0, 0]));
+                setCurrentRow(0);
+                setGameState('playing');
+            };
+
+            const handleTileClick = (row, col) => {
+                if (gameState !== 'playing' || row !== currentRow) return;
+                const isBomb = grid[row][col] === 1;
+                const newRevealed = [...revealed];
+                const newRowRev = [...newRevealed[row]];
+                if (isBomb) {
+                  newRowRev[col] = 2;
+                  newRevealed[row] = newRowRev;
+                  setRevealed(newRevealed);
+                  setGameState('ended');
+                } else {
+                  newRowRev[col] = 1;
+                  newRevealed[row] = newRowRev;
+                  setRevealed(newRevealed);
+                  if (row === ROWS - 1) {
+                    onUpdateBalance(bet * multipliers[row]);
+                    setGameState('ended');
+                  } else {
+                    setCurrentRow(currentRow + 1);
+                  }
+                }
+            };
+
+            const cashout = () => {
+                if (currentRow === 0) return;
+                onUpdateBalance(bet * multipliers[currentRow - 1]);
+                setGameState('ended');
+            };
+
+            return (
+                <div className="flex flex-col-reverse md:flex-row gap-8 w-full max-w-4xl items-center md:items-start">
+                   <div className="w-full md:w-1/3 glass-panel p-6 rounded-2xl flex flex-col gap-6">
+                      <div className="flex gap-2 bg-black/30 p-1 rounded-lg">
+                          <button onClick={() => setDifficulty('easy')} disabled={gameState === 'playing'} className={`flex-1 py-2 rounded text-sm font-bold ${difficulty === 'easy' ? 'bg-green-600' : 'text-gray-400'}`}>EASY</button>
+                          <button onClick={() => setDifficulty('medium')} disabled={gameState === 'playing'} className={`flex-1 py-2 rounded text-sm font-bold ${difficulty === 'medium' ? 'bg-orange-600' : 'text-gray-400'}`}>HARD</button>
+                      </div>
+                      <input type="number" value={bet} onChange={(e) => setBet(Number(e.target.value))} disabled={gameState === 'playing'} className="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-white" />
+                      {gameState === 'playing' ? (
+                         <button onClick={cashout} disabled={currentRow === 0} className="w-full py-4 bg-green-600 text-white font-black rounded-xl">CASHOUT (${(bet * (currentRow > 0 ? multipliers[currentRow - 1] : 1)).toFixed(2)})</button>
+                      ) : (
+                         <button onClick={startGame} className="w-full py-4 bg-green-600 text-white font-black rounded-xl">START GAME</button>
+                      )}
+                   </div>
+                   <div className="flex flex-col-reverse gap-2 w-full max-w-xs">
+                      {Array.from({length: ROWS}).map((_, rIndex) => (
+                         <div key={rIndex} className="flex gap-2 w-full relative">
+                            <div className={`absolute -right-16 top-1/2 -translate-y-1/2 text-sm font-bold ${rIndex === currentRow && gameState === 'playing' ? 'text-white scale-110' : 'text-gray-600'}`}>{multipliers[rIndex]}x</div>
+                            {[0, 1, 2].map((cIndex) => {
+                                const status = revealed[rIndex]?.[cIndex] || 0;
+                                return (
+                                    <button key={cIndex} onClick={() => handleTileClick(rIndex, cIndex)} disabled={!(rIndex === currentRow && gameState === 'playing')} className={`flex-1 aspect-[4/3] rounded-lg flex items-center justify-center text-2xl transition-all ${status === 0 ? ((rIndex === currentRow && gameState === 'playing') ? 'bg-white/20 hover:bg-white/30 cursor-pointer' : 'bg-black/40 opacity-50') : (status === 2 ? 'bg-red-500/80' : 'bg-green-500/80')}`}>
+                                        {status === 1 && <CheckCircle className="text-white" />}
+                                        {status === 2 && <Skull className="text-white" />}
+                                    </button>
+                                );
+                            })}
+                         </div>
+                      ))}
+                   </div>
+                </div>
+            );
+        };
+
+        const Plinko = ({ user, onUpdateBalance, isDemo }) => {
+            const [bet, setBet] = useState(10);
+            const [risk, setRisk] = useState('medium');
+            const [activeBalls, setActiveBalls] = useState([]); 
+            const ballsRef = useRef([]);
+            const requestRef = useRef(0);
+            const ROWS = 12;
+
+            const getMultipliers = () => {
+                if (risk === 'high') return [80, 20, 5, 2, 0.4, 0.2, 0.2, 0.2, 0.4, 2, 5, 20, 80];
+                if (risk === 'medium') return [20, 8, 4, 2, 0.5, 0.3, 0.3, 0.3, 0.5, 2, 4, 8, 20];
+                return [8, 4, 2, 1.2, 1, 0.7, 0.7, 0.7, 1, 1.2, 2, 4, 8]; 
+            };
+            const multipliers = getMultipliers();
+
+            const animate = () => {
+                const balls = ballsRef.current;
+                for (let i = balls.length - 1; i >= 0; i--) {
+                    const ball = balls[i];
+                    if (ball.step < ball.path.length) {
+                        const target = ball.path[ball.step];
+                        const dx = target.x - ball.x;
+                        const dy = target.y - ball.y;
+                        ball.x += dx * 0.15;
+                        ball.y += dy * 0.15;
+                        if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5) ball.step++;
+                        const el = document.getElementById(`plinko-ball-${ball.id}`);
+                        if (el) { el.style.left = `${ball.x}%`; el.style.top = `${ball.y}%`; }
+                    } else {
+                        finishBall(ball.id, ball.x);
+                        balls.splice(i, 1);
+                    }
+                }
+                if (balls.length > 0) requestRef.current = requestAnimationFrame(animate);
+            };
+
+            const dropBall = () => {
+                if (user.balance < bet) return;
+                onUpdateBalance(-bet);
+                const ballId = Date.now();
+                let currentX = 50; 
+                let path = [];
+                const stepSize = 50 / ROWS; 
+                for(let i=0; i<ROWS; i++) {
+                    let dirProbability = 0.5; 
+                    const distFromCenter = Math.abs(currentX - 50);
+                    const biasStrength = isDemo ? 0.002 : 0.008; 
+                    const pull = distFromCenter * biasStrength; 
+                    if (currentX < 50) dirProbability = 0.5 + pull;
+                    if (currentX > 50) dirProbability = 0.5 - pull;
+                    const goRight = Math.random() < dirProbability;
+                    currentX += ((goRight ? 1 : -1) * stepSize) + ((Math.random() - 0.5) * (stepSize * 0.2)); 
+                    path.push({ x: currentX, y: ((i + 1) / ROWS) * 100 });
+                }
+                ballsRef.current.push({ id: ballId, x: 50, y: 0, path: path, step: 0 });
+                setActiveBalls(prev => [...prev, ballId]);
+                if (!requestRef.current || ballsRef.current.length === 1) {
+                    cancelAnimationFrame(requestRef.current);
+                    requestRef.current = requestAnimationFrame(animate);
+                }
+            };
+
+            const finishBall = (id, finalX) => {
+                const totalSlots = multipliers.length;
+                let slotIndex = Math.floor((finalX / 100) * totalSlots);
+                slotIndex = Math.max(0, Math.min(slotIndex, totalSlots - 1));
+                const win = bet * (multipliers[slotIndex] || 0.2);
+                if (win > 0) onUpdateBalance(win);
+                setActiveBalls(prev => prev.filter(bid => bid !== id));
+            };
+
+            useEffect(() => { return () => { if (requestRef.current) cancelAnimationFrame(requestRef.current); }; }, []);
+
+            return (
+                <div className="flex flex-col md:flex-row gap-8 w-full max-w-6xl items-start">
+                   <div className="w-full md:w-1/4 glass-panel p-6 rounded-2xl flex flex-col gap-6">
+                       <select value={risk} onChange={(e) => setRisk(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-white uppercase"><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option></select>
+                       <input type="number" value={bet} onChange={(e) => setBet(Number(e.target.value))} className="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-white" />
+                       <button onClick={dropBall} className="w-full py-4 bg-green-600 hover:bg-green-500 text-white font-black rounded-xl">DROP BALL</button>
+                   </div>
+                   <div className="w-full md:w-3/4 glass-panel p-6 rounded-3xl relative min-h-[600px] flex flex-col items-center justify-between bg-black/20 overflow-hidden">
+                      <div className="flex-1 w-full relative pt-8 px-4">
+                          {Array.from({length: ROWS}).map((_, row) => (
+                              <div key={row} className="flex justify-center gap-[4%] mb-[4%]">
+                                  {Array.from({length: row + 3}).map((_, peg) => (<div key={peg} className="w-2 h-2 md:w-3 md:h-3 bg-white/20 rounded-full shadow-[0_0_5px_rgba(255,255,255,0.2)]"></div>))}
+                              </div>
+                          ))}
+                      </div>
+                      {activeBalls.map(id => (<div key={id} id={`plinko-ball-${id}`} className="absolute w-4 h-4 bg-pink-500 rounded-full shadow-[0_0_15px_rgba(236,72,153,1)] z-10 border border-white/50" style={{ left: `50%`, top: `0%`, transform: 'translate(-50%, -50%)' }}></div>))}
+                      <div className="flex w-full gap-1 pt-4 border-t border-white/5">
+                          {multipliers.map((m, i) => (
+                              <div key={i} className={`flex-1 rounded-md p-1 md:p-2 text-center border flex flex-col items-center justify-center h-14 md:h-16 ${m >= 10 ? 'bg-red-600/20 text-red-400' : 'bg-blue-500/20 text-blue-200'}`}><span className="text-[9px] md:text-xs font-bold">{m}x</span></div>
+                          ))}
+                      </div>
+                   </div>
+                </div>
+            );
+        };
+
+        const HiLo = ({ user, onUpdateBalance, isDemo }) => {
+            const [bet, setBet] = useState(10);
+            const [currentCard, setCurrentCard] = useState(null);
+            const [nextCard, setNextCard] = useState(null);
+            const [gameState, setGameState] = useState('betting');
+            const [deck, setDeck] = useState([]);
+            const [multiplier, setMultiplier] = useState(1.0);
+
+            const getRank = (c) => {
+                if (c.value === 'A') return 14;
+                if (c.value === 'K') return 13;
+                if (c.value === 'Q') return 12;
+                if (c.value === 'J') return 11;
+                return parseInt(c.value);
+            };
+
+            const getOdds = () => {
+                if (!currentCard || deck.length === 0) return { highMult: 0, lowMult: 0 };
+                const currRank = getRank(currentCard);
+                const total = deck.length;
+                const highWins = deck.filter(c => getRank(c) >= currRank).length;
+                const lowWins = deck.filter(c => getRank(c) <= currRank).length;
+                const probHigh = highWins / total;
+                const probLow = lowWins / total;
+                const edge = isDemo ? 0.98 : 0.90;
+                return {
+                    highMult: probHigh === 1 ? 1.0 : (probHigh > 0 ? parseFloat(((1 / probHigh) * edge).toFixed(2)) : 0),
+                    lowMult: probLow === 1 ? 1.0 : (probLow > 0 ? parseFloat(((1 / probLow) * edge).toFixed(2)) : 0)
+                };
+            };
+            const odds = getOdds();
+
+            const startGame = () => {
+                if (user.balance < bet) return;
+                onUpdateBalance(-bet);
+                const newDeck = generateDeck();
+                setDeck(newDeck.slice(1));
+                setCurrentCard(newDeck[0]);
+                setNextCard(null);
+                setGameState('playing');
+                setMultiplier(1.0);
+            };
+
+            const guess = (direction) => {
+                if (!deck.length) return;
+                const stepMult = direction === 'higher' ? odds.highMult : odds.lowMult;
+                const next = deck[0];
+                const remaining = deck.slice(1);
+                setNextCard(next);
+                setTimeout(() => {
+                    const currRank = getRank(currentCard);
+                    const nextRank = getRank(next);
+                    let won = (direction === 'higher' && nextRank >= currRank) || (direction === 'lower' && nextRank <= currRank);
+                    if (won) {
+                        setMultiplier(prev => parseFloat((prev * stepMult).toFixed(2)));
+                        setCurrentCard(next);
+                        setNextCard(null);
+                        setDeck(remaining);
+                        if (remaining.length === 0) cashout(parseFloat((multiplier * stepMult).toFixed(2)));
+                    } else {
+                        setGameState('ended');
+                    }
+                }, 600);
+            };
+
+            const cashout = (finalMult) => {
+                onUpdateBalance(bet * (finalMult || multiplier));
+                setGameState('ended');
+            };
+
+            return (
+                <div className="flex flex-col items-center gap-8 w-full max-w-3xl">
+                    <div className="flex items-center justify-center gap-8 min-h-[250px]">
+                         <PlayingCard card={currentCard} hidden={!currentCard} />
+                         {nextCard ? <PlayingCard card={nextCard} className="animate-in fade-in slide-in-from-right" /> : <div className="w-24 h-36 border-2 border-white/10 rounded-lg flex items-center justify-center bg-white/5"><span className="text-4xl text-white/20">?</span></div>}
+                    </div>
+                    {gameState === 'playing' && (
+                        <div className="grid grid-cols-2 gap-8 text-center bg-black/20 p-4 rounded-xl">
+                            <div><div className="text-gray-400 text-[10px] font-bold uppercase">Multiplier</div><div className="text-2xl font-black text-green-400">{multiplier}x</div></div>
+                            <div><div className="text-gray-400 text-[10px] font-bold uppercase">Payout</div><div className="text-2xl font-black text-green-400">${(bet * multiplier).toFixed(2)}</div></div>
+                        </div>
+                    )}
+                    <div className="glass-panel p-6 rounded-2xl w-full max-w-md">
+                        {gameState === 'playing' ? (
+                            <div className="flex flex-col gap-4">
+                                <div className="flex gap-4">
+                                    <button onClick={() => guess('higher')} disabled={!!nextCard || odds.highMult === 0} className="flex-1 py-4 bg-green-600 text-white font-black rounded-xl flex flex-col items-center"><ArrowUp /> HIGHER <span className="text-xs font-normal">{odds.highMult}x</span></button>
+                                    <button onClick={() => guess('lower')} disabled={!!nextCard || odds.lowMult === 0} className="flex-1 py-4 bg-red-600 text-white font-black rounded-xl flex flex-col items-center"><ArrowDown /> LOWER <span className="text-xs font-normal">{odds.lowMult}x</span></button>
+                                </div>
+                                <button onClick={() => cashout()} disabled={!!nextCard || multiplier === 1} className="w-full py-4 bg-yellow-600 text-white font-black rounded-xl">CASHOUT</button>
+                            </div>
+                        ) : (
+                            <div className="flex flex-col gap-4">
+                                <input type="range" min="10" max={user.balance} step="10" value={bet} onChange={(e) => setBet(Number(e.target.value))} className="w-full accent-yellow-500 h-2 bg-black/40 rounded-lg" />
+                                <button onClick={startGame} className="w-full py-4 bg-green-600 text-white font-black rounded-xl">START GAME</button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        // ==========================================
+        // 5. MAIN APP
+        // ==========================================
+
+        function App() {
+            const [user, setUser] = useState(null);
+            const [isRegistering, setIsRegistering] = useState(false);
+            const [usernameInput, setUsernameInput] = useState('');
+            const [passwordInput, setPasswordInput] = useState('');
+            const [activeGame, setActiveGame] = useState(null);
+            const [showBugModal, setShowBugModal] = useState(false);
+            const [gameMode, setGameMode] = useState('paid');
+            const [authError, setAuthError] = useState('');
+            const [loading, setLoading] = useState(false);
+
+            useEffect(() => {
+                const saved = localStorage.getItem('casino_user');
+                if (saved) setUser(JSON.parse(saved));
+            }, []);
+
+            const handleAuth = async (e) => {
+                e.preventDefault();
+                if (!usernameInput || !passwordInput) {
+                    setAuthError('Please fill in all fields');
+                    return;
+                }
+                setLoading(true);
+                setAuthError('');
+                
+                try {
+                    const u = await (isRegistering ? api.register(usernameInput, passwordInput) : api.login(usernameInput, passwordInput));
+                    setUser(u);
+                    localStorage.setItem('casino_user', JSON.stringify(u));
+                } catch (err) {
+                    setAuthError(err.message || "Authentication Failed");
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const handleLogout = () => {
+                setUser(null);
+                setActiveGame(null);
+                localStorage.removeItem('casino_user');
+                setUsernameInput('');
+                setPasswordInput('');
+                setAuthError('');
+            };
+
+            const updateBalance = async (amount) => {
+                if (!user) return;
+                const isFree = gameMode === 'free';
+                const currentBalance = isFree ? user.freeBalance : user.balance;
+                const newBalance = currentBalance + amount;
+                await api.updateBalance(user.username, newBalance, isFree);
+                const updated = { ...user, [isFree ? 'freeBalance' : 'balance']: newBalance };
+                setUser(updated);
+                localStorage.setItem('casino_user', JSON.stringify(updated));
+            };
+            
+            const resetFreeFunds = async () => {
+                if (!user) return;
+                const newAmount = 1000;
+                await api.updateBalance(user.username, newAmount, true);
+                const updatedUser = { ...user, freeBalance: newAmount };
+                setUser(updatedUser);
+                localStorage.setItem('casino_user', JSON.stringify(updatedUser));
+            };
+
+            const activeUser = user ? { ...user, balance: gameMode === 'free' ? user.freeBalance : user.balance } : null;
+
+            if (!user) {
+                // LOGIN SCREEN
+                return (
+                    <div className="min-h-screen flex items-center justify-center p-4 bg-black relative overflow-hidden">
+                        <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-black to-blue-950 z-0"></div>
+                        <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+                            <div className="absolute -top-[20%] -left-[10%] w-[700px] h-[700px] bg-purple-600/30 rounded-full blur-[120px] animate-float opacity-40 mix-blend-color-dodge"></div>
+                            <div className="absolute bottom-[10%] -right-[10%] w-[600px] h-[600px] bg-blue-600/20 rounded-full blur-[100px] animate-float opacity-40 mix-blend-color-dodge" style={{ animationDelay: '3s' }}></div>
+                            <div className="absolute top-[40%] left-[40%] w-[400px] h-[400px] bg-emerald-500/10 rounded-full blur-[80px] animate-pulse opacity-30 mix-blend-screen" style={{ animationDelay: '5s' }}></div>
+                        </div>
+                        <div className="w-full max-w-md relative z-10 perspective-1000">
+                             <div className="flex flex-col items-center mb-10 relative">
+                                <div className="relative group cursor-default">
+                                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full blur-2xl opacity-50 group-hover:opacity-75 transition-opacity duration-500"></div>
+                                    <div className="relative w-24 h-24 bg-black/40 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/10 shadow-[0_0_40px_rgba(0,0,0,0.5)] group-hover:scale-105 transition-transform duration-500 overflow-hidden">
+                                        <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                        <span className="text-5xl filter drop-shadow-[0_0_15px_rgba(255,255,255,0.8)] transform group-hover:rotate-12 transition-transform duration-500">🎲</span>
+                                    </div>
+                                </div>
+                                <h1 className="mt-8 text-6xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white via-white to-white/50 drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)]">JUDECENO</h1>
+                                <div className="flex items-center gap-3 mt-2">
+                                    <div className="h-[1px] w-8 bg-blue-500/50"></div>
+                                    <p className="text-blue-200/70 text-xs font-bold tracking-[0.4em] uppercase">Future of Gamble</p>
+                                    <div className="h-[1px] w-8 bg-blue-500/50"></div>
+                                </div>
+                            </div>
+                            <div className="backdrop-blur-3xl bg-white/[0.03] border border-white/[0.05] p-1 rounded-[40px] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.7)] ring-1 ring-white/10 relative overflow-hidden group">
+                                <div className="bg-[#0a0a0a]/60 backdrop-blur-xl rounded-[36px] p-8 relative overflow-hidden">
+                                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-1 bg-gradient-to-r from-transparent via-blue-500 to-transparent blur-sm opacity-50"></div>
+                                    <div className="relative flex p-1 bg-black/40 rounded-2xl border border-white/5 mb-8">
+                                        <div className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-gradient-to-b from-gray-700 to-gray-800 rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.5)] border border-white/10 transition-all duration-300 ${isRegistering ? 'left-[calc(50%+2px)]' : 'left-1'}`}></div>
+                                        <button onClick={() => { setIsRegistering(false); setAuthError(''); }} className="flex-1 relative z-10 py-3 text-sm font-bold flex items-center justify-center gap-2"><LogIn size={14} /> LOGIN</button>
+                                        <button onClick={() => { setIsRegistering(true); setAuthError(''); }} className="flex-1 relative z-10 py-3 text-sm font-bold flex items-center justify-center gap-2"><UserPlus size={14} /> JOIN</button>
+                                    </div>
+                                    <form onSubmit={handleAuth} className="flex flex-col gap-6">
+                                        <div className="group relative">
+                                            <input type="text" placeholder="USERNAME" value={usernameInput} onChange={(e) => setUsernameInput(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-2xl px-5 py-4 text-white font-bold outline-none focus:border-blue-500/50" />
+                                        </div>
+                                        <div className="group relative">
+                                            <input type="password" placeholder="PASSWORD" value={passwordInput} onChange={(e) => setPasswordInput(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-2xl px-5 py-4 text-white font-bold outline-none focus:border-blue-500/50" />
+                                        </div>
+                                        
+                                        {authError && (
+                                            <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3 flex items-center gap-3 text-red-400 text-xs font-bold">
+                                                <AlertCircle size={16} /> {authError}
+                                            </div>
+                                        )}
+
+                                        <button type="submit" disabled={loading} className="w-full bg-white text-black font-black text-lg py-4 rounded-2xl shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:shadow-[0_0_30px_rgba(255,255,255,0.4)] transition-all disabled:opacity-50">
+                                            {loading ? <Loader2 className="animate-spin mx-auto" /> : (isRegistering ? 'CREATE ACCOUNT' : 'ENTER ACCESS')}
+                                        </button>
+                                    </form>
+                                    <div className="mt-8 text-center">
+                                        <p className="text-[10px] text-gray-600 font-bold tracking-widest uppercase flex items-center justify-center gap-2">
+                                            <span className="w-1 h-1 bg-green-500 rounded-full animate-pulse"></span>
+                                            Secure Connection • v2.0
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="min-h-screen pb-20">
+                    <nav className="glass-panel border-x-0 border-t-0 sticky top-0 z-40 px-6 py-4 flex justify-between items-center bg-[#050b14]/80">
+                        <div className="flex items-center gap-6">
+                            <div onClick={() => setActiveGame(null)} className="font-black text-xl tracking-tighter cursor-pointer flex items-center gap-2"><span className="text-2xl">🎲</span> JUDECENO</div>
+                            <div className="hidden md:flex bg-black/40 rounded-full p-1 border border-white/10">
+                                <button onClick={() => setGameMode('free')} className={`px-4 py-1 rounded-full text-xs font-bold transition-all ${gameMode === 'free' ? 'bg-blue-500 text-white' : 'text-gray-400'}`}>DEMO</button>
+                                <button onClick={() => setGameMode('paid')} className={`px-4 py-1 rounded-full text-xs font-bold transition-all ${gameMode === 'paid' ? 'bg-green-500 text-white' : 'text-gray-400'}`}>REAL</button>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-4">
+                            <button onClick={() => setGameMode(m => m === 'free' ? 'paid' : 'free')} className="md:hidden text-xs font-bold border border-white/20 px-2 py-1 rounded bg-black/40">
+                                {gameMode === 'free' ? 'DEMO' : 'REAL'}
+                            </button>
+                            <div className={`bg-black/40 px-4 py-2 rounded-lg border flex flex-col items-end ${gameMode === 'free' ? 'border-blue-500/30' : 'border-green-500/30'}`}>
+                                <span className={`text-[10px] font-bold ${gameMode === 'free' ? 'text-blue-400' : 'text-green-400'}`}>{gameMode === 'free' ? 'DEMO FUNDS' : 'REAL FUNDS'}</span>
+                                <div className="flex items-center gap-2">
+                                    <span className="font-mono font-bold text-lg">${activeUser.balance.toFixed(2)}</span>
+                                    {gameMode === 'free' && <button onClick={resetFreeFunds}><RotateCcw size={14} className="text-blue-400" /></button>}
+                                </div>
+                            </div>
+                            <button onClick={() => { setUser(null); setActiveGame(null); }} className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center">👤</button>
+                        </div>
+                    </nav>
+
+                    <main className="container mx-auto px-4 py-8">
+                        {activeGame ? (
+                            <div className="flex flex-col gap-6 animate-in fade-in zoom-in duration-300">
+                                <div className="flex justify-between items-center glass-panel p-4 rounded-xl">
+                                    <button onClick={() => setActiveGame(null)} className="text-white/60 hover:text-white font-bold">← BACK TO LOBBY</button>
+                                    <h2 className="text-2xl font-black uppercase">{GAMES.find(g => g.id === activeGame)?.name}</h2>
+                                    <button onClick={() => setShowBugModal(true)} className="bg-red-500/10 text-red-400 px-4 py-2 rounded-lg text-sm font-bold">REPORT BUG 🐛</button>
+                                </div>
+                                <div className="min-h-[600px] flex items-center justify-center">
+                                    {activeGame === GameType.BLACKJACK && <Blackjack user={activeUser} onUpdateBalance={updateBalance} isDemo={gameMode === 'free'} />}
+                                    {activeGame === GameType.MINES && <Mines user={activeUser} onUpdateBalance={updateBalance} isDemo={gameMode === 'free'} />}
+                                    {activeGame === GameType.COINFLIP && <CoinFlip user={activeUser} onUpdateBalance={updateBalance} isDemo={gameMode === 'free'} />}
+                                    {activeGame === GameType.ROULETTE && <Roulette user={activeUser} onUpdateBalance={updateBalance} isDemo={gameMode === 'free'} />}
+                                    {activeGame === GameType.POKER && <Poker user={activeUser} onUpdateBalance={updateBalance} isDemo={gameMode === 'free'} />}
+                                    {activeGame === GameType.TOWERS && <Towers user={activeUser} onUpdateBalance={updateBalance} isDemo={gameMode === 'free'} />}
+                                    {activeGame === GameType.PLINKO && <Plinko user={activeUser} onUpdateBalance={updateBalance} isDemo={gameMode === 'free'} />}
+                                    {activeGame === GameType.HILO && <HiLo user={activeUser} onUpdateBalance={updateBalance} isDemo={gameMode === 'free'} />}
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                {GAMES.map((game) => (
+                                    <button key={game.id} onClick={() => setActiveGame(game.id)} disabled={!game.active} className="group relative h-64 glass-panel rounded-2xl p-6 flex flex-col items-center justify-center gap-4 transition-all duration-300 hover:scale-105">
+                                        <div className={`absolute inset-0 bg-gradient-to-br ${game.color} opacity-0 group-hover:opacity-20 rounded-2xl transition-opacity duration-300`}></div>
+                                        <div className="text-6xl filter drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">{game.icon}</div>
+                                        <div className="text-center relative z-10">
+                                            <h3 className="text-2xl font-black uppercase tracking-wider">{game.name}</h3>
+                                            <p className="text-sm text-white/50 font-bold">{game.description}</p>
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </main>
+                    <BugModal isOpen={showBugModal} onClose={() => setShowBugModal(false)} username={user.username} gameId={activeGame || 'lobby'} />
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
