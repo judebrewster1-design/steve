@@ -1,1652 +1,1311 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎰 Judeceno Casino</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Judeceno Casino</title>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- Babel for JSX/TSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-        .animate-spin { animation: spin 1s linear infinite; }
-        .animate-bounce { animation: bounce 1s infinite; }
-        @keyframes bounce {
-            0%, 100% { transform: translateY(-25%); animation-timing-function: cubic-bezier(0.8, 0, 1, 1); }
-            50% { transform: translateY(0); animation-timing-function: cubic-bezier(0, 0, 0.2, 1); }
-        }
-        .animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: .5; }
-        }
-    </style>
-</head>
-<body class="bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 text-white min-h-screen">
-    <div id="app"></div>
-
     <script>
-        const API_URL = 'https://singles-celebs-digest-principal.trycloudflare.com';
-        let currentUser = null;
-        let currentGame = null;
-        let isDemo = false;
-        let showSettings = false;
-        let adminLoggedIn = false;
-        let adminPassword = '';
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              stake: {
+                dark: '#0f212e',
+                darker: '#07151e',
+                card: '#1a2c38',
+                hover: '#2f4553',
+                green: '#00e701',
+                greenHover: '#00c701',
+                accent: '#00e701',
+                text: '#b1bad3',
+                white: '#ffffff',
+                red: '#ff4d4d',
+              }
+            },
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+            },
+            gridTemplateColumns: {
+              '14': 'repeat(14, minmax(0, 1fr))',
+            },
+            boxShadow: {
+              'glow': '0 0 15px rgba(0, 231, 1, 0.4)',
+              'glow-red': '0 0 15px rgba(255, 77, 77, 0.4)',
+              'glow-card': '0 0 20px rgba(0,0,0,0.5)',
+              'inner-light': 'inset 0 1px 0 rgba(255,255,255,0.1)'
+            },
+            backgroundImage: {
+              'aura-gradient': 'radial-gradient(circle at 50% 0%, #1a2c38 0%, #0f212e 100%)',
+              'card-gradient': 'linear-gradient(145deg, #1a2c38, #15232d)',
+              'btn-gradient': 'linear-gradient(to bottom, #00e701, #00c701)'
+            }
+          }
+        }
+      }
+    </script>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+      body {
+        font-family: 'Inter', sans-serif;
+        background-color: #0f212e;
+        background-image: radial-gradient(circle at 50% -20%, #213743 0%, #0f212e 50%, #07151e 100%);
+        background-attachment: fixed;
+        color: #b1bad3;
+      }
+      ::-webkit-scrollbar { width: 6px; height: 6px; }
+      ::-webkit-scrollbar-track { background: transparent; }
+      ::-webkit-scrollbar-thumb { background: #2f4553; border-radius: 99px; }
+      ::-webkit-scrollbar-thumb:hover { background: #415969; }
 
-        // State for each game
-        let gameStates = {
-            blackjack: { bet: 100, gameState: null, loading: false },
-            poker: { bet: 100, result: null, loading: false },
-            mines: { bet: 100, mineCount: 5, gameActive: false, revealed: [], multiplier: 1.0, gameOver: false, loading: false },
-            coinflip: { bet: 100, choice: 'heads', result: null, loading: false, flipping: false },
-            roulette: { bet: 100, betType: 'red', result: null, loading: false, spinning: false },
-            towers: { bet: 100, difficulty: 'easy', gameActive: false, currentRow: 0, revealed: [], gameOver: false, loading: false, multiplier: 1.0 },
-            plinko: { bet: 100, risk: 'medium', result: null, loading: false, dropping: false },
-            hilo: { bet: 100, gameActive: false, currentCard: null, nextCard: null, multiplier: 1.0, gameOver: false, loading: false }
+      /* Animations */
+      @keyframes pop-in {
+        0% { transform: scale(0.8) translateY(10px); opacity: 0; }
+        100% { transform: scale(1) translateY(0); opacity: 1; }
+      }
+      .animate-pop-in { animation: pop-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+
+      @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-5px); }
+      }
+      .animate-float { animation: float 3s ease-in-out infinite; }
+
+      @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+        20%, 40%, 60%, 80% { transform: translateX(4px); }
+      }
+      .animate-shake { animation: shake 0.4s ease-in-out; }
+
+      /* 3D Coin Flip */
+      .perspective-1000 { perspective: 1000px; }
+      .transform-style-3d { transform-style: preserve-3d; }
+      .backface-hidden { backface-visibility: hidden; }
+      .rotate-y-180 { transform: rotateY(180deg); }
+      
+      /* Glassmorphism utility */
+      .glass {
+        background: rgba(26, 44, 56, 0.7);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+      }
+      
+      .input-field {
+        background: #07151e;
+        border: 1px solid #2f4553;
+        transition: all 0.2s;
+      }
+      .input-field:focus {
+        border-color: #00e701;
+        box-shadow: 0 0 0 2px rgba(0, 231, 1, 0.1);
+        outline: none;
+      }
+    </style>
+    <script type="importmap">
+    {
+      "imports": {
+        "react": "https://esm.sh/react@^18.2.0",
+        "react-dom/": "https://esm.sh/react-dom@^18.2.0/",
+        "react/": "https://esm.sh/react@^18.2.0/"
+      }
+    }
+    </script>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel" data-presets="react,typescript">
+        const { useState, useEffect, useRef } = React;
+
+        // ==========================================
+        // MOCK BACKEND LOGIC & SERVICES
+        // ==========================================
+        
+        const API_URL = 'https://singles-celebs-digest-principal.trycloudflare.com';
+
+        // Local store for demo balances to operate independently of backend
+        const DEMO_BALANCES = {};
+
+        const getCardRank = (value) => {
+            const values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+            return values.indexOf(value);
         };
 
-        const games = [
-            { id: 'blackjack', name: 'Blackjack', icon: '🃏', color: 'from-red-500 to-pink-600' },
-            { id: 'poker', name: 'Poker', icon: '♠️', color: 'from-blue-500 to-cyan-600' },
-            { id: 'mines', name: 'Mines', icon: '💣', color: 'from-orange-500 to-red-600' },
-            { id: 'towers', name: 'Towers', icon: '🏢', color: 'from-purple-500 to-pink-600' },
-            { id: 'plinko', name: 'Plinko', icon: '🎯', color: 'from-yellow-500 to-orange-600' },
-            { id: 'roulette', name: 'Roulette', icon: '🎡', color: 'from-green-500 to-teal-600' },
-            { id: 'hilo', name: 'Hi-Lo', icon: '📊', color: 'from-indigo-500 to-blue-600' },
-            { id: 'coinflip', name: 'Coin Flip', icon: '🪙', color: 'from-gray-500 to-slate-600' }
-        ];
+        const getBlackjackValue = (card) => {
+            if (['J', 'Q', 'K'].includes(card.value)) return 10;
+            if (card.value === 'A') return 11;
+            return parseInt(card.value);
+        };
 
-        async function handleAuth(isLogin) {
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            const errorDiv = document.getElementById('error');
-
-            if (!username || !password) {
-                errorDiv.textContent = 'Please enter username and password';
-                errorDiv.classList.remove('hidden');
-                return;
-            }
-
-            try {
-                const endpoint = isLogin ? '/login' : '/register';
-                const res = await fetch(`${API_URL}${endpoint}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password })
-                });
-
-                const data = await res.json();
-                if (res.ok) {
-                    currentUser = data;
-                    renderMainApp();
-                } else {
-                    errorDiv.textContent = data.error;
-                    errorDiv.classList.remove('hidden');
-                }
-            } catch (err) {
-                errorDiv.textContent = 'Connection failed. Is the server running?';
-                errorDiv.classList.remove('hidden');
-            }
-        }
-
-        function renderAuthScreen() {
-            document.getElementById('app').innerHTML = `
-                <div class="min-h-screen flex items-center justify-center p-4">
-                    <div class="bg-gray-800 rounded-lg border border-gray-700 w-full max-w-md p-8">
-                        <div class="text-center mb-8">
-                            <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600 mb-2">
-                                🎰 Judeceno Casino
-                            </h1>
-                            <p class="text-gray-400">Your Premium Gaming Destination</p>
-                        </div>
-
-                        <div id="error" class="hidden bg-red-500/20 border border-red-500 rounded-lg p-3 mb-4 text-red-300 text-sm"></div>
-
-                        <div class="space-y-4">
-                            <input type="text" id="username" placeholder="Username" 
-                                class="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-500">
-                            <input type="password" id="password" placeholder="Password"
-                                class="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-500">
-                            <button onclick="handleAuth(true)" class="w-full px-4 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg font-semibold transition-all">
-                                Login
-                            </button>
-                            <button onclick="handleAuth(false)" class="w-full px-4 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg font-semibold transition-all">
-                                Register
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        function renderMainApp() {
-            const balance = isDemo ? currentUser.freeBalance : currentUser.balance;
-            
-            if (showSettings) {
-                renderSettings();
-                return;
-            }
-
-            document.getElementById('app').innerHTML = `
-                <!-- Header -->
-                <div class="bg-gray-800/50 backdrop-blur-sm border-b border-gray-700 sticky top-0 z-50">
-                    <div class="max-w-7xl mx-auto px-4 py-4">
-                        <div class="flex items-center justify-between">
-                            <h1 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600">
-                                🎰 Judeceno
-                            </h1>
-                            
-                            <div class="flex items-center gap-4">
-                                <div class="flex items-center gap-2 bg-gray-900 px-4 py-2 rounded-lg">
-                                    <span class="text-sm text-gray-400">Mode:</span>
-                                    <button onclick="toggleDemo()" class="px-3 py-1 rounded text-sm font-semibold ${isDemo ? 'bg-yellow-600' : 'bg-green-600'}">
-                                        ${isDemo ? '🎁 Demo' : '💰 Real'}
-                                    </button>
-                                </div>
-                                
-                                <div class="bg-gray-900 px-4 py-2 rounded-lg">
-                                    <div class="flex items-center gap-2">
-                                        <span class="text-green-400">💵</span>
-                                        <span class="font-bold">$${(balance / 100).toFixed(2)}</span>
-                                    </div>
-                                </div>
-
-                                <button onclick="showBugReport()" class="p-2 bg-gray-900 rounded-lg hover:bg-gray-700 transition-colors" title="Report Bug">
-                                    🐛
-                                </button>
-
-                                <button onclick="openSettings()" class="p-2 bg-gray-900 rounded-lg hover:bg-gray-700 transition-colors" title="Settings">
-                                    ⚙️
-                                </button>
-
-                                <button onclick="logout()" class="p-2 bg-gray-900 rounded-lg hover:bg-red-700 transition-colors" title="Logout">
-                                    🚪
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Main Content -->
-                <div class="max-w-7xl mx-auto px-4 py-8">
-                    <div id="game-container">
-                        ${currentGame ? renderGame(currentGame) : renderGameSelection()}
-                    </div>
-                </div>
-
-                <!-- Bug Report Modal -->
-                <div id="bug-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
-                    <div class="bg-gray-800 rounded-lg border border-gray-700 w-full max-w-md p-6">
-                        <h3 class="text-2xl font-bold mb-4">🐛 Report a Bug</h3>
-                        <div class="space-y-4">
-                            <select id="bug-game" class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white">
-                                <option value="">Select Game</option>
-                                ${games.map(g => `<option value="${g.id}">${g.name}</option>`).join('')}
-                            </select>
-                            <textarea id="bug-description" placeholder="Describe the bug..." 
-                                class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white h-32 resize-none"></textarea>
-                            <div class="flex gap-2">
-                                <button onclick="submitBugReport()" class="flex-1 px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg font-semibold">
-                                    Submit Report
-                                </button>
-                                <button onclick="closeBugReport()" class="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg font-semibold">
-                                    Cancel
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        function renderSettings() {
-            document.getElementById('app').innerHTML = `
-                <div class="min-h-screen p-4">
-                    <div class="max-w-4xl mx-auto">
-                        <div class="bg-gray-800 rounded-lg border border-gray-700 p-6">
-                            <div class="flex items-center justify-between mb-6">
-                                <h2 class="text-3xl font-bold">⚙️ Settings</h2>
-                                <button onclick="closeSettings()" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg">
-                                    ← Back
-                                </button>
-                            </div>
-
-                            <div class="space-y-6">
-                                <!-- User Info -->
-                                <div class="bg-gray-900 rounded-lg p-4">
-                                    <h3 class="text-xl font-bold mb-3">👤 Account Information</h3>
-                                    <div class="space-y-2">
-                                        <div class="flex justify-between">
-                                            <span class="text-gray-400">Username:</span>
-                                            <span class="font-bold">${currentUser.username}</span>
-                                        </div>
-                                        <div class="flex justify-between">
-                                            <span class="text-gray-400">Real Balance:</span>
-                                            <span class="font-bold text-green-400">$${(currentUser.balance / 100).toFixed(2)}</span>
-                                        </div>
-                                        <div class="flex justify-between">
-                                            <span class="text-gray-400">Demo Balance:</span>
-                                            <span class="font-bold text-yellow-400">$${(currentUser.freeBalance / 100).toFixed(2)}</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Admin Panel -->
-                                <div class="bg-gray-900 rounded-lg p-4 border-t-4 border-red-500">
-                                    <h3 class="text-xl font-bold mb-3">🔐 Admin Panel</h3>
-                                    
-                                    ${!adminLoggedIn ? `
-                                        <div class="space-y-3">
-                                            <input type="password" id="admin-password" placeholder="Admin Password" 
-                                                class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white">
-                                            <button onclick="loginAdmin()" class="w-full px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg font-semibold">
-                                                Login as Admin
-                                            </button>
-                                            <p class="text-sm text-gray-400 text-center">Admin access required to manage casino</p>
-                                        </div>
-                                    ` : `
-                                        <div id="admin-content" class="space-y-4">
-                                            <div class="flex items-center justify-between p-3 bg-green-500/20 rounded-lg border border-green-500">
-                                                <span class="text-green-300 font-semibold">✅ Admin Access Granted</span>
-                                                <button onclick="logoutAdmin()" class="px-3 py-1 bg-red-600 hover:bg-red-700 rounded text-sm">
-                                                    Logout
-                                                </button>
-                                            </div>
-
-                                            <!-- Tabs -->
-                                            <div class="flex gap-2 border-b border-gray-700">
-                                                <button onclick="showAdminTab('users')" id="tab-users" class="px-4 py-2 font-semibold border-b-2 border-purple-500">
-                                                    Users
-                                                </button>
-                                                <button onclick="showAdminTab('games')" id="tab-games" class="px-4 py-2 font-semibold border-b-2 border-transparent hover:border-gray-600">
-                                                    Games
-                                                </button>
-                                                <button onclick="showAdminTab('bugs')" id="tab-bugs" class="px-4 py-2 font-semibold border-b-2 border-transparent hover:border-gray-600">
-                                                    Bug Reports
-                                                </button>
-                                                <button onclick="showAdminTab('stats')" id="tab-stats" class="px-4 py-2 font-semibold border-b-2 border-transparent hover:border-gray-600">
-                                                    Statistics
-                                                </button>
-                                            </div>
-
-                                            <div id="admin-tab-content">
-                                                Loading...
-                                            </div>
-                                        </div>
-                                    `}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            if (adminLoggedIn) {
-                showAdminTab('users');
-            }
-        }
-
-        async function loginAdmin() {
-            const password = document.getElementById('admin-password').value;
-            
-            try {
-                const res = await fetch(`${API_URL}/admin/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ password })
-                });
-
-                if (res.ok) {
-                    adminLoggedIn = true;
-                    adminPassword = password;
-                    renderSettings();
-                } else {
-                    alert('Invalid admin password');
-                }
-            } catch (err) {
-                alert('Error connecting to server');
-            }
-        }
-
-        function logoutAdmin() {
-            adminLoggedIn = false;
-            adminPassword = '';
-            renderSettings();
-        }
-
-        async function showAdminTab(tab) {
-            // Update tab buttons
-            document.querySelectorAll('[id^="tab-"]').forEach(btn => {
-                btn.classList.remove('border-purple-500');
-                btn.classList.add('border-transparent');
+        const calculateHandScore = (hand) => {
+            let score = 0;
+            let aces = 0;
+            hand.forEach(card => {
+                score += getBlackjackValue(card);
+                if (card.value === 'A') aces += 1;
             });
-            document.getElementById(`tab-${tab}`).classList.remove('border-transparent');
-            document.getElementById(`tab-${tab}`).classList.add('border-purple-500');
-
-            const content = document.getElementById('admin-tab-content');
-            content.innerHTML = '<div class="text-center py-8">Loading...</div>';
-
-            if (tab === 'users') {
-                await renderUsersTab();
-            } else if (tab === 'games') {
-                await renderGamesTab();
-            } else if (tab === 'bugs') {
-                await renderBugsTab();
-            } else if (tab === 'stats') {
-                await renderStatsTab();
+            while (score > 21 && aces > 0) {
+                score -= 10;
+                aces -= 1;
             }
-        }
+            return score;
+        };
 
-        async function renderUsersTab() {
-            try {
-                const res = await fetch(`${API_URL}/admin/users`, {
-                    headers: { 'X-Admin-Password': adminPassword }
-                });
-                const data = await res.json();
-                
-                const content = document.getElementById('admin-tab-content');
-                content.innerHTML = `
-                    <div class="space-y-3">
-                        <h4 class="font-bold text-lg">Manage Users (${data.users.length})</h4>
-                        <div class="space-y-2 max-h-96 overflow-y-auto">
-                            ${data.users.map(user => `
-                                <div class="bg-gray-800 p-3 rounded-lg flex items-center justify-between">
-                                    <div>
-                                        <div class="font-bold">${user.username}</div>
-                                        <div class="text-sm text-gray-400">
-                                            Balance: $${(user.balance / 100).toFixed(2)} | 
-                                            Demo: $${(user.freeBalance / 100).toFixed(2)}
-                                        </div>
-                                    </div>
-                                    <button onclick="showGiveFunds('${user.username}')" 
-                                        class="px-3 py-1 bg-green-600 hover:bg-green-700 rounded text-sm">
-                                        💰 Give Funds
-                                    </button>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                `;
-            } catch (err) {
-                document.getElementById('admin-tab-content').innerHTML = 
-                    '<div class="text-red-400 text-center py-8">Error loading users</div>';
-            }
-        }
+        const getRouletteColor = (num) => {
+            if (num === 0) return 'green';
+            const red = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36];
+            return red.includes(num) ? 'red' : 'black';
+        };
 
-        function showGiveFunds(username) {
-            const amount = prompt(`Enter amount to give to ${username} (in cents, e.g., 10000 = $100.00):`);
-            if (amount && !isNaN(amount)) {
-                giveFunds(username, parseInt(amount));
-            }
-        }
+        // --- STRICT 98% RTP ---
+        const getRtp = (isDemo) => 0.98;
 
-        async function giveFunds(username, amount) {
-            try {
-                const res = await fetch(`${API_URL}/admin/give-funds`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Admin-Password': adminPassword
-                    },
-                    body: JSON.stringify({ username, amount })
-                });
-
-                if (res.ok) {
-                    alert(`Successfully gave $${(amount / 100).toFixed(2)} to ${username}`);
-                    showAdminTab('users');
-                } else {
-                    alert('Failed to give funds');
+        const generateDeck = () => {
+            const suits = ['hearts', 'diamonds', 'clubs', 'spades'];
+            const values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+            const deck = [];
+            for (const suit of suits) {
+                for (const value of values) {
+                    let numericValue = parseInt(value);
+                    if (value === 'A') numericValue = 11;
+                    if (['J', 'Q', 'K'].includes(value)) numericValue = 10;
+                    deck.push({
+                        suit,
+                        value,
+                        numericValue,
+                        color: (suit === 'hearts' || suit === 'diamonds') ? 'red' : 'black'
+                    });
                 }
-            } catch (err) {
-                alert('Error connecting to server');
             }
-        }
+            for (let i = deck.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [deck[i], deck[j]] = [deck[j], deck[i]];
+            }
+            return deck;
+        };
 
-        async function renderGamesTab() {
+        async function request(endpoint, body = {}, method = 'POST', adminPassword) {
+            const headers = { 'Content-Type': 'application/json' };
+            if (adminPassword) headers['X-Admin-Password'] = adminPassword;
+            const config = { method, headers };
+            if (method !== 'GET') config.body = JSON.stringify(body);
             try {
-                const res = await fetch(`${API_URL}/api/game-status`);
+                const res = await fetch(`${API_URL}${endpoint}`, config);
                 const data = await res.json();
-                
-                const content = document.getElementById('admin-tab-content');
-                content.innerHTML = `
-                    <div class="space-y-3">
-                        <h4 class="font-bold text-lg">Game Status Control</h4>
-                        <div class="space-y-2">
-                            ${Object.keys(data).map(gameName => `
-                                <div class="bg-gray-800 p-3 rounded-lg flex items-center justify-between">
-                                    <div class="flex items-center gap-3">
-                                        <span class="text-2xl">${games.find(g => g.id === gameName)?.icon || '🎮'}</span>
-                                        <div>
-                                            <div class="font-bold capitalize">${gameName}</div>
-                                            <div class="text-sm ${data[gameName].active ? 'text-green-400' : 'text-red-400'}">
-                                                ${data[gameName].active ? '✅ Active' : '🔴 Disabled'}
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <button onclick="toggleGameStatus('${gameName}', ${!data[gameName].active})" 
-                                        class="px-3 py-1 ${data[gameName].active ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'} rounded">
-                                        ${data[gameName].active ? 'Disable' : 'Enable'}
-                                    </button>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                `;
+                if (!res.ok) throw new Error(data.error || `API Error: ${res.statusText}`);
+                return data;
             } catch (err) {
-                document.getElementById('admin-tab-content').innerHTML = 
-                    '<div class="text-red-400 text-center py-8">Error loading game status</div>';
+                console.error(`Request failed: ${endpoint}`, err);
+                throw err;
             }
         }
 
-        async function toggleGameStatus(gameName, active) {
-            try {
-                const res = await fetch(`${API_URL}/admin/game-status`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Admin-Password': adminPassword
-                    },
-                    body: JSON.stringify({ game: gameName, active })
-                });
-
-                if (res.ok) {
-                    showAdminTab('games');
-                } else {
-                    alert('Failed to update game status');
+        async function syncBalance(username, amount, isDemo) {
+            if (isDemo) {
+                // Use local DEMO_BALANCES for demo mode
+                if (DEMO_BALANCES[username] === undefined) {
+                    DEMO_BALANCES[username] = 100;
                 }
-            } catch (err) {
-                alert('Error connecting to server');
-            }
-        }
-
-        async function renderBugsTab() {
-            try {
-                const res = await fetch(`${API_URL}/admin/bug-reports`, {
-                    headers: { 'X-Admin-Password': adminPassword }
-                });
-                const data = await res.json();
-                
-                const pendingBugs = data.reports.filter(r => r.status === 'pending');
-                
-                const content = document.getElementById('admin-tab-content');
-                content.innerHTML = `
-                    <div class="space-y-3">
-                        <h4 class="font-bold text-lg">Bug Reports (${pendingBugs.length} pending)</h4>
-                        <div class="space-y-2 max-h-96 overflow-y-auto">
-                            ${pendingBugs.length === 0 ? 
-                                '<div class="text-center text-gray-400 py-8">No pending bug reports</div>' :
-                                pendingBugs.map(bug => `
-                                    <div class="bg-gray-800 p-3 rounded-lg">
-                                        <div class="flex items-center justify-between mb-2">
-                                            <div class="font-bold">${bug.username} - ${bug.game}</div>
-                                            <div class="text-sm text-gray-400">
-                                                ${new Date(bug.timestamp * 1000).toLocaleString()}
-                                            </div>
-                                        </div>
-                                        <div class="text-sm text-gray-300 mb-3">${bug.description}</div>
-                                        <div class="flex gap-2">
-                                            <button onclick="acceptBug('${bug.id}')" 
-                                                class="px-3 py-1 bg-green-600 hover:bg-green-700 rounded text-sm">
-                                                ✅ Accept ($0.25 reward)
-                                            </button>
-                                            <button onclick="rejectBug('${bug.id}')" 
-                                                class="px-3 py-1 bg-red-600 hover:bg-red-700 rounded text-sm">
-                                                ❌ Reject
-                                            </button>
-                                        </div>
-                                    </div>
-                                `).join('')
-                            }
-                        </div>
-                    </div>
-                `;
-            } catch (err) {
-                document.getElementById('admin-tab-content').innerHTML = 
-                    '<div class="text-red-400 text-center py-8">Error loading bug reports</div>';
-            }
-        }
-
-        async function acceptBug(reportId) {
-            try {
-                const res = await fetch(`${API_URL}/admin/bug-reports/${reportId}/accept`, {
-                    method: 'POST',
-                    headers: { 'X-Admin-Password': adminPassword }
-                });
-
-                if (res.ok) {
-                    alert('Bug report accepted and user rewarded $0.25!');
-                    showAdminTab('bugs');
-                } else {
-                    alert('Failed to accept bug report');
+                DEMO_BALANCES[username] += amount;
+                return DEMO_BALANCES[username];
+            } else {
+                if (amount !== 0) {
+                    await request('/admin/give-funds', { username, amount }, 'POST', 'HTML://hidden(via backend//)');
                 }
-            } catch (err) {
-                alert('Error connecting to server');
+                const users = await request('/admin/users', {}, 'GET', 'HTML://hidden(via backend//)');
+                const user = users.users.find((u) => u.username === username);
+                return user.balance;
             }
         }
 
-        async function rejectBug(reportId) {
-            try {
-                const res = await fetch(`${API_URL}/admin/bug-reports/${reportId}/reject`, {
-                    method: 'POST',
-                    headers: { 'X-Admin-Password': adminPassword }
-                });
+        // Game Stores
+        const MINES_GAMES = {};
+        const TOWERS_GAMES = {};
+        const HILO_GAMES = {};
+        const BLACKJACK_GAMES = {};
 
-                if (res.ok) {
-                    alert('Bug report rejected');
-                    showAdminTab('bugs');
-                } else {
-                    alert('Failed to reject bug report');
-                }
-            } catch (err) {
-                alert('Error connecting to server');
-            }
-        }
+        // API Objects
+        const authApi = {
+            login: (u, p) => request('/login', { username: u, password: p }),
+            register: (u, p) => request('/register', { username: u, password: p }),
+            adminLogin: (p) => request('/admin/login', { password: p }),
+            getUsers: (p) => request('/admin/users', {}, 'GET', p),
+            giveFunds: (u, amount, p) => request('/admin/give-funds', { username: u, amount }, 'POST', p),
+            deleteUser: (u, p) => request('/admin/delete-user', { username: u }, 'POST', p),
+            getStats: (p) => request('/admin/stats', {}, 'GET', p),
+            getBugReports: (p) => request('/admin/bug-reports', {}, 'GET', p),
+            getGameStatus: () => request('/api/game-status', {}, 'GET'),
+            acceptBug: (id, p) => request(`/admin/bug-reports/${id}/accept`, {}, 'POST', p),
+            rejectBug: (id, p) => request(`/admin/bug-reports/${id}/reject`, {}, 'POST', p),
+            toggleGame: (game, active, p) => request('/admin/game-status', { game, active }, 'POST', p),
+            reportBug: (u, game, desc) => request('/api/bug-report', { username: u, game, description: desc }),
+            checkHealth: () => request('/health', {}, 'GET')
+        };
 
-        async function renderStatsTab() {
-            try {
-                const res = await fetch(`${API_URL}/admin/stats`, {
-                    headers: { 'X-Admin-Password': adminPassword }
-                });
-                const data = await res.json();
+        const blackjackApi = {
+            deal: async (username, bet, isDemo) => {
+                await syncBalance(username, isDemo ? 0 : -bet, isDemo);
+                const deck = generateDeck();
+                const playerHand = [deck.shift(), deck.shift()];
+                const dealerHand = [deck.shift(), deck.shift()];
+                BLACKJACK_GAMES[username] = { deck, playerHand, dealerHand, bet, isDemo, active: true };
                 
-                const content = document.getElementById('admin-tab-content');
-                content.innerHTML = `
-                    <div class="space-y-3">
-                        <h4 class="font-bold text-lg">Casino Statistics</h4>
-                        <div class="grid grid-cols-2 gap-3">
-                            <div class="bg-gray-800 p-4 rounded-lg">
-                                <div class="text-gray-400 text-sm">Total Users</div>
-                                <div class="text-2xl font-bold">${data.totalUsers}</div>
-                            </div>
-                            <div class="bg-gray-800 p-4 rounded-lg">
-                                <div class="text-gray-400 text-sm">Total Real Balance</div>
-                                <div class="text-2xl font-bold text-green-400">$${(data.totalBalance / 100).toFixed(2)}</div>
-                            </div>
-                            <div class="bg-gray-800 p-4 rounded-lg">
-                                <div class="text-gray-400 text-sm">Total Demo Balance</div>
-                                <div class="text-2xl font-bold text-yellow-400">$${(data.totalFreeBalance / 100).toFixed(2)}</div>
-                            </div>
-                            <div class="bg-gray-800 p-4 rounded-lg">
-                                <div class="text-gray-400 text-sm">Active Games</div>
-                                <div class="text-2xl font-bold">${data.activeGames}</div>
-                            </div>
-                            <div class="bg-gray-800 p-4 rounded-lg">
-                                <div class="text-gray-400 text-sm">Pending Bug Reports</div>
-                                <div class="text-2xl font-bold text-orange-400">${data.pendingBugReports}</div>
-                            </div>
-                            <div class="bg-gray-800 p-4 rounded-lg">
-                                <div class="text-gray-400 text-sm">Games Played</div>
-                                <div class="text-2xl font-bold">${data.totalGamesPlayed}</div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            } catch (err) {
-                document.getElementById('admin-tab-content').innerHTML = 
-                    '<div class="text-red-400 text-center py-8">Error loading statistics</div>';
+                const playerScore = calculateHandScore(playerHand);
+                if (playerScore === 21) {
+                    const dealerScore = calculateHandScore(dealerHand);
+                    let winAmount = 0;
+                    let resultMessage = '';
+                    const rtp = getRtp(isDemo);
+
+                    if (dealerScore === 21) {
+                        winAmount = bet;
+                        resultMessage = 'Push';
+                    } else {
+                        winAmount = bet + (bet * 1.5 * rtp);
+                        resultMessage = 'Blackjack!';
+                    }
+                    delete BLACKJACK_GAMES[username];
+                    if (!isDemo && winAmount > 0) await syncBalance(username, winAmount, false);
+                    const finalBal = await syncBalance(username, 0, isDemo);
+                    return { playerHand, dealerHand, playerScore, dealerScore, result: { win: winAmount, message: resultMessage }, balance: isDemo ? (finalBal - bet + winAmount) : finalBal };
+                }
+                const newBal = await syncBalance(username, 0, isDemo);
+                return { playerHand, dealerHand: [dealerHand[0]], playerScore, dealerScore: getBlackjackValue(dealerHand[0]), balance: isDemo ? (newBal - bet) : newBal };
+            },
+            hit: async (username) => {
+                const game = BLACKJACK_GAMES[username];
+                if (!game) throw new Error('No active game');
+                const card = game.deck.shift();
+                game.playerHand.push(card);
+                const score = calculateHandScore(game.playerHand);
+                if (score > 21) {
+                    delete BLACKJACK_GAMES[username];
+                    const newBal = await syncBalance(username, 0, game.isDemo);
+                    return { playerHand: game.playerHand, dealerHand: game.dealerHand, playerScore: score, dealerScore: calculateHandScore(game.dealerHand), result: { win: 0, message: 'Bust' }, balance: newBal };
+                }
+                return { playerHand: game.playerHand, dealerHand: [game.dealerHand[0]], playerScore: score, dealerScore: getBlackjackValue(game.dealerHand[0]) };
+            },
+            stand: async (username) => {
+                const game = BLACKJACK_GAMES[username];
+                if (!game) throw new Error('No active game');
+                let dealerScore = calculateHandScore(game.dealerHand);
+                while (dealerScore < 17) {
+                    game.dealerHand.push(game.deck.shift());
+                    dealerScore = calculateHandScore(game.dealerHand);
+                }
+                const playerScore = calculateHandScore(game.playerHand);
+                let winAmount = 0;
+                let message = '';
+                const rtp = getRtp(game.isDemo);
+                if (dealerScore > 21 || playerScore > dealerScore) {
+                    winAmount = game.bet + (game.bet * 1.0 * rtp);
+                    message = 'You Won!';
+                } else if (playerScore === dealerScore) {
+                    winAmount = game.bet;
+                    message = 'Push';
+                } else {
+                    message = 'Dealer Wins';
+                }
+                delete BLACKJACK_GAMES[username];
+                if (!game.isDemo && winAmount > 0) await syncBalance(username, winAmount, false);
+                const finalBal = await syncBalance(username, 0, game.isDemo);
+                return { playerHand: game.playerHand, dealerHand: game.dealerHand, playerScore, dealerScore, result: { win: winAmount, message }, balance: game.isDemo ? (finalBal - game.bet + winAmount) : finalBal };
             }
-        }
+        };
 
-        function openSettings() {
-            showSettings = true;
-            renderMainApp();
-        }
+        const minesApi = {
+            start: async (username, bet, mineCount, isDemo) => {
+                await syncBalance(username, isDemo ? 0 : -bet, isDemo);
+                const mines = new Array(25).fill(false);
+                let placed = 0;
+                while (placed < mineCount) {
+                    const idx = Math.floor(Math.random() * 25);
+                    if (!mines[idx]) { mines[idx] = true; placed++; }
+                }
+                MINES_GAMES[username] = { bet, mineCount, mines, revealedCount: 0, isDemo, active: true };
+                const newBal = await syncBalance(username, 0, isDemo);
+                return { balance: isDemo ? (newBal - bet) : newBal };
+            },
+            reveal: async (username, index) => {
+                const game = MINES_GAMES[username];
+                if (!game || !game.active) throw new Error('No active game');
+                if (game.mines[index]) {
+                    game.active = false;
+                    return { result: { hit: 'mine' } };
+                } else {
+                    game.revealedCount++;
+                    const tilesTotal = 25;
+                    const tilesSafe = 25 - game.mineCount;
+                    let multiplier = 1.0;
+                    for (let i = 0; i < game.revealedCount; i++) {
+                        multiplier *= (1 / ((tilesSafe - i) / (tilesTotal - i)));
+                    }
+                    return { result: { hit: 'gem', multiplier: multiplier * getRtp(game.isDemo) } };
+                }
+            },
+            cashout: async (username) => {
+                const game = MINES_GAMES[username];
+                if (!game || !game.active) throw new Error('No active game');
+                let multiplier = 1.0;
+                for (let i = 0; i < game.revealedCount; i++) {
+                    multiplier *= (1 / ((25 - game.mineCount - i) / (25 - i)));
+                }
+                const winAmount = game.bet * multiplier * getRtp(game.isDemo);
+                if (!game.isDemo) await syncBalance(username, winAmount, false);
+                delete MINES_GAMES[username];
+                const newBal = await syncBalance(username, 0, game.isDemo);
+                return { winAmount, balance: game.isDemo ? (newBal + winAmount) : newBal };
+            }
+        };
 
-        function closeSettings() {
-            showSettings = false;
-            renderMainApp();
-        }
+        const coinflipApi = {
+            play: async (username, bet, choice, isDemo) => {
+                const rtp = getRtp(isDemo);
+                const payoutMult = 2 * rtp;
+                await syncBalance(username, isDemo ? 0 : -bet, isDemo);
+                const outcome = Math.random() < 0.5 ? 'heads' : 'tails';
+                const isWin = outcome === choice;
+                const winAmount = isWin ? (bet * payoutMult) : 0;
+                if (isWin && !isDemo) await syncBalance(username, winAmount, false);
+                const newBal = await syncBalance(username, 0, isDemo);
+                return { outcome, isWin, winAmount, balance: isDemo ? (newBal - bet + winAmount) : newBal };
+            }
+        };
 
-        function renderGameSelection() {
-            return `
-                <div class="text-center mb-12">
-                    <h2 class="text-4xl font-bold mb-2">Welcome, ${currentUser.username}! 🎉</h2>
-                    <p class="text-gray-400">Choose your game and let's win big!</p>
+        const rouletteApi = {
+            spin: async (username, bet, betType, isDemo) => {
+                const rtp = getRtp(isDemo);
+                await syncBalance(username, isDemo ? 0 : -bet, isDemo);
+                const outcome = Math.floor(Math.random() * 37);
+                let won = false;
+                let payoutMult = 0;
+                if (betType === 'red') { won = getRouletteColor(outcome) === 'red'; payoutMult = 2 * rtp; }
+                else if (betType === 'black') { won = getRouletteColor(outcome) === 'black'; payoutMult = 2 * rtp; }
+                else if (betType === 'even') { won = (outcome !== 0 && outcome % 2 === 0); payoutMult = 2 * rtp; }
+                else if (betType === 'odd') { won = (outcome !== 0 && outcome % 2 !== 0); payoutMult = 2 * rtp; }
+                else { won = outcome.toString() === betType; payoutMult = 36 * rtp; }
+                const winAmount = won ? (bet * payoutMult) : 0;
+                if (won && !isDemo) await syncBalance(username, winAmount, false);
+                const newBal = await syncBalance(username, 0, isDemo);
+                return { outcome, winAmount, balance: isDemo ? (newBal - bet + winAmount) : newBal };
+            }
+        };
+
+        const towersApi = {
+            start: async (username, bet, difficulty, isDemo) => {
+                await syncBalance(username, isDemo ? 0 : -bet, isDemo);
+                TOWERS_GAMES[username] = { bet, difficulty, currentRow: 0, isDemo, active: true };
+                const newBal = await syncBalance(username, 0, isDemo);
+                return { balance: isDemo ? (newBal - bet) : newBal };
+            },
+            pick: async (username, row, col) => {
+                const game = TOWERS_GAMES[username];
+                if (!game || !game.active) throw new Error('No active game');
+                let safeCount = game.difficulty === 'medium' ? 1 : 2;
+                if (Math.random() >= (safeCount / 3)) {
+                    game.active = false;
+                    delete TOWERS_GAMES[username];
+                    return { gameOver: true, isBomb: true, balance: 0, multiplier: 0 };
+                }
+                game.currentRow++;
+                const fairMult = Math.pow(3 / safeCount, game.currentRow);
+                const activeMult = parseFloat((fairMult * getRtp(game.isDemo)).toFixed(2));
+                if (game.currentRow >= 8) {
+                    game.active = false;
+                    const winAmount = game.bet * activeMult;
+                    if (!game.isDemo) await syncBalance(username, winAmount, false);
+                    delete TOWERS_GAMES[username];
+                    const newBal = await syncBalance(username, 0, game.isDemo);
+                    return { gameOver: true, isBomb: false, balance: game.isDemo ? (newBal + winAmount) : newBal, currentRow: game.currentRow, multiplier: activeMult };
+                }
+                return { gameOver: false, currentRow: game.currentRow, multiplier: activeMult };
+            },
+            cashout: async (username) => {
+                const game = TOWERS_GAMES[username];
+                if (!game || !game.active) throw new Error('No active game');
+                let safeCount = game.difficulty === 'medium' ? 1 : 2;
+                const fairMult = Math.pow(3 / safeCount, game.currentRow);
+                const winAmount = game.bet * fairMult * getRtp(game.isDemo);
+                if (!game.isDemo) await syncBalance(username, winAmount, false);
+                delete TOWERS_GAMES[username];
+                const newBal = await syncBalance(username, 0, game.isDemo);
+                return { winAmount, balance: game.isDemo ? (newBal + winAmount) : newBal };
+            }
+        };
+
+        const getPlinkoMultipliers = (isDemo) => {
+            const base = [20, 8, 4, 2, 0.5, 0.3, 0.3, 0.3, 0.5, 2, 4, 8, 20];
+            const rtp = getRtp(isDemo);
+            return base.map(m => parseFloat((m * rtp).toFixed(2)));
+        };
+
+        const plinkoApi = {
+            drop: async (username, bet, risk, isDemo) => {
+                await syncBalance(username, isDemo ? 0 : -bet, isDemo);
+                const rows = 12;
+                let rights = 0;
+                for (let i = 0; i < rows; i++) { if (Math.random() > 0.5) rights++; }
+                const multipliers = getPlinkoMultipliers(isDemo);
+                const mult = multipliers[rights];
+                const winAmount = bet * mult;
+                if (!isDemo && winAmount > 0) await syncBalance(username, winAmount, false);
+                const newBal = await syncBalance(username, 0, isDemo);
+                return { slot: rights, balance: isDemo ? (newBal - bet + winAmount) : newBal, multiplier: mult };
+            }
+        };
+
+        const calculateHiLoOdds = (deck, currentCard, currentMultiplier, isDemo) => {
+            const currRank = getCardRank(currentCard.value);
+            let highWins = 0, lowWins = 0, total = deck.length;
+            if (total === 0) return { high: 0, low: 0 };
+            deck.forEach(card => {
+                const rank = getCardRank(card.value);
+                if (rank >= currRank) highWins++;
+                if (rank <= currRank) lowWins++;
+            });
+            const probHigh = highWins / total;
+            const probLow = lowWins / total;
+            const rtp = getRtp(isDemo);
+            return {
+                high: parseFloat((currentMultiplier * (probHigh > 0 ? (1 / probHigh) : 0) * rtp).toFixed(2)),
+                low: parseFloat((currentMultiplier * (probLow > 0 ? (1 / probLow) : 0) * rtp).toFixed(2)),
+                probHigh, probLow
+            };
+        };
+
+        const hiloApi = {
+            start: async (username, bet, isDemo) => {
+                await syncBalance(username, isDemo ? 0 : -bet, isDemo);
+                const deck = generateDeck();
+                const currentCard = deck.shift();
+                HILO_GAMES[username] = { deck, currentCard, bet, isDemo, multiplier: 1.0 };
+                const odds = calculateHiLoOdds(deck, currentCard, 1.0, isDemo);
+                const newBal = await syncBalance(username, 0, isDemo);
+                return { currentCard, balance: isDemo ? (newBal - bet) : newBal, nextOdds: odds };
+            },
+            guess: async (username, direction) => {
+                const game = HILO_GAMES[username];
+                if (!game) throw new Error('No active game');
+                const nextCard = game.deck.shift();
+                const currRank = getCardRank(game.currentCard.value);
+                const nextRank = getCardRank(nextCard.value);
+                let won = false;
+                if (direction === 'higher' && nextRank >= currRank) won = true;
+                if (direction === 'lower' && nextRank <= currRank) won = true;
+                
+                if (!won) {
+                    delete HILO_GAMES[username];
+                    return { nextCard, won: false, gameOver: true };
+                }
+                const oddsBefore = calculateHiLoOdds([nextCard, ...game.deck], game.currentCard, game.multiplier, game.isDemo);
+                game.multiplier = direction === 'higher' ? oddsBefore.high : oddsBefore.low;
+                game.currentCard = nextCard;
+                if (game.deck.length === 0) {
+                     const win = Math.floor(game.bet * game.multiplier);
+                     if (!game.isDemo) await syncBalance(username, win, false);
+                     delete HILO_GAMES[username];
+                     const newBal = await syncBalance(username, 0, game.isDemo);
+                     return { nextCard, won: true, gameOver: true, winAmount: win, balance: game.isDemo ? (newBal + win) : newBal };
+                }
+                const nextOdds = calculateHiLoOdds(game.deck, game.currentCard, game.multiplier, game.isDemo);
+                return { nextCard, won: true, multiplier: game.multiplier, gameOver: false, nextOdds };
+            },
+            cashout: async (username) => {
+                const game = HILO_GAMES[username];
+                if (!game) throw new Error('No active game');
+                const win = Math.floor(game.bet * game.multiplier);
+                if (!game.isDemo) await syncBalance(username, win, false);
+                delete HILO_GAMES[username];
+                const newBal = await syncBalance(username, 0, game.isDemo);
+                return { winAmount, balance: game.isDemo ? (newBal + win) : newBal };
+            }
+        };
+
+        const pokerApi = { deal: async (u) => ({ message: "Maintenance" }) };
+
+        // ==========================================
+        // UI COMPONENTS
+        // ==========================================
+
+        const Sidebar = ({ activeGame, onSelectGame, isOpen }) => {
+            const gamesList = [
+                { id: 'blackjack', name: 'Blackjack', icon: '🃏' },
+                { id: 'mines', name: 'Mines', icon: '💣' },
+                { id: 'plinko', name: 'Plinko', icon: '🎯' },
+                { id: 'roulette', name: 'Roulette', icon: '🎡' },
+                { id: 'coinflip', name: 'Coin Flip', icon: '🪙' },
+                { id: 'towers', name: 'Towers', icon: '🏢' },
+                { id: 'hilo', name: 'Hi-Lo', icon: '📊' },
+                { id: 'poker', name: 'Poker', icon: '♠️' },
+            ];
+
+            return (
+                <div className={`fixed left-4 top-20 h-[calc(100vh-6rem)] glass border border-white/5 rounded-2xl transition-all duration-300 z-40 ${isOpen ? 'w-60' : 'w-16'} overflow-hidden shadow-2xl`}>
+                  <div className="flex flex-col p-3 gap-2 h-full overflow-y-auto">
+                    <button onClick={() => onSelectGame(null)} className={`flex items-center gap-4 p-3 rounded-xl transition-all duration-200 group ${activeGame === null ? 'bg-stake-hover text-white shadow-glow' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
+                      <span className="text-xl">🏠</span>
+                      <span className={`font-semibold whitespace-nowrap transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0 hidden'}`}>Lobby</span>
+                    </button>
+                    <div className={`mt-4 mb-2 px-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider ${!isOpen && 'hidden'}`}>Games</div>
+                    {gamesList.map((game) => (
+                      <button key={game.id} onClick={() => onSelectGame(game.id)} className={`flex items-center gap-4 p-3 rounded-xl transition-all duration-200 group relative overflow-hidden ${activeGame === game.id ? 'bg-stake-hover text-white shadow-glow' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
+                        <span className="text-xl group-hover:scale-110 transition-transform relative z-10">{game.icon}</span>
+                        <span className={`font-medium whitespace-nowrap transition-opacity duration-200 relative z-10 ${isOpen ? 'opacity-100' : 'opacity-0 hidden'}`}>{game.name}</span>
+                        {activeGame === game.id && <div className="absolute inset-0 bg-gradient-to-r from-stake-green/10 to-transparent"></div>}
+                      </button>
+                    ))}
+                  </div>
                 </div>
+            );
+        };
 
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    ${games.map(game => `
-                        <button onclick="selectGame('${game.id}')" 
-                            class="group relative overflow-hidden rounded-xl bg-gradient-to-br from-gray-800 to-gray-900 p-6 transition-all hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/20">
-                            <div class="absolute inset-0 bg-gradient-to-br ${game.color} opacity-0 group-hover:opacity-10 transition-opacity"></div>
-                            <div class="relative">
-                                <div class="text-5xl mb-3">${game.icon}</div>
-                                <h3 class="text-xl font-bold mb-1">${game.name}</h3>
-                                <p class="text-gray-400 text-sm">Click to play</p>
-                            </div>
-                        </button>
-                    `).join('')}
+        const TopBar = ({ user, onToggleSidebar, onLogout, isDemo, onToggleDemo, onResetDemoBalance, onOpenSettings, onOpenBugReport }) => (
+            <div className="h-16 glass fixed top-0 w-full z-50 border-b border-white/5 shadow-lg flex items-center justify-between px-6 backdrop-blur-md">
+                <div className="flex items-center gap-6">
+                    <button onClick={onToggleSidebar} className="p-2 hover:bg-white/10 rounded-lg text-gray-300 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
+                    </button>
+                    <div className="text-2xl font-black text-white tracking-tight flex items-center gap-1 cursor-pointer" onClick={() => window.location.reload()}>
+                        <span className="text-stake-green drop-shadow-[0_0_8px_rgba(0,231,1,0.5)]">JUD</span>ECENO
+                    </div>
                 </div>
-            `;
-        }
+                <div className="flex items-center gap-4">
+                    {user ? (
+                        <>
+                            <button onClick={onOpenBugReport} className="text-gray-400 hover:text-white transition-colors p-2" title="Report Bug">🐛</button>
+                            <button onClick={onOpenSettings} className="text-gray-400 hover:text-white transition-colors p-2" title="Settings">⚙️</button>
+                            <div className="hidden md:flex items-center gap-1 bg-black/40 rounded-full p-1 border border-white/10">
+                                <button onClick={!isDemo ? onToggleDemo : undefined} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${isDemo ? 'bg-yellow-500 text-black shadow-glow-yellow' : 'text-gray-500 hover:text-white'}`}>Demo</button>
+                                <button onClick={isDemo ? onToggleDemo : undefined} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${!isDemo ? 'bg-stake-green text-black shadow-glow' : 'text-gray-500 hover:text-white'}`}>Real</button>
+                            </div>
+                            <div className="bg-black/40 rounded-full px-5 py-2 flex items-center gap-3 border border-white/10 shadow-inner-light">
+                                <span className={`text-sm font-bold font-mono ${isDemo ? 'text-yellow-400' : 'text-stake-green'}`}>${user.balance.toFixed(2)}</span>
+                                {isDemo && <button onClick={onResetDemoBalance} className="text-gray-500 hover:text-white transition-colors">↺</button>}
+                            </div>
+                            <div className="flex items-center gap-3 cursor-pointer hover:bg-white/5 p-1.5 pr-3 rounded-full transition-colors border border-transparent hover:border-white/10" onClick={onLogout}>
+                                <div className="w-8 h-8 bg-gradient-to-br from-stake-hover to-stake-card rounded-full flex items-center justify-center text-white font-bold border border-white/20 shadow-lg">{user.username[0].toUpperCase()}</div>
+                            </div>
+                        </>
+                    ) : <button className="bg-btn-gradient text-black font-bold px-6 py-2 rounded-full hover:shadow-glow transition-all transform hover:-translate-y-0.5">Sign In</button>}
+                </div>
+            </div>
+        );
 
-        function renderGame(gameId) {
-            const gameRenderers = {
-                blackjack: renderBlackjack,
-                poker: renderPoker,
-                mines: renderMines,
-                coinflip: renderCoinFlip,
-                roulette: renderRoulette,
-                towers: renderTowers,
-                plinko: renderPlinko,
-                hilo: renderHiLo
+        // ==========================================
+        // GAME COMPONENTS
+        // ==========================================
+
+        const CardView = ({ card, hidden }) => {
+            if (hidden) return (
+                <div className="w-24 h-36 bg-stake-card border-2 border-stake-hover rounded-xl flex items-center justify-center shadow-2xl relative overflow-hidden transform transition-all hover:-translate-y-1">
+                     <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/diagmonds-light.png')]"></div>
+                     <div className="w-full h-full bg-gradient-to-br from-white/5 to-transparent absolute"></div>
+                     <span className="text-4xl opacity-50">♠️</span>
+                </div>
+            );
+            if (!card) return null;
+            return (
+                <div className={`w-24 h-36 bg-white rounded-xl flex flex-col items-center justify-center shadow-xl transform transition-all hover:-translate-y-2 hover:shadow-glow-card relative overflow-hidden ${card.color === 'red' ? 'text-red-600' : 'text-black'}`}>
+                    <div className="absolute top-2 left-2 text-xl font-bold leading-none">{card.value}</div>
+                    <div className="text-5xl">{card.suit === 'hearts' ? '♥' : card.suit === 'diamonds' ? '♦' : card.suit === 'clubs' ? '♣' : '♠'}</div>
+                    <div className="absolute bottom-2 right-2 text-xl font-bold leading-none rotate-180">{card.value}</div>
+                </div>
+            );
+        };
+
+        const Blackjack = ({ user, updateBalance, isDemo }) => {
+            const [state, setState] = useState({ bet: 10, result: null, playerHand: [], dealerHand: [], playerScore: 0, dealerScore: 0, gameOver: false, gameStarted: false });
+            
+            const deal = async () => {
+                if (state.bet <= 0 || user.balance < state.bet) return alert("Invalid Bet");
+                try {
+                    const res = await blackjackApi.deal(user.username, state.bet, isDemo);
+                    updateBalance(res.balance);
+                    setState(p => ({ ...p, gameStarted: true, gameOver: !!res.result, playerHand: res.playerHand, dealerHand: res.dealerHand, playerScore: res.playerScore, dealerScore: 0, result: res.result }));
+                } catch (e) { alert(e.message); }
+            };
+            const hit = async () => {
+                try {
+                    const res = await blackjackApi.hit(user.username);
+                    setState(p => ({ ...p, playerHand: res.playerHand, playerScore: res.playerScore, gameOver: !!res.result, result: res.result }));
+                    if (res.result) updateBalance(res.balance);
+                } catch (e) { alert(e.message); }
+            };
+            const stand = async () => {
+                try {
+                    const res = await blackjackApi.stand(user.username);
+                    updateBalance(res.balance);
+                    setState(p => ({ ...p, dealerHand: res.dealerHand, dealerScore: res.dealerScore, playerScore: res.playerScore, gameOver: true, result: res.result }));
+                } catch (e) { alert(e.message); }
             };
 
-            return `
-                <button onclick="backToGames()" class="mb-4 px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors">
-                    ← Back to Games
+            return (
+                <div className="flex flex-col items-center justify-center w-full max-w-4xl mx-auto p-4 gap-12">
+                    <div className="relative">
+                        <div className="flex gap-4 items-center justify-center min-h-[160px]">
+                            {state.gameStarted ? state.dealerHand.map((c, i) => 
+                                <div key={i} className="animate-pop-in" style={{animationDelay: `${i*0.1}s`}}><CardView card={c} hidden={!state.gameOver && !c} /></div>
+                            ) : <div className="text-gray-600 font-bold uppercase tracking-widest text-sm border border-gray-700 px-6 py-3 rounded-full">Dealer Pays on 17</div>}
+                        </div>
+                        {state.gameOver && <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-black/80 px-4 py-1 rounded-full text-xs font-bold text-gray-400 border border-gray-700 shadow-lg backdrop-blur">Dealer: {state.dealerScore}</div>}
+                    </div>
+
+                    {state.result && (
+                        <div className="animate-bounce-in bg-black/60 backdrop-blur-md border border-stake-green/30 px-12 py-6 rounded-2xl text-center shadow-glow z-20">
+                            <div className={`text-4xl font-black mb-2 ${state.result.win > 0 ? 'text-stake-green drop-shadow-md' : 'text-white'}`}>{state.result.message}</div>
+                            {state.result.win > 0 && <div className="text-stake-green font-mono text-xl">+${state.result.win.toFixed(2)}</div>}
+                        </div>
+                    )}
+
+                    <div className="relative">
+                        <div className="flex gap-4 items-center justify-center min-h-[160px]">
+                            {state.gameStarted ? state.playerHand.map((c, i) => 
+                                <div key={i} className="animate-pop-in" style={{animationDelay: `${i*0.1}s`}}><CardView card={c} /></div>
+                            ) : <div className="w-24 h-36 border-2 border-dashed border-gray-700 rounded-xl flex items-center justify-center text-gray-700 font-bold">BET</div>}
+                        </div>
+                        {state.gameStarted && <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-black/80 px-4 py-1 rounded-full text-xs font-bold text-gray-400 border border-gray-700 shadow-lg backdrop-blur">You: {state.playerScore}</div>}
+                    </div>
+
+                    <div className="w-full max-w-lg glass p-6 rounded-2xl shadow-2xl mt-4 border border-white/5">
+                        {!state.gameStarted || state.gameOver ? (
+                            <div className="flex gap-4">
+                                <input type="number" min="1" value={state.bet} onChange={(e) => setState({ ...state, bet: Math.max(0, Number(e.target.value)) })} className="w-full input-field rounded-xl px-4 py-3 text-white font-mono font-bold text-lg" />
+                                <button onClick={deal} className="bg-btn-gradient hover:shadow-glow text-black font-black px-8 rounded-xl transition-all transform hover:-translate-y-1">DEAL</button>
+                            </div>
+                        ) : (
+                            <div className="flex gap-4">
+                                <button onClick={hit} className="flex-1 bg-stake-hover hover:bg-stake-hover/80 text-white py-4 rounded-xl font-bold transition-all border border-white/5">HIT</button>
+                                <button onClick={stand} className="flex-1 bg-btn-gradient text-black py-4 rounded-xl font-bold shadow-glow transition-all transform hover:-translate-y-1">STAND</button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        const Mines = ({ user, updateBalance, isDemo }) => {
+            const [state, setState] = useState({ bet: 10, result: null, mineCount: 3, revealed: Array(25).fill(false), mines: Array(25).fill(false), active: false, multiplier: 1.0 });
+            const [isShaking, setIsShaking] = useState(false);
+            useEffect(() => { if (isShaking) setTimeout(() => setIsShaking(false), 500); }, [isShaking]);
+
+            const startGame = async () => {
+                if (user.balance < state.bet) return alert("Insufficient funds");
+                try {
+                    const res = await minesApi.start(user.username, state.bet, state.mineCount, isDemo);
+                    updateBalance(res.balance);
+                    setState({ ...state, active: true, revealed: Array(25).fill(false), mines: Array(25).fill(false), multiplier: 1.0, result: null });
+                } catch (e) { alert(e.message); }
+            };
+            const clickTile = async (index) => {
+                if (!state.active || state.revealed[index]) return;
+                try {
+                    const res = await minesApi.reveal(user.username, index);
+                    const newRevealed = [...state.revealed]; newRevealed[index] = true;
+                    if (res.result.hit === 'mine') {
+                        const m = [...state.mines]; m[index] = true;
+                        setIsShaking(true);
+                        setState(p => ({ ...p, active: false, revealed: Array(25).fill(true), mines: m, result: { win: 0, message: 'Boom!' } }));
+                    } else {
+                        setState(p => ({ ...p, revealed: newRevealed, multiplier: res.result.multiplier }));
+                    }
+                } catch (e) { alert(e.message); }
+            };
+            const cashout = async () => {
+                try {
+                    const res = await minesApi.cashout(user.username);
+                    updateBalance(res.balance);
+                    setState(p => ({ ...p, active: false, revealed: Array(25).fill(true), result: { win: res.winAmount, message: 'Cashed Out' } }));
+                } catch (e) { alert(e.message); }
+            };
+
+            return (
+                <div className="flex flex-col lg:flex-row gap-8 w-full max-w-6xl mx-auto p-4">
+                    <div className="w-full lg:w-80 glass p-6 rounded-2xl h-fit border border-white/5 flex flex-col gap-6">
+                        <div>
+                            <label className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-2 block">Bet Amount</label>
+                            <input type="number" value={state.bet} onChange={e => setState({ ...state, bet: Number(e.target.value) })} disabled={state.active} className="w-full input-field rounded-xl p-3 text-white font-mono font-bold" />
+                        </div>
+                        <div>
+                            <label className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-2 block">Mines</label>
+                            <select value={state.mineCount} onChange={e => setState({ ...state, mineCount: Number(e.target.value) })} disabled={state.active} className="w-full input-field rounded-xl p-3 text-white font-bold cursor-pointer">
+                                {[1, 2, 3, 4, 5, 10, 15, 20, 24].map(n => <option key={n} value={n}>{n}</option>)}
+                            </select>
+                        </div>
+                        {state.active ? (
+                            <>
+                                <div className="bg-black/30 p-4 rounded-xl border border-white/5">
+                                    <div className="text-gray-400 text-xs font-bold uppercase mb-1">Current Multiplier</div>
+                                    <div className="text-stake-green text-4xl font-black font-mono tracking-tighter drop-shadow-md">{state.multiplier.toFixed(2)}x</div>
+                                </div>
+                                <button onClick={cashout} className="w-full bg-btn-gradient text-black font-black py-4 rounded-xl shadow-glow transition-all transform hover:-translate-y-1">CASHOUT ${(state.bet * state.multiplier).toFixed(2)}</button>
+                            </>
+                        ) : <button onClick={startGame} className="w-full bg-btn-gradient text-black font-black py-4 rounded-xl shadow-glow transition-all transform hover:-translate-y-1">BET</button>}
+                    </div>
+                    
+                    <div className={`flex-1 glass rounded-2xl p-8 border border-white/5 flex flex-col items-center justify-center relative min-h-[500px] ${isShaking ? 'animate-shake' : ''}`}>
+                         {state.result && (
+                             <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/60 backdrop-blur-sm rounded-2xl animate-fade-in">
+                                 <div className="glass p-8 rounded-2xl border border-white/10 text-center transform scale-110 shadow-2xl">
+                                     <div className="text-6xl mb-4 animate-pop-in">{state.result.win > 0 ? '💎' : '💥'}</div>
+                                     <div className={`text-4xl font-black mb-2 ${state.result.win > 0 ? "text-stake-green" : "text-red-500"}`}>{state.result.message}</div>
+                                     {state.result.win > 0 && <div className="text-white font-mono text-xl bg-black/40 px-4 py-1 rounded-lg inline-block border border-white/10">+${state.result.win.toFixed(2)}</div>}
+                                 </div>
+                             </div>
+                         )}
+                         <div className="grid grid-cols-5 gap-3 w-full max-w-[500px] aspect-square">
+                            {state.revealed.map((r, i) => (
+                                <button key={i} disabled={!state.active || r} onClick={() => clickTile(i)} 
+                                    className={`rounded-xl relative transition-all duration-300 overflow-hidden group
+                                    ${r 
+                                        ? 'bg-black/40 border-2 border-transparent scale-95 shadow-inner' 
+                                        : 'bg-stake-card shadow-[0_4px_0_0_rgba(0,0,0,0.2)] hover:-translate-y-1 hover:shadow-[0_6px_0_0_rgba(0,0,0,0.3)] hover:bg-stake-hover border-b-4 border-black/20'
+                                    }`}>
+                                    {r && <div className="animate-pop-in flex justify-center items-center h-full text-4xl drop-shadow-md">{state.mines[i] ? '💣' : '💎'}</div>}
+                                </button>
+                            ))}
+                         </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const Coinflip = ({ user, updateBalance, isDemo }) => {
+            const [state, setState] = useState({ bet: 10, result: null, choice: 'heads', isFlipping: false });
+            const [rotation, setRotation] = useState(0);
+            const flip = async () => {
+                if (user.balance < state.bet) return alert("Funds?");
+                setState(p => ({ ...p, isFlipping: true, result: null }));
+                try {
+                    const res = await coinflipApi.play(user.username, state.bet, state.choice, isDemo);
+                    const baseSpins = 1800;
+                    const offset = res.outcome === 'heads' ? 0 : 180;
+                    setRotation(r => r + baseSpins + offset - (r % 360));
+                    setTimeout(() => {
+                        updateBalance(res.balance);
+                        setState(p => ({ ...p, isFlipping: false, result: { win: res.winAmount, message: res.isWin ? `Won $${res.winAmount.toFixed(2)}` : 'Lost' } }));
+                    }, 2000);
+                } catch (e) { setState(p => ({ ...p, isFlipping: false })); alert(e.message); }
+            };
+            return (
+                <div className="flex flex-col items-center max-w-4xl mx-auto p-8 gap-12">
+                    <div className="relative w-64 h-64 perspective-1000 mt-8">
+                         <div className="w-full h-full transform-style-3d transition-transform duration-[2000ms] cubic-bezier(0.2, 0.8, 0.2, 1)" style={{ transform: `rotateY(${rotation}deg)` }}>
+                            <div className="absolute w-full h-full rounded-full backface-hidden flex items-center justify-center bg-gradient-to-br from-yellow-300 to-yellow-600 shadow-glow-yellow border-[8px] border-yellow-700/50">
+                                <div className="absolute inset-0 rounded-full border-4 border-yellow-200/50"></div>
+                                <span className="text-5xl font-black text-yellow-900 drop-shadow-sm">HEADS</span>
+                            </div>
+                            <div className="absolute w-full h-full rounded-full backface-hidden flex items-center justify-center bg-gradient-to-br from-gray-300 to-gray-500 shadow-2xl border-[8px] border-gray-600/50 rotate-y-180">
+                                <div className="absolute inset-0 rounded-full border-4 border-white/30"></div>
+                                <span className="text-5xl font-black text-gray-800 drop-shadow-sm">TAILS</span>
+                            </div>
+                         </div>
+                    </div>
+                    {state.result && !state.isFlipping && (
+                        <div className={`text-4xl font-black animate-pop-in drop-shadow-lg ${state.result.win > 0 ? 'text-stake-green' : 'text-stake-red'}`}>{state.result.message}</div>
+                    )}
+                    <div className="w-full glass p-8 rounded-2xl border border-white/5 shadow-2xl">
+                        <div className="flex justify-center gap-6 mb-8">
+                            <button onClick={() => setState({ ...state, choice: 'heads' })} className={`flex-1 py-6 rounded-xl font-black text-xl transition-all border-2 ${state.choice === 'heads' ? 'border-yellow-500 bg-yellow-500/10 text-yellow-500 shadow-glow-yellow' : 'border-white/10 bg-black/20 text-gray-500 hover:bg-white/5'}`}>
+                                HEADS <div className="text-sm font-medium opacity-70 mt-1">1.96x</div>
+                            </button>
+                            <button onClick={() => setState({ ...state, choice: 'tails' })} className={`flex-1 py-6 rounded-xl font-black text-xl transition-all border-2 ${state.choice === 'tails' ? 'border-gray-400 bg-gray-400/10 text-gray-300 shadow-glow' : 'border-white/10 bg-black/20 text-gray-500 hover:bg-white/5'}`}>
+                                TAILS <div className="text-sm font-medium opacity-70 mt-1">1.96x</div>
+                            </button>
+                        </div>
+                        <div className="flex gap-4">
+                            <input type="number" value={state.bet} onChange={e => setState({ ...state, bet: Number(e.target.value) })} className="w-full input-field rounded-xl px-6 text-white font-mono font-bold text-xl" disabled={state.isFlipping} />
+                            <button onClick={flip} disabled={state.isFlipping} className="px-12 bg-btn-gradient text-black font-black rounded-xl text-xl hover:shadow-glow active:scale-95 transition-all">FLIP</button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const Plinko = ({ user, updateBalance, isDemo }) => {
+            const [bet, setBet] = useState(10);
+            const [balls, setBalls] = useState([]);
+            const lastId = useRef(0);
+            const multipliers = getPlinkoMultipliers(isDemo);
+            
+            const drop = async () => {
+                if (user.balance < bet) return alert("Funds");
+                try {
+                    const res = await plinkoApi.drop(user.username, bet, 'medium', isDemo);
+                    updateBalance(res.balance);
+                    const rows = 12;
+                    const rights = res.slot;
+                    const lefts = rows - rights;
+                    const path = Array(lefts).fill(0).concat(Array(rights).fill(1));
+                    for (let i = path.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [path[i], path[j]] = [path[j], path[i]];
+                    }
+                    
+                    setBalls(p => [...p, { id: lastId.current++, x: 50, y: 0, path, step: 0, progress: 0 }]);
+                } catch (e) { alert(e.message); }
+            };
+
+            useEffect(() => {
+                let frame;
+                const loop = () => {
+                    setBalls(bs => bs.map(b => {
+                        let { x, y, step, progress } = b;
+                        progress += 0.05;
+                        if (progress >= 1) { progress = 0; step++; }
+                        y = (step + progress) * (100 / 13);
+                        if (step < b.path.length) {
+                             const idx = b.path.slice(0, step).reduce((a,c) => a+c, 0);
+                             const nextIdx = idx + b.path[step];
+                             const startX = 50 + (idx - step/2) * (80/12);
+                             const endX = 50 + (nextIdx - (step+1)/2) * (80/12);
+                             x = startX + (endX - startX) * progress;
+                        }
+                        return { ...b, x, y, step, progress };
+                    }).filter(b => b.step <= 12));
+                    frame = requestAnimationFrame(loop);
+                };
+                loop();
+                return () => cancelAnimationFrame(frame);
+            }, []);
+
+            return (
+                <div className="flex gap-8 max-w-6xl mx-auto p-4 flex-col lg:flex-row">
+                    <div className="w-full lg:w-80 glass p-6 rounded-2xl border border-white/5 h-fit">
+                        <label className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-2 block">Bet Amount</label>
+                        <input type="number" value={bet} onChange={e => setBet(Number(e.target.value))} className="w-full input-field rounded-xl p-3 text-white font-mono font-bold mb-6" />
+                        <button onClick={drop} className="w-full bg-btn-gradient text-black font-black py-4 rounded-xl shadow-glow transition-all transform hover:-translate-y-1">DROP</button>
+                    </div>
+                    <div className="flex-1 glass rounded-2xl border border-white/5 relative h-[600px] overflow-hidden bg-black/20">
+                        <div className="absolute inset-0 flex flex-col justify-between py-12 px-4">
+                             {Array.from({ length: 13 }).map((_, r) => <div key={r} className="flex justify-center gap-4">{Array.from({ length: r + 3 }).map((_, c) => <div key={c} className="w-2 h-2 rounded-full bg-white/30 shadow-[0_0_5px_rgba(255,255,255,0.2)]"></div>)}</div>)}
+                        </div>
+                        <div className="absolute bottom-2 w-full flex justify-between px-4 gap-2">
+                            {multipliers.map((m, i) => {
+                                let bg = 'bg-[#0f212e]';
+                                if (m >= 10) bg = 'bg-red-500 shadow-glow-red';
+                                else if (m >= 2) bg = 'bg-orange-500';
+                                else bg = 'bg-stake-green text-black';
+                                return <div key={i} className={`flex-1 h-8 rounded-md flex items-center justify-center text-[10px] font-bold ${bg} shadow-lg transition-transform hover:scale-110`}>{m}x</div>
+                            })}
+                        </div>
+                        {balls.map(b => <div key={b.id} className="absolute w-4 h-4 rounded-full bg-white shadow-[0_0_15px_rgba(255,255,255,0.8)] z-10" style={{ left: `${b.x}%`, top: `${b.y}%`, transform: 'translate(-50%,-50%)' }}></div>)}
+                    </div>
+                </div>
+            );
+        };
+
+        const Towers = ({ user, updateBalance, isDemo }) => {
+            const [state, setState] = useState({ bet: 10, difficulty: 'medium', active: false, row: 0, revealed: Array(8).fill(-1), bomb: null, multiplier: 1.0 });
+            const startGame = async () => {
+                if (user.balance < state.bet) return alert("Funds");
+                try {
+                    const res = await towersApi.start(user.username, state.bet, state.difficulty, isDemo);
+                    updateBalance(res.balance);
+                    setState({ ...state, active: true, row: 0, revealed: Array(8).fill(-1), bomb: null, multiplier: 1.0 });
+                } catch (e) { alert(e.message); }
+            };
+            const pick = async (col) => {
+                if (!state.active) return;
+                try {
+                    const res = await towersApi.pick(user.username, state.row, col);
+                    const rev = [...state.revealed]; rev[state.row] = col;
+                    if (res.gameOver) {
+                        if (res.isBomb) setState({ ...state, active: false, revealed: rev, bomb: { r: state.row, c: col } });
+                        else { updateBalance(res.balance); setState({ ...state, active: false, revealed: rev }); }
+                    } else setState({ ...state, revealed: rev, row: res.currentRow, multiplier: res.multiplier });
+                } catch (e) { alert(e.message); }
+            };
+            const cashout = async () => {
+                try {
+                    const res = await towersApi.cashout(user.username);
+                    updateBalance(res.balance);
+                    setState({ ...state, active: false });
+                } catch (e) { alert(e.message); }
+            };
+            return (
+                <div className="flex gap-8 max-w-6xl mx-auto p-4 flex-col lg:flex-row">
+                    <div className="w-full lg:w-80 glass p-6 rounded-2xl border border-white/5 h-fit">
+                        <input type="number" value={state.bet} onChange={e => setState({ ...state, bet: Number(e.target.value) })} disabled={state.active} className="w-full input-field rounded-xl p-3 text-white font-mono font-bold mb-6" />
+                        {state.active ? <><div className="bg-black/30 p-4 rounded-xl border border-white/5 mb-4"><div className="text-gray-400 text-xs font-bold uppercase mb-1">Multiplier</div><div className="text-stake-green text-3xl font-black">{state.multiplier}x</div></div><button onClick={cashout} className="w-full bg-btn-gradient text-black font-black py-4 rounded-xl shadow-glow">CASHOUT</button></> : <button onClick={startGame} className="w-full bg-btn-gradient text-black font-black py-4 rounded-xl shadow-glow">PLAY</button>}
+                    </div>
+                    <div className="flex-1 glass rounded-2xl border border-white/5 p-8 flex flex-col-reverse items-center justify-center gap-3 min-h-[500px]">
+                        {Array.from({ length: 8 }).map((_, r) => (
+                            <div key={r} className={`grid grid-cols-3 gap-4 ${state.row === r && state.active ? 'opacity-100 scale-105' : 'opacity-40 grayscale'}`}>
+                                {[0, 1, 2].map(c => {
+                                    const picked = state.revealed[r] === c;
+                                    const boom = state.bomb?.r === r && state.bomb?.c === c;
+                                    return <button key={c} disabled={!(state.row === r && state.active)} onClick={() => pick(c)} className={`w-24 h-16 rounded-xl flex items-center justify-center font-bold text-3xl transition-all shadow-lg ${picked ? (boom ? 'bg-red-500/20 border-2 border-red-500 shadow-glow-red' : 'bg-stake-green text-black shadow-glow') : 'bg-stake-card border border-white/5 hover:bg-white/10'}`}>{picked && (boom ? '💣' : '💎')}</button>;
+                                })}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        const Roulette = ({ user, updateBalance, isDemo }) => {
+            const [betAmount, setBetAmount] = useState(1);
+            const [bets, setBets] = useState({});
+            const [rotation, setRotation] = useState(0);
+            const [spinning, setSpinning] = useState(false);
+            const placeBet = (k) => !spinning && setBets(p => ({ ...p, [k]: (p[k] || 0) + betAmount }));
+            
+            const spin = async () => {
+                if (user.balance < Object.values(bets).reduce((a, b) => a + b, 0)) return alert("Funds");
+                const k = Object.keys(bets)[0];
+                if (!k) return alert("Place bet");
+                
+                try {
+                    setSpinning(true);
+                    const res = await rouletteApi.spin(user.username, bets[k], k, isDemo);
+                    const order = [0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26];
+                    const idx = order.indexOf(res.outcome);
+                    setRotation(r => r + 1440 + (360 - (idx * (360 / 37))));
+                    
+                    setTimeout(() => { 
+                        setSpinning(false);
+                        updateBalance(res.balance); 
+                        if (res.winAmount > 0) alert(`Won $${res.winAmount}`); 
+                        setBets({}); 
+                    }, 3000);
+                } catch (e) { setSpinning(false); alert(e.message); }
+            };
+
+            return (
+                <div className="flex flex-col gap-12 max-w-4xl mx-auto p-4">
+                    <div className="flex justify-center py-8">
+                        <div className="relative">
+                            <div className="w-4 absolute -top-4 left-1/2 -translate-x-1/2 text-white text-3xl z-10 font-bold">▼</div>
+                            <div className="w-80 h-80 rounded-full border-[8px] border-gray-800 relative overflow-hidden transition-transform duration-[3000ms] cubic-bezier(0.25, 0.1, 0.25, 1) shadow-[0_0_50px_rgba(0,0,0,0.5)]" style={{ background: `conic-gradient(#00e701 0deg 9.7deg, #ff4d4d 9.7deg 19.4deg, #1a2c38 19.4deg 29.1deg, #ff4d4d 29.1deg 38.8deg, #1a2c38 38.8deg 48.5deg, #ff4d4d 48.5deg 58.2deg, #1a2c38 58.2deg 67.9deg, #ff4d4d 67.9deg 77.6deg, #1a2c38 77.6deg 87.3deg, #ff4d4d 87.3deg 97deg, #1a2c38 97deg 106.7deg, #ff4d4d 106.7deg 116.4deg, #1a2c38 116.4deg 126.1deg, #ff4d4d 126.1deg 135.8deg, #1a2c38 135.8deg 145.5deg, #ff4d4d 145.5deg 155.2deg, #1a2c38 155.2deg 164.9deg, #ff4d4d 164.9deg 174.6deg, #1a2c38 174.6deg 184.3deg, #ff4d4d 184.3deg 194deg, #1a2c38 194deg 203.7deg, #ff4d4d 203.7deg 213.4deg, #1a2c38 213.4deg 223.1deg, #ff4d4d 223.1deg 232.8deg, #1a2c38 232.8deg 242.5deg, #ff4d4d 242.5deg 252.2deg, #1a2c38 252.2deg 261.9deg, #ff4d4d 261.9deg 271.6deg, #1a2c38 271.6deg 281.3deg, #ff4d4d 281.3deg 291deg, #1a2c38 291deg 300.7deg, #ff4d4d 300.7deg 310.4deg, #1a2c38 310.4deg 320.1deg, #ff4d4d 320.1deg 329.8deg, #1a2c38 329.8deg 339.5deg, #ff4d4d 339.5deg 349.2deg, #1a2c38 349.2deg 360deg)`, transform: `rotate(${rotation}deg)` }}>
+                                <div className="absolute inset-0 rounded-full border-4 border-white/10"></div>
+                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-[#0f212e] rounded-full flex items-center justify-center border-4 border-gray-800 shadow-inner">
+                                    <span className="text-white font-bold tracking-widest text-sm opacity-50">ROULETTE</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="glass p-8 rounded-2xl border border-white/5 shadow-2xl">
+                        <div className="flex gap-4 mb-6 items-center">
+                            <input type="number" value={betAmount} onChange={e => setBetAmount(Number(e.target.value))} className="w-32 input-field rounded-lg p-2 text-white font-mono" />
+                            <button onClick={() => setBets({})} className="text-gray-400 hover:text-white text-sm font-bold uppercase tracking-wider">Clear Bets</button>
+                        </div>
+                        <div className="grid grid-cols-14 gap-1">
+                             <button onClick={() => placeBet('0')} className="col-span-2 row-span-3 bg-stake-green hover:brightness-110 rounded-l-lg flex items-center justify-center font-bold text-stake-dark relative text-lg">0 {bets['0'] && <span className="absolute inset-0 bg-black/60 backdrop-blur-sm text-white text-xs flex items-center justify-center rounded-l-lg border-2 border-stake-green">${bets['0']}</span>}</button>
+                            {Array.from({ length: 36 }).map((_, i) => <button key={i + 1} onClick={() => placeBet((i + 1).toString())} className={`col-span-1 h-14 text-white font-bold relative transition-colors ${getRouletteColor(i + 1) === 'red' ? 'bg-stake-red hover:bg-red-500' : 'bg-[#2f4553] hover:bg-[#3d596b]'}`}>{i + 1}{bets[(i + 1).toString()] && <span className="absolute inset-0 bg-black/60 backdrop-blur-sm text-xs flex items-center justify-center border-2 border-white">${bets[(i + 1).toString()]}</span>}</button>)}
+                             <div className="col-span-2"></div>
+                            {['red', 'black', 'even', 'odd'].map(t => <button key={t} onClick={() => placeBet(t)} className="col-span-3 h-12 bg-[#1a2c38] border border-white/5 hover:bg-white/5 flex items-center justify-center text-xs font-bold text-white uppercase relative tracking-wider">{t} {bets[t] && <div className="absolute top-1 right-1 w-2 h-2 bg-stake-green rounded-full shadow-glow"></div>}</button>)}
+                        </div>
+                        <button onClick={spin} disabled={spinning} className="w-full mt-6 bg-btn-gradient text-black font-black py-4 rounded-xl shadow-glow transition-all transform hover:-translate-y-1">SPIN</button>
+                    </div>
+                </div>
+            );
+        };
+
+        const HiLo = ({ user, updateBalance, isDemo }) => {
+            const [state, setState] = useState({ bet: 10, active: false, card: null, multi: 1.0, odds: null });
+            const [history, setHistory] = useState([]);
+            
+            const startGame = async () => {
+                if (user.balance < state.bet) return alert("Funds");
+                try {
+                    const res = await hiloApi.start(user.username, state.bet, isDemo);
+                    updateBalance(res.balance);
+                    setState({ ...state, active: true, card: res.currentCard, multi: 1.0, odds: res.nextOdds });
+                    setHistory([]);
+                } catch (e) { alert(e.message); }
+            };
+            const guess = async (dir) => {
+                try {
+                    const res = await hiloApi.guess(user.username, dir);
+                    setHistory(h => [state.card, ...h]);
+                    if (res.gameOver) {
+                        setState({ ...state, active: false, card: res.nextCard, odds: null });
+                        if (res.won) updateBalance(res.balance);
+                    } else setState({ ...state, card: res.nextCard, multi: res.multiplier, odds: res.nextOdds });
+                } catch (e) { alert(e.message); }
+            };
+            const cashout = async () => {
+                if (history.length === 0) return alert("Must make at least one move before cashing out.");
+                try {
+                    const res = await hiloApi.cashout(user.username);
+                    updateBalance(res.balance);
+                    setState({ ...state, active: false });
+                } catch (e) { alert(e.message); }
+            };
+            return (
+                <div className="flex flex-col lg:flex-row gap-8 max-w-6xl mx-auto p-4">
+                    <div className="w-full lg:w-80 glass p-6 rounded-2xl border border-white/5 h-fit">
+                        <input type="number" value={state.bet} onChange={e => setState({ ...state, bet: Number(e.target.value) })} disabled={state.active} className="w-full input-field rounded-xl p-3 text-white font-mono font-bold mb-6" />
+                        {state.active ? (
+                            <>
+                                <div className="bg-black/30 p-4 rounded-xl border border-white/5 mb-4">
+                                    <div className="text-gray-400 text-xs font-bold uppercase mb-1">Multiplier</div>
+                                    <div className="text-stake-green text-3xl font-black">{state.multi.toFixed(2)}x</div>
+                                </div>
+                                <button 
+                                    onClick={cashout} 
+                                    disabled={history.length === 0}
+                                    className={`w-full font-black py-4 rounded-xl shadow-glow transition-all ${history.length === 0 ? 'bg-gray-600 text-gray-400 cursor-not-allowed shadow-none border border-white/5' : 'bg-btn-gradient text-black'}`}
+                                >
+                                    CASHOUT
+                                </button>
+                            </>
+                        ) : <button onClick={startGame} className="w-full bg-btn-gradient text-black font-black py-4 rounded-xl shadow-glow">START GAME</button>}
+                    </div>
+                    <div className="flex-1 glass rounded-2xl border border-white/5 p-8 flex flex-col items-center justify-center min-h-[500px] relative">
+                        <div className="absolute top-4 right-4 flex gap-4 text-xs font-bold uppercase tracking-wider text-gray-500 bg-black/20 px-4 py-2 rounded-lg border border-white/5">
+                            <div>Low: <span className="text-white">2</span></div>
+                            <div>High: <span className="text-white">A</span></div>
+                        </div>
+                        <div className="flex gap-3 mb-8 h-20 opacity-60">
+                            {history.slice(0,5).map((c,i) => <div key={i} className="transform scale-75 origin-top"><CardView card={c} /></div>)}
+                        </div>
+                        {state.card ? <div className="transform scale-125 transition-all"><CardView card={state.card} /></div> : <div className="w-32 h-48 border-2 border-dashed border-gray-600 rounded-xl flex items-center justify-center text-4xl text-gray-500 font-bold">?</div>}
+                        <div className="flex gap-4 mt-12 w-full max-w-lg">
+                            <button disabled={!state.active} onClick={() => guess('lower')} className="flex-1 bg-[#1a2c38] border border-white/10 p-6 rounded-2xl hover:bg-white/5 disabled:opacity-50 transition-all group">
+                                <div className="text-gray-400 font-bold text-sm uppercase mb-1">Lower or Same</div>
+                                <div className="text-white font-black text-2xl group-hover:text-stake-green transition-colors">{state.odds?.low}x</div>
+                            </button>
+                            <button disabled={!state.active} onClick={() => guess('higher')} className="flex-1 bg-[#1a2c38] border border-white/10 p-6 rounded-2xl hover:bg-white/5 disabled:opacity-50 transition-all group">
+                                <div className="text-gray-400 font-bold text-sm uppercase mb-1">Higher or Same</div>
+                                <div className="text-white font-black text-2xl group-hover:text-stake-green transition-colors">{state.odds?.high}x</div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // ==========================================
+        // MAIN APP COMPONENT
+        // ==========================================
+
+        const App = () => {
+            const [user, setUser] = useState(null);
+            const [activeGame, setActiveGame] = useState(null);
+            const [isSidebarOpen, setSidebarOpen] = useState(true);
+            const [isDemo, setIsDemo] = useState(true);
+            
+            // Auth Fields
+            const [loginUser, setLoginUser] = useState('');
+            const [loginPass, setLoginPass] = useState('');
+
+            // Admin State
+            const [showSettings, setShowSettings] = useState(false);
+            const [adminPass, setAdminPass] = useState('');
+            const [isAdmin, setIsAdmin] = useState(false);
+            const [adminTab, setAdminTab] = useState('users');
+            const [adminData, setAdminData] = useState(null);
+            const [giveAmounts, setGiveAmounts] = useState({});
+            const [gameStatuses, setGameStatuses] = useState({});
+
+            // Bug Report State
+            const [showBug, setShowBug] = useState(false);
+            const [bugDesc, setBugDesc] = useState('');
+
+            const handleLogin = async (reg) => {
+                try {
+                    const res = reg ? await authApi.register(loginUser, loginPass) : await authApi.login(loginUser, loginPass);
+                    // Initialize demo balance to 100 on login
+                    DEMO_BALANCES[res.username] = 100;
+                    setUser({ username: res.username, balance: res.balance, demoBalance: 100 });
+                } catch (e) { alert(e.message); }
+            };
+
+            const loadAdmin = async (tab, force = false) => {
+                setAdminTab(tab);
+                if (!isAdmin && !force) return;
+                try {
+                    let data;
+                    if (tab === 'users') data = await authApi.getUsers(adminPass);
+                    if (tab === 'stats') data = await authApi.getStats(adminPass);
+                    if (tab === 'bugs') data = await authApi.getBugReports(adminPass);
+                    if (tab === 'games') {
+                        data = await authApi.getGameStatus();
+                        setGameStatuses(data);
+                    }
+                    if (tab !== 'games') setAdminData(data);
+                } catch (e) { console.error(e); }
+            };
+
+            const handleAdminLogin = async () => {
+                try {
+                    await authApi.adminLogin(adminPass);
+                    setIsAdmin(true);
+                    loadAdmin('users', true);
+                } catch { alert("Invalid Admin Password"); }
+            };
+
+            const toggleGameStatus = async (game, current) => {
+                await authApi.toggleGame(game, !current, adminPass);
+                loadAdmin('games');
+            };
+
+            const submitBug = async () => {
+                await authApi.reportBug(user.username, activeGame || 'Lobby', bugDesc);
+                setShowBug(false);
+                setBugDesc('');
+                alert("Reported!");
+            };
+
+            const GameCard = ({ id, name, icon, gradient }) => (
+                <button onClick={() => setActiveGame(id)} className="group relative rounded-2xl overflow-hidden aspect-[4/3] shadow-lg hover:shadow-glow-card transition-all hover:-translate-y-2 bg-stake-card border border-white/5">
+                    <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-10 group-hover:opacity-20 transition-opacity`}></div>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center p-6">
+                        <div className="text-6xl mb-6 transform group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300 drop-shadow-2xl">{icon}</div>
+                        <div className="font-black text-2xl text-white tracking-wide uppercase">{name}</div>
+                    </div>
+                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
+                        <span className="bg-btn-gradient text-black font-black px-8 py-3 rounded-full transform scale-90 group-hover:scale-100 transition-transform shadow-glow">PLAY</span>
+                    </div>
                 </button>
-                ${gameRenderers[gameId]()}
-            `;
-        }
+            );
 
-        function renderCard(card) {
-            if (!card) return '<div class="w-20 h-28 bg-purple-600 rounded-lg border-2 border-white/20 flex items-center justify-center"><div class="text-3xl">🂠</div></div>';
-            const suitSymbols = { hearts: '♥', diamonds: '♦', clubs: '♣', spades: '♠' };
-            const colorClass = card.color === 'red' ? 'text-red-600' : 'text-black';
-            return `
-                <div class="w-20 h-28 bg-white rounded-lg border-2 flex flex-col items-center justify-center ${colorClass}">
-                    <div class="text-2xl font-bold">${card.value}</div>
-                    <div class="text-3xl">${suitSymbols[card.suit]}</div>
-                </div>
-            `;
-        }
-
-        // BLACKJACK
-        function renderBlackjack() {
-            const state = gameStates.blackjack;
-            const gs = state.gameState;
-
-            if (!gs || gs.result) {
-                return `
-                    <div class="bg-gray-800 rounded-lg border border-gray-700 p-6 max-w-2xl mx-auto">
-                        <h2 class="text-3xl font-bold mb-6 text-center">🃏 Blackjack</h2>
-                        ${gs?.result ? `
-                            <div class="p-4 rounded-lg text-center text-xl font-bold mb-4 ${gs.result.win > 0 ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'}">
-                                ${gs.result.message} ${gs.result.win > 0 ? `- Won ${(gs.result.win / 100).toFixed(2)}!` : ''}
-                            </div>
-                        ` : ''}
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-sm text-gray-400 mb-2">Bet Amount ($)</label>
-                                <input type="number" id="bj-bet" value="${state.bet / 100}" min="1" step="1"
-                                    onchange="gameStates.blackjack.bet = parseInt(this.value * 100)"
-                                    class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white">
-                            </div>
-                            <button onclick="dealBlackjack()" ${state.loading ? 'disabled' : ''} class="w-full px-4 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg font-semibold disabled:opacity-50">
-                                ${state.loading ? 'Dealing...' : `Deal Cards - ${(state.bet / 100).toFixed(2)}`}
-                            </button>
+            if (!user) return (
+                <div className="min-h-screen flex items-center justify-center p-4 bg-aura-gradient">
+                    <div className="glass p-10 rounded-3xl border border-white/10 w-full max-w-md shadow-2xl relative overflow-hidden animate-pop-in">
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-stake-green to-transparent"></div>
+                        <div className="text-center mb-10">
+                            <h1 className="text-5xl font-black text-white mb-2 tracking-tight"><span className="text-stake-green drop-shadow-[0_0_10px_rgba(0,231,1,0.5)]">JUD</span>ECENO</h1>
+                            <p className="text-gray-400 font-medium tracking-wide">PREMIUM CRYPTO CASINO</p>
                         </div>
-                    </div>
-                `;
-            }
-
-            return `
-                <div class="bg-gray-800 rounded-lg border border-gray-700 p-6 max-w-2xl mx-auto">
-                    <h2 class="text-3xl font-bold mb-6 text-center">🃏 Blackjack</h2>
-                    <div class="space-y-6">
-                        <div>
-                            <h3 class="text-lg font-semibold mb-3 text-center">Dealer's Hand</h3>
-                            <div class="flex gap-2 justify-center">
-                                ${gs.dealerHand.map(card => renderCard(card)).join('')}
-                            </div>
-                            ${gs.dealerScore ? `<div class="text-center mt-2 text-xl font-bold">Score: ${gs.dealerScore}</div>` : ''}
-                        </div>
-                        <div>
-                            <h3 class="text-lg font-semibold mb-3 text-center">Your Hand</h3>
-                            <div class="flex gap-2 justify-center">
-                                ${gs.playerHand.map(card => renderCard(card)).join('')}
-                            </div>
-                            <div class="text-center mt-2 text-xl font-bold">Score: ${gs.playerScore}</div>
-                        </div>
-                        <div class="flex gap-2">
-                            <button onclick="hitBlackjack()" class="flex-1 px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg font-semibold">
-                                Hit
-                            </button>
-                            <button onclick="standBlackjack()" class="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg font-semibold">
-                                Stand
-                            </button>
+                        <div className="space-y-4">
+                            <input placeholder="Username" value={loginUser} onChange={e => setLoginUser(e.target.value)} className="w-full input-field rounded-xl p-4 text-white text-lg" />
+                            <input type="password" placeholder="Password" value={loginPass} onChange={e => setLoginPass(e.target.value)} className="w-full input-field rounded-xl p-4 text-white text-lg" />
+                            <button onClick={() => handleLogin(false)} className="w-full bg-btn-gradient text-black font-black py-4 rounded-xl text-lg hover:shadow-glow transition-all transform hover:-translate-y-0.5">LOGIN</button>
+                            <button onClick={() => handleLogin(true)} className="w-full bg-white/5 text-gray-300 font-bold py-4 rounded-xl hover:bg-white/10 transition-all border border-white/5">CREATE ACCOUNT</button>
                         </div>
                     </div>
                 </div>
-            `;
-        }
+            );
 
-        async function dealBlackjack() {
-            const bet = gameStates.blackjack.bet;
-            gameStates.blackjack.loading = true;
-            renderMainApp();
+            const currentUser = { ...user, balance: isDemo ? user.demoBalance : user.balance };
+            const updateBalance = (n) => setUser({ ...user, [isDemo ? 'demoBalance' : 'balance']: n });
 
-            try {
-                const res = await fetch(`${API_URL}/game/blackjack/deal`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username: currentUser.username, bet, isDemo })
-                });
-                const data = await res.json();
-                
-                if (!res.ok) {
-                    alert(data.error || 'Error dealing cards');
-                    gameStates.blackjack.loading = false;
-                    renderMainApp();
-                    return;
-                }
-                
-                gameStates.blackjack.gameState = data;
-                if (data.balance !== undefined) updateBalance(data.balance);
-            } catch (err) {
-                alert('Error: ' + err.message);
-            }
-            gameStates.blackjack.loading = false;
-            renderMainApp();
-        }
-
-        async function hitBlackjack() {
-            try {
-                const res = await fetch(`${API_URL}/game/blackjack/hit`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username: currentUser.username })
-                });
-                const data = await res.json();
-                gameStates.blackjack.gameState = { ...gameStates.blackjack.gameState, ...data };
-                renderMainApp();
-            } catch (err) {
-                alert('Error: ' + err.message);
-            }
-        }
-
-        async function standBlackjack() {
-            try {
-                const res = await fetch(`${API_URL}/game/blackjack/stand`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username: currentUser.username })
-                });
-                const data = await res.json();
-                gameStates.blackjack.gameState = { ...gameStates.blackjack.gameState, ...data };
-                if (data.balance !== undefined) updateBalance(data.balance);
-                renderMainApp();
-            } catch (err) {
-                alert('Error: ' + err.message);
-            }
-        }
-
-        // POKER
-        function renderPoker() {
-            const state = gameStates.poker;
-
-            return `
-                <div class="bg-gray-800 rounded-lg border border-gray-700 p-6 max-w-2xl mx-auto">
-                    <h2 class="text-3xl font-bold mb-6 text-center">♠️ Poker</h2>
-                    ${state.result ? `
-                        <div class="mb-6">
-                            <div class="p-4 rounded-lg text-center text-xl font-bold mb-4 ${state.result.win > 0 ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'}">
-                                ${state.result.message} ${state.result.win > 0 ? `- Won ${(state.result.win / 100).toFixed(2)}!` : ''}
-                            </div>
-                            <div>
-                                <h3 class="text-lg font-semibold mb-3 text-center">Your Hand</h3>
-                                <div class="flex gap-2 justify-center">
-                                    ${state.result.playerHand.map(card => renderCard(card)).join('')}
+            return (
+                <div className="min-h-screen text-stake-text font-sans">
+                    <TopBar 
+                        user={currentUser} 
+                        onToggleSidebar={() => setSidebarOpen(!isSidebarOpen)} 
+                        onLogout={() => setUser(null)} 
+                        isDemo={isDemo} 
+                        onToggleDemo={() => setIsDemo(!isDemo)} 
+                        onResetDemoBalance={() => {
+                            // Reset demo balance to 50 using local store
+                            if (user) {
+                                DEMO_BALANCES[user.username] = 50;
+                                updateBalance(50);
+                            }
+                        }} 
+                        onOpenSettings={() => setShowSettings(true)} 
+                        onOpenBugReport={() => setShowBug(true)} 
+                    />
+                    <Sidebar activeGame={activeGame} onSelectGame={setActiveGame} isOpen={isSidebarOpen} />
+                    <main className={`pt-24 transition-all duration-300 ${isSidebarOpen ? 'pl-64' : 'pl-24'} pr-6 pb-6`}>
+                        <div className="max-w-[1600px] mx-auto min-h-[calc(100vh-8rem)]">
+                            {activeGame ? (
+                                <div className="animate-fade-in">
+                                    <div className="mb-8 flex items-center gap-3 text-sm text-gray-400 font-medium">
+                                        <span className="cursor-pointer hover:text-white transition-colors" onClick={() => setActiveGame(null)}>Home</span>
+                                        <span className="text-white/20">/</span>
+                                        <span className="text-white font-bold capitalize">{activeGame}</span>
+                                        <span className={`ml-auto px-3 py-1 rounded-full text-xs font-bold border ${isDemo ? 'border-yellow-500/50 text-yellow-500 bg-yellow-500/10' : 'border-green-500/50 text-green-500 bg-green-500/10'}`}>{isDemo ? 'DEMO MODE' : 'REAL PLAY'}</span>
+                                    </div>
+                                    {activeGame === 'blackjack' && <Blackjack user={currentUser} updateBalance={updateBalance} isDemo={isDemo} />}
+                                    {activeGame === 'mines' && <Mines user={currentUser} updateBalance={updateBalance} isDemo={isDemo} />}
+                                    {activeGame === 'coinflip' && <Coinflip user={currentUser} updateBalance={updateBalance} isDemo={isDemo} />}
+                                    {activeGame === 'plinko' && <Plinko user={currentUser} updateBalance={updateBalance} isDemo={isDemo} />}
+                                    {activeGame === 'towers' && <Towers user={currentUser} updateBalance={updateBalance} isDemo={isDemo} />}
+                                    {activeGame === 'roulette' && <Roulette user={currentUser} updateBalance={updateBalance} isDemo={isDemo} />}
+                                    {activeGame === 'hilo' && <HiLo user={currentUser} updateBalance={updateBalance} isDemo={isDemo} />}
                                 </div>
-                            </div>
-                            <div class="mt-4">
-                                <h3 class="text-lg font-semibold mb-3 text-center">Dealer's Hand</h3>
-                                <div class="flex gap-2 justify-center">
-                                    ${state.result.dealerHand.map(card => renderCard(card)).join('')}
+                            ) : (
+                                <div>
+                                    <div className="flex items-center gap-4 mb-8">
+                                        <div className="w-1.5 h-8 bg-stake-green rounded-full shadow-glow"></div>
+                                        <h2 className="text-3xl font-black text-white tracking-tight">Lobby</h2>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                                        <GameCard id="mines" name="Mines" icon="💣" gradient="from-yellow-500 to-red-600" />
+                                        <GameCard id="blackjack" name="Blackjack" icon="🃏" gradient="from-purple-600 to-blue-600" />
+                                        <GameCard id="plinko" name="Plinko" icon="🎯" gradient="from-pink-500 to-rose-600" />
+                                        <GameCard id="roulette" name="Roulette" icon="🎡" gradient="from-green-500 to-emerald-700" />
+                                        <GameCard id="towers" name="Towers" icon="🏢" gradient="from-orange-500 to-amber-600" />
+                                        <GameCard id="hilo" name="HiLo" icon="📈" gradient="from-blue-400 to-indigo-700" />
+                                        <GameCard id="coinflip" name="Coin Flip" icon="🪙" gradient="from-yellow-400 to-yellow-600" />
+                                    </div>
                                 </div>
+                            )}
+                        </div>
+                    </main>
+                    
+                    {/* ADMIN MODAL */}
+                    {showSettings && (
+                        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+                            <div className="glass w-full max-w-2xl rounded-2xl border border-white/10 p-8 max-h-[90vh] overflow-y-auto shadow-2xl">
+                                <div className="flex justify-between mb-6 items-center border-b border-white/5 pb-4"><h2 className="text-2xl font-bold text-white">Admin Panel</h2><button onClick={() => setShowSettings(false)} className="text-gray-400 hover:text-white transition-colors">✕</button></div>
+                                {!isAdmin ? (
+                                    <div className="flex gap-4"><input type="password" value={adminPass} onChange={e => setAdminPass(e.target.value)} className="input-field p-3 text-white rounded-xl w-full" placeholder="Admin Password" /><button onClick={handleAdminLogin} className="bg-btn-gradient text-black px-6 rounded-xl font-bold shadow-glow">Login</button></div>
+                                ) : (
+                                    <div>
+                                        <div className="flex gap-2 mb-6 p-1 bg-black/20 rounded-lg">
+                                            {['users', 'games', 'stats', 'bugs'].map(t => <button key={t} onClick={() => loadAdmin(t)} className={`flex-1 py-2 rounded-md capitalize font-bold transition-all ${adminTab===t ? 'bg-stake-card text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}>{t}</button>)}
+                                        </div>
+                                        {adminTab === 'users' && adminData?.users && adminData.users.map(u => (
+                                            <div key={u.username} className="flex justify-between items-center bg-white/5 p-3 mb-2 rounded-xl border border-white/5">
+                                                <span className="font-mono text-sm">{u.username} <span className="text-stake-green">(${u.balance.toFixed(2)})</span></span>
+                                                <div className="flex gap-2">
+                                                    <input placeholder="$" className="w-24 input-field p-1 px-2 text-white text-sm rounded-lg" value={giveAmounts[u.username]||''} onChange={e => setGiveAmounts({...giveAmounts, [u.username]: e.target.value})} />
+                                                    <button onClick={async () => { await authApi.giveFunds(u.username, Number(giveAmounts[u.username]), adminPass); loadAdmin('users'); }} className="bg-stake-green/20 text-stake-green border border-stake-green/50 px-3 py-1 rounded-lg text-xs font-bold hover:bg-stake-green hover:text-black transition-all">Give</button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                        {adminTab === 'games' && Object.entries(gameStatuses).map(([g, s]) => (
+                                            <div key={g} className="flex justify-between items-center p-3 border-b border-white/5"><span className="capitalize font-bold text-white">{g}</span><button onClick={() => toggleGameStatus(g, s.active)} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${s.active ? 'bg-red-500/20 text-red-400 border border-red-500/50 hover:bg-red-500 hover:text-white' : 'bg-green-500/20 text-green-400 border border-green-500/50 hover:bg-green-500 hover:text-black'}`}>{s.active ? 'Disable' : 'Enable'}</button></div>
+                                        ))}
+                                        {adminTab === 'stats' && adminData && <pre className="text-xs bg-black/50 p-4 rounded-xl font-mono text-stake-green border border-white/5">{JSON.stringify(adminData, null, 2)}</pre>}
+                                        {adminTab === 'bugs' && adminData?.reports && adminData.reports.map(r => (
+                                            <div key={r.id} className="bg-white/5 p-4 mb-2 rounded-xl border border-white/5"><div className="flex justify-between text-xs text-gray-400 uppercase font-bold mb-2"><span>{r.username} • {r.game}</span><span className={r.status==='pending'?'text-yellow-500':'text-green-500'}>{r.status}</span></div><p className="mb-3 text-sm text-white">{r.description}</p>{r.status === 'pending' && <div className="flex gap-2"><button onClick={async () => { await authApi.acceptBug(r.id, adminPass); loadAdmin('bugs'); }} className="bg-green-500/20 text-green-400 px-3 py-1 rounded-lg text-xs font-bold hover:bg-green-500 hover:text-black transition-all">Accept</button><button onClick={async () => { await authApi.rejectBug(r.id, adminPass); loadAdmin('bugs'); }} className="bg-red-500/20 text-red-400 px-3 py-1 rounded-lg text-xs font-bold hover:bg-red-500 hover:text-white transition-all">Reject</button></div>}</div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         </div>
-                    ` : ''}
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm text-gray-400 mb-2">Bet Amount ($)</label>
-                            <input type="number" id="poker-bet" value="${state.bet / 100}" min="1" step="1"
-                                onchange="gameStates.poker.bet = parseInt(this.value * 100)"
-                                class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white">
+                    )}
+
+                    {/* BUG REPORT MODAL */}
+                    {showBug && (
+                        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+                            <div className="glass w-full max-w-md rounded-2xl border border-white/10 p-8 shadow-2xl">
+                                <h2 className="text-xl font-bold text-white mb-2">Report Bug</h2>
+                                <p className="text-xs text-gray-400 mb-4">
+                                    Receive <span className="text-stake-green font-bold">$0.25</span> automatically for every approved bug report!
+                                </p>
+                                <textarea value={bugDesc} onChange={e => setBugDesc(e.target.value)} className="w-full h-32 input-field rounded-xl p-3 text-white mb-6 resize-none" placeholder="Describe issue..."></textarea>
+                                <div className="flex gap-3"><button onClick={submitBug} className="flex-1 bg-btn-gradient text-black font-bold py-3 rounded-xl shadow-glow">Submit</button><button onClick={() => setShowBug(false)} className="flex-1 bg-white/5 text-white font-bold py-3 rounded-xl hover:bg-white/10 border border-white/5">Cancel</button></div>
+                            </div>
                         </div>
-                        <button onclick="dealPoker()" ${state.loading ? 'disabled' : ''} class="w-full px-4 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg font-semibold disabled:opacity-50">
-                            ${state.loading ? 'Dealing...' : `Deal Cards - ${(state.bet / 100).toFixed(2)}`}
-                        </button>
-                    </div>
+                    )}
                 </div>
-            `;
-        }
+            );
+        };
 
-        async function dealPoker() {
-            const bet = gameStates.poker.bet;
-            gameStates.poker.loading = true;
-            renderMainApp();
-
-            try {
-                const res = await fetch(`${API_URL}/game/poker/deal`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username: currentUser.username, bet, isDemo })
-                });
-                const data = await res.json();
-                
-                if (!res.ok) {
-                    alert(data.error || 'Error dealing cards');
-                    gameStates.poker.loading = false;
-                    renderMainApp();
-                    return;
-                }
-                
-                gameStates.poker.result = data;
-                if (data.balance !== undefined) updateBalance(data.balance);
-            } catch (err) {
-                alert('Error: ' + err.message);
-            }
-            gameStates.poker.loading = false;
-            renderMainApp();
-        }
-
-        // MINES
-        function renderMines() {
-            const state = gameStates.mines;
-
-            if (!state.gameActive) {
-                return `
-                    <div class="bg-gray-800 rounded-lg border border-gray-700 p-6 max-w-2xl mx-auto">
-                        <h2 class="text-3xl font-bold mb-6 text-center">💣 Mines</h2>
-                        ${state.gameOver ? `
-                            <div class="p-4 rounded-lg text-center text-xl font-bold mb-4 ${!state.hitMine ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'}">
-                                ${state.hitMine ? 'Hit a Mine! 💥' : `Cashed Out! Won ${(state.winAmount / 100).toFixed(2)} (${state.multiplier}x)`}
-                            </div>
-                        ` : ''}
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-sm text-gray-400 mb-2">Bet Amount ($)</label>
-                                <input type="number" value="${state.bet / 100}" min="1" step="1"
-                                    onchange="gameStates.mines.bet = parseInt(this.value * 100)"
-                                    class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white">
-                            </div>
-                            <div>
-                                <label class="block text-sm text-gray-400 mb-2">Number of Mines</label>
-                                <input type="number" value="${state.mineCount}" min="1" max="24" step="1"
-                                    onchange="gameStates.mines.mineCount = parseInt(this.value)"
-                                    class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white">
-                            </div>
-                            <button onclick="startMines()" ${state.loading ? 'disabled' : ''} class="w-full px-4 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg font-semibold disabled:opacity-50">
-                                ${state.loading ? 'Starting...' : 'Start Game'}
-                            </button>
-                        </div>
-                    </div>
-                `;
-            }
-
-            return `
-                <div class="bg-gray-800 rounded-lg border border-gray-700 p-6 max-w-2xl mx-auto">
-                    <h2 class="text-3xl font-bold mb-4 text-center">💣 Mines</h2>
-                    <div class="mb-4 text-center">
-                        <div class="text-2xl font-bold text-green-400">Multiplier: ${state.multiplier}x</div>
-                        <div class="text-lg text-gray-400">Potential Win: ${((state.bet * state.multiplier) / 100).toFixed(2)}</div>
-                    </div>
-                    <div class="grid grid-cols-5 gap-2 mb-4">
-                        ${Array.from({length: 25}, (_, i) => {
-                            const isRevealed = state.revealed.includes(i);
-                            return `
-                                <button onclick="revealMine(${i})" 
-                                    ${isRevealed ? 'disabled' : ''}
-                                    class="aspect-square ${isRevealed ? 'bg-green-600' : 'bg-gray-700 hover:bg-gray-600'} rounded-lg text-2xl font-bold disabled:opacity-100">
-                                    ${isRevealed ? '💎' : ''}
-                                </button>
-                            `;
-                        }).join('')}
-                    </div>
-                    <button onclick="cashoutMines()" class="w-full px-4 py-3 bg-green-600 hover:bg-green-700 rounded-lg font-semibold">
-                        Cash Out - ${((state.bet * state.multiplier) / 100).toFixed(2)}
-                    </button>
-                </div>
-            `;
-        }
-
-        async function startMines() {
-            gameStates.mines.loading = true;
-            gameStates.mines.revealed = [];
-            gameStates.mines.multiplier = 1.0;
-            gameStates.mines.gameOver = false;
-            renderMainApp();
-
-            try {
-                const res = await fetch(`${API_URL}/game/mines/start`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        username: currentUser.username, 
-                        bet: gameStates.mines.bet,
-                        mineCount: gameStates.mines.mineCount,
-                        isDemo 
-                    })
-                });
-                const data = await res.json();
-                
-                if (!res.ok) {
-                    alert(data.error || 'Error starting game');
-                    gameStates.mines.loading = false;
-                    renderMainApp();
-                    return;
-                }
-                
-                if (data.balance !== undefined) updateBalance(data.balance);
-                gameStates.mines.gameActive = true;
-            } catch (err) {
-                alert('Error: ' + err.message);
-            }
-            gameStates.mines.loading = false;
-            renderMainApp();
-        }
-
-        async function revealMine(index) {
-            try {
-                const res = await fetch(`${API_URL}/game/mines/reveal`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username: currentUser.username, index })
-                });
-                const data = await res.json();
-                
-                if (data.result.hit === 'mine') {
-                    gameStates.mines.gameActive = false;
-                    gameStates.mines.gameOver = true;
-                    gameStates.mines.hitMine = true;
-                } else {
-                    gameStates.mines.revealed.push(index);
-                    gameStates.mines.multiplier = data.result.multiplier;
-                }
-                renderMainApp();
-            } catch (err) {
-                alert('Error: ' + err.message);
-            }
-        }
-
-        async function cashoutMines() {
-            try {
-                const res = await fetch(`${API_URL}/game/mines/cashout`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username: currentUser.username })
-                });
-                const data = await res.json();
-                
-                if (data.balance !== undefined) updateBalance(data.balance);
-                gameStates.mines.gameActive = false;
-                gameStates.mines.gameOver = true;
-                gameStates.mines.hitMine = false;
-                gameStates.mines.winAmount = data.winAmount;
-                renderMainApp();
-            } catch (err) {
-                alert('Error: ' + err.message);
-            }
-        }
-
-        // COINFLIP
-        function renderCoinFlip() {
-            const state = gameStates.coinflip;
-
-            return `
-                <div class="bg-gray-800 rounded-lg border border-gray-700 p-6 max-w-2xl mx-auto">
-                    <h2 class="text-3xl font-bold mb-6 text-center">🪙 Coin Flip</h2>
-                    ${state.result ? `
-                        <div class="mb-6">
-                            <div class="text-center mb-4">
-                                <div class="text-6xl mb-4 ${state.flipping ? 'animate-spin' : ''}">${state.result.outcome === 'heads' ? '👑' : '🦅'}</div>
-                                <div class="text-2xl font-bold">${state.result.outcome.toUpperCase()}</div>
-                            </div>
-                            <div class="p-4 rounded-lg text-center text-xl font-bold ${state.result.isWin ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'}">
-                                ${state.result.isWin ? `You Win! +${(state.result.winAmount / 100).toFixed(2)}` : 'You Lose!'}
-                            </div>
-                        </div>
-                    ` : ''}
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm text-gray-400 mb-2">Bet Amount ($)</label>
-                            <input type="number" value="${state.bet / 100}" min="1" step="1"
-                                onchange="gameStates.coinflip.bet = parseInt(this.value * 100)"
-                                class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white">
-                        </div>
-                        <div class="flex gap-2">
-                            <button onclick="gameStates.coinflip.choice = 'heads'; renderMainApp()" 
-                                class="flex-1 px-4 py-3 ${state.choice === 'heads' ? 'bg-purple-600' : 'bg-gray-700'} hover:bg-purple-700 rounded-lg font-semibold">
-                                👑 Heads
-                            </button>
-                            <button onclick="gameStates.coinflip.choice = 'tails'; renderMainApp()" 
-                                class="flex-1 px-4 py-3 ${state.choice === 'tails' ? 'bg-purple-600' : 'bg-gray-700'} hover:bg-purple-700 rounded-lg font-semibold">
-                                🦅 Tails
-                            </button>
-                        </div>
-                        <button onclick="flipCoin()" ${state.loading ? 'disabled' : ''} class="w-full px-4 py-3 bg-green-600 hover:bg-green-700 rounded-lg font-semibold disabled:opacity-50">
-                            ${state.loading ? 'Flipping...' : `Flip - ${(state.bet / 100).toFixed(2)}`}
-                        </button>
-                    </div>
-                </div>
-            `;
-        }
-
-        async function flipCoin() {
-            gameStates.coinflip.loading = true;
-            gameStates.coinflip.flipping = true;
-            renderMainApp();
-
-            try {
-                const res = await fetch(`${API_URL}/game/coinflip`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        username: currentUser.username, 
-                        bet: gameStates.coinflip.bet,
-                        choice: gameStates.coinflip.choice,
-                        isDemo 
-                    })
-                });
-                const data = await res.json();
-                
-                if (!res.ok) {
-                    alert(data.error || 'Error flipping coin');
-                    gameStates.coinflip.loading = false;
-                    gameStates.coinflip.flipping = false;
-                    renderMainApp();
-                    return;
-                }
-                
-                setTimeout(() => {
-                    gameStates.coinflip.result = data;
-                    if (data.balance !== undefined) updateBalance(data.balance);
-                    gameStates.coinflip.loading = false;
-                    gameStates.coinflip.flipping = false;
-                    renderMainApp();
-                }, 1000);
-            } catch (err) {
-                alert('Error: ' + err.message);
-                gameStates.coinflip.loading = false;
-                gameStates.coinflip.flipping = false;
-                renderMainApp();
-            }
-        }
-
-        // ROULETTE
-        function renderRoulette() {
-            const state = gameStates.roulette;
-
-            return `
-                <div class="bg-gray-800 rounded-lg border border-gray-700 p-6 max-w-2xl mx-auto">
-                    <h2 class="text-3xl font-bold mb-6 text-center">🎡 Roulette</h2>
-                    ${state.result ? `
-                        <div class="mb-6">
-                            <div class="text-center mb-4">
-                                <div class="text-6xl mb-4 ${state.spinning ? 'animate-spin' : ''}}">🎡</div>
-                                <div class="text-3xl font-bold mb-2">${state.result.outcome}</div>
-                            </div>
-                            <div class="p-4 rounded-lg text-center text-xl font-bold ${state.result.isWin ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'}">
-                                ${state.result.isWin ? `You Win! +${(state.result.winAmount / 100).toFixed(2)}` : 'You Lose!'}
-                            </div>
-                        </div>
-                    ` : ''}
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm text-gray-400 mb-2">Bet Amount ($)</label>
-                            <input type="number" value="${state.bet / 100}" min="1" step="1"
-                                onchange="gameStates.roulette.bet = parseInt(this.value * 100)"
-                                class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white">
-                        </div>
-                        <div class="grid grid-cols-3 gap-2">
-                            <button onclick="gameStates.roulette.betType = 'red'; renderMainApp()" 
-                                class="px-4 py-3 ${state.betType === 'red' ? 'bg-red-600' : 'bg-gray-700'} hover:bg-red-700 rounded-lg font-semibold">
-                                🔴 Red (2x)
-                            </button>
-                            <button onclick="gameStates.roulette.betType = 'black'; renderMainApp()" 
-                                class="px-4 py-3 ${state.betType === 'black' ? 'bg-gray-900 border-2 border-white' : 'bg-gray-700'} hover:bg-gray-900 rounded-lg font-semibold">
-                                ⚫ Black (2x)
-                            </button>
-                            <button onclick="gameStates.roulette.betType = 'green'; renderMainApp()" 
-                                class="px-4 py-3 ${state.betType === 'green' ? 'bg-green-600' : 'bg-gray-700'} hover:bg-green-700 rounded-lg font-semibold">
-                                🟢 Green (36x)
-                            </button>
-                            <button onclick="gameStates.roulette.betType = 'even'; renderMainApp()" 
-                                class="px-4 py-3 ${state.betType === 'even' ? 'bg-blue-600' : 'bg-gray-700'} hover:bg-blue-700 rounded-lg font-semibold">
-                                Even (2x)
-                            </button>
-                            <button onclick="gameStates.roulette.betType = 'odd'; renderMainApp()" 
-                                class="px-4 py-3 ${state.betType === 'odd' ? 'bg-blue-600' : 'bg-gray-700'} hover:bg-blue-700 rounded-lg font-semibold">
-                                Odd (2x)
-                            </button>
-                        </div>
-                        <button onclick="spinRoulette()" ${state.loading ? 'disabled' : ''} class="w-full px-4 py-3 bg-green-600 hover:bg-green-700 rounded-lg font-semibold disabled:opacity-50">
-                            ${state.loading ? 'Spinning...' : `Spin - ${(state.bet / 100).toFixed(2)}`}
-                        </button>
-                    </div>
-                </div>
-            `;
-        }
-
-        async function spinRoulette() {
-            gameStates.roulette.loading = true;
-            gameStates.roulette.spinning = true;
-            renderMainApp();
-
-            try {
-                const res = await fetch(`${API_URL}/game/roulette`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        username: currentUser.username, 
-                        bet: gameStates.roulette.bet,
-                        betType: gameStates.roulette.betType,
-                        isDemo 
-                    })
-                });
-                const data = await res.json();
-                
-                if (!res.ok) {
-                    alert(data.error || 'Error spinning roulette');
-                    gameStates.roulette.loading = false;
-                    gameStates.roulette.spinning = false;
-                    renderMainApp();
-                    return;
-                }
-                
-                setTimeout(() => {
-                    gameStates.roulette.result = data;
-                    if (data.balance !== undefined) updateBalance(data.balance);
-                    gameStates.roulette.loading = false;
-                    gameStates.roulette.spinning = false;
-                    renderMainApp();
-                }, 2000);
-            } catch (err) {
-                alert('Error: ' + err.message);
-                gameStates.roulette.loading = false;
-                gameStates.roulette.spinning = false;
-                renderMainApp();
-            }
-        }
-
-        // TOWERS
-        function renderTowers() {
-            const state = gameStates.towers;
-
-            if (!state.gameActive) {
-                return `
-                    <div class="bg-gray-800 rounded-lg border border-gray-700 p-6 max-w-2xl mx-auto">
-                        <h2 class="text-3xl font-bold mb-6 text-center">🏢 Towers</h2>
-                        ${state.gameOver ? `
-                            <div class="p-4 rounded-lg text-center text-xl font-bold mb-4 ${!state.hitBomb ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'}">
-                                ${state.hitBomb ? 'Hit a Bomb! 💥' : `Won ${(state.winAmount / 100).toFixed(2)} (${state.multiplier}x)`}
-                            </div>
-                        ` : ''}
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-sm text-gray-400 mb-2">Bet Amount ($)</label>
-                                <input type="number" value="${state.bet / 100}" min="1" step="1"
-                                    onchange="gameStates.towers.bet = parseInt(this.value * 100)"
-                                    class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white">
-                            </div>
-                            <div>
-                                <label class="block text-sm text-gray-400 mb-2">Difficulty</label>
-                                <select onchange="gameStates.towers.difficulty = this.value" class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white">
-                                    <option value="easy" ${state.difficulty === 'easy' ? 'selected' : ''}>Easy (1 bomb)</option>
-                                    <option value="hard" ${state.difficulty === 'hard' ? 'selected' : ''}>Hard (2 bombs)</option>
-                                </select>
-                            </div>
-                            <button onclick="startTowers()" ${state.loading ? 'disabled' : ''} class="w-full px-4 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg font-semibold disabled:opacity-50">
-                                ${state.loading ? 'Starting...' : 'Start Game'}
-                            </button>
-                        </div>
-                    </div>
-                `;
-            }
-
-            return `
-                <div class="bg-gray-800 rounded-lg border border-gray-700 p-6 max-w-2xl mx-auto">
-                    <h2 class="text-3xl font-bold mb-4 text-center">🏢 Towers</h2>
-                    <div class="mb-4 text-center">
-                        <div class="text-2xl font-bold text-green-400">Row: ${state.currentRow + 1}/8</div>
-                        <div class="text-lg text-gray-400">Current Multiplier: ${state.multiplier}x</div>
-                    </div>
-                    <div class="space-y-2 mb-4">
-                        ${Array.from({length: 8}, (_, row) => {
-                            const displayRow = 7 - row;
-                            return `
-                                <div class="flex gap-2 justify-center">
-                                    ${Array.from({length: 3}, (_, col) => {
-                                        const isRevealed = state.revealed.some(r => r.row === displayRow && r.col === col);
-                                        const canClick = displayRow === state.currentRow;
-                                        return `
-                                            <button onclick="pickTower(${displayRow}, ${col})" 
-                                                ${!canClick || isRevealed ? 'disabled' : ''}
-                                                class="w-20 h-16 ${isRevealed ? (state.revealed.find(r => r.row === displayRow && r.col === col).bomb ? 'bg-red-600' : 'bg-green-600') : canClick ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-800'} rounded-lg text-2xl font-bold disabled:opacity-50">
-                                                ${isRevealed ? (state.revealed.find(r => r.row === displayRow && r.col === col).bomb ? '💣' : '💎') : ''}
-                                            </button>
-                                        `;
-                                    }).join('')}
-                                </div>
-                            `;
-                        }).join('')}
-                    </div>
-                    ${state.currentRow > 0 ? `
-                        <button onclick="cashoutTowers()" class="w-full px-4 py-3 bg-green-600 hover:bg-green-700 rounded-lg font-semibold">
-                            Cash Out - ${((state.bet * state.multiplier) / 100).toFixed(2)}
-                        </button>
-                    ` : ''}
-                </div>
-            `;
-        }
-
-        async function startTowers() {
-            gameStates.towers.loading = true;
-            gameStates.towers.revealed = [];
-            gameStates.towers.currentRow = 0;
-            gameStates.towers.multiplier = 1.0;
-            gameStates.towers.gameOver = false;
-            renderMainApp();
-
-            try {
-                const res = await fetch(`${API_URL}/game/towers/start`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        username: currentUser.username, 
-                        bet: gameStates.towers.bet,
-                        difficulty: gameStates.towers.difficulty,
-                        isDemo 
-                    })
-                });
-                const data = await res.json();
-                
-                if (!res.ok) {
-                    alert(data.error || 'Error starting game');
-                    gameStates.towers.loading = false;
-                    renderMainApp();
-                    return;
-                }
-                
-                if (data.balance !== undefined) updateBalance(data.balance);
-                gameStates.towers.gameActive = true;
-            } catch (err) {
-                alert('Error: ' + err.message);
-            }
-            gameStates.towers.loading = false;
-            renderMainApp();
-        }
-
-        async function pickTower(row, col) {
-            try {
-                const res = await fetch(`${API_URL}/game/towers/pick`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username: currentUser.username, row, col })
-                });
-                const data = await res.json();
-                
-                gameStates.towers.revealed.push({ row, col, bomb: data.isBomb });
-                
-                if (data.isBomb) {
-                    gameStates.towers.gameActive = false;
-                    gameStates.towers.gameOver = true;
-                    gameStates.towers.hitBomb = true;
-                } else if (data.gameOver) {
-                    gameStates.towers.gameActive = false;
-                    gameStates.towers.gameOver = true;
-                    gameStates.towers.hitBomb = false;
-                    gameStates.towers.winAmount = data.winAmount;
-                    if (data.balance !== undefined) updateBalance(data.balance);
-                } else {
-                    gameStates.towers.currentRow = data.currentRow;
-                    gameStates.towers.multiplier = data.multiplier;
-                }
-                renderMainApp();
-            } catch (err) {
-                alert('Error: ' + err.message);
-            }
-        }
-
-        async function cashoutTowers() {
-            try {
-                const res = await fetch(`${API_URL}/game/towers/cashout`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username: currentUser.username })
-                });
-                const data = await res.json();
-                
-                if (data.balance !== undefined) updateBalance(data.balance);
-                gameStates.towers.gameActive = false;
-                gameStates.towers.gameOver = true;
-                gameStates.towers.hitBomb = false;
-                gameStates.towers.winAmount = data.winAmount;
-                renderMainApp();
-            } catch (err) {
-                alert('Error: ' + err.message);
-            }
-        }
-
-        // PLINKO
-        function renderPlinko() {
-            const state = gameStates.plinko;
-
-            return `
-                <div class="bg-gray-800 rounded-lg border border-gray-700 p-6 max-w-2xl mx-auto">
-                    <h2 class="text-3xl font-bold mb-6 text-center">🎯 Plinko</h2>
-                    ${state.result ? `
-                        <div class="mb-6">
-                            <div class="text-center mb-4">
-                                <div class="text-6xl mb-4 ${state.dropping ? 'animate-bounce' : ''}">🔵</div>
-                                <div class="text-2xl font-bold">Slot ${state.result.slot} - ${state.result.multiplier}x</div>
-                            </div>
-                            <div class="p-4 rounded-lg text-center text-xl font-bold ${state.result.winAmount >= state.bet ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'}">
-                                ${state.result.winAmount >= state.bet ? `Won ${(state.result.winAmount / 100).toFixed(2)}!` : `Lost ${((state.bet - state.result.winAmount) / 100).toFixed(2)}`}
-                            </div>
-                        </div>
-                    ` : ''}
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm text-gray-400 mb-2">Bet Amount ($)</label>
-                            <input type="number" value="${state.bet / 100}" min="1" step="1"
-                                onchange="gameStates.plinko.bet = parseInt(this.value * 100)"
-                                class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white">
-                        </div>
-                        <div>
-                            <label class="block text-sm text-gray-400 mb-2">Risk Level</label>
-                            <div class="grid grid-cols-3 gap-2">
-                                <button onclick="gameStates.plinko.risk = 'low'; renderMainApp()" 
-                                    class="px-4 py-3 ${state.risk === 'low' ? 'bg-green-600' : 'bg-gray-700'} hover:bg-green-700 rounded-lg font-semibold">
-                                    Low
-                                </button>
-                                <button onclick="gameStates.plinko.risk = 'medium'; renderMainApp()" 
-                                    class="px-4 py-3 ${state.risk === 'medium' ? 'bg-yellow-600' : 'bg-gray-700'} hover:bg-yellow-700 rounded-lg font-semibold">
-                                    Medium
-                                </button>
-                                <button onclick="gameStates.plinko.risk = 'high'; renderMainApp()" 
-                                    class="px-4 py-3 ${state.risk === 'high' ? 'bg-red-600' : 'bg-gray-700'} hover:bg-red-700 rounded-lg font-semibold">
-                                    High
-                                </button>
-                            </div>
-                        </div>
-                        <button onclick="dropPlinko()" ${state.loading ? 'disabled' : ''} class="w-full px-4 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg font-semibold disabled:opacity-50">
-                            ${state.loading ? 'Dropping...' : `Drop Ball - ${(state.bet / 100).toFixed(2)}`}
-                        </button>
-                    </div>
-                </div>
-            `;
-        }
-
-        async function dropPlinko() {
-            gameStates.plinko.loading = true;
-            gameStates.plinko.dropping = true;
-            renderMainApp();
-
-            try {
-                const res = await fetch(`${API_URL}/game/plinko`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        username: currentUser.username, 
-                        bet: gameStates.plinko.bet,
-                        risk: gameStates.plinko.risk,
-                        isDemo 
-                    })
-                });
-                const data = await res.json();
-                
-                if (!res.ok) {
-                    alert(data.error || 'Error dropping ball');
-                    gameStates.plinko.loading = false;
-                    gameStates.plinko.dropping = false;
-                    renderMainApp();
-                    return;
-                }
-                
-                setTimeout(() => {
-                    gameStates.plinko.result = data;
-                    if (data.balance !== undefined) updateBalance(data.balance);
-                    gameStates.plinko.loading = false;
-                    gameStates.plinko.dropping = false;
-                    renderMainApp();
-                }, 1500);
-            } catch (err) {
-                alert('Error: ' + err.message);
-                gameStates.plinko.loading = false;
-                gameStates.plinko.dropping = false;
-                renderMainApp();
-            }
-        }
-
-        // HI-LO
-        function renderHiLo() {
-            const state = gameStates.hilo;
-
-            if (!state.gameActive) {
-                return `
-                    <div class="bg-gray-800 rounded-lg border border-gray-700 p-6 max-w-2xl mx-auto">
-                        <h2 class="text-3xl font-bold mb-6 text-center">📊 Hi-Lo</h2>
-                        ${state.gameOver ? `
-                            <div class="p-4 rounded-lg text-center text-xl font-bold mb-4 ${state.won ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'}">
-                                ${state.won ? `Won ${(state.winAmount / 100).toFixed(2)} (${state.multiplier}x)!` : 'You Lost!'}
-                            </div>
-                        ` : ''}
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-sm text-gray-400 mb-2">Bet Amount ($)</label>
-                                <input type="number" value="${state.bet / 100}" min="1" step="1"
-                                    onchange="gameStates.hilo.bet = parseInt(this.value * 100)"
-                                    class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white">
-                            </div>
-                            <button onclick="startHiLo()" ${state.loading ? 'disabled' : ''} class="w-full px-4 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg font-semibold disabled:opacity-50">
-                                ${state.loading ? 'Starting...' : 'Start Game'}
-                            </button>
-                        </div>
-                    </div>
-                `;
-            }
-
-            return `
-                <div class="bg-gray-800 rounded-lg border border-gray-700 p-6 max-w-2xl mx-auto">
-                    <h2 class="text-3xl font-bold mb-4 text-center">📊 Hi-Lo</h2>
-                    <div class="mb-4 text-center">
-                        <div class="text-2xl font-bold text-green-400">Multiplier: ${state.multiplier}x</div>
-                        <div class="text-lg text-gray-400">Potential Win: ${((state.bet * state.multiplier) / 100).toFixed(2)}</div>
-                    </div>
-                    <div class="mb-6">
-                        <h3 class="text-lg font-semibold mb-3 text-center">Current Card</h3>
-                        <div class="flex justify-center">
-                            ${renderCard(state.currentCard)}
-                        </div>
-                    </div>
-                    ${state.nextCard ? `
-                        <div class="mb-6">
-                            <h3 class="text-lg font-semibold mb-3 text-center">Next Card</h3>
-                            <div class="flex justify-center">
-                                ${renderCard(state.nextCard)}
-                            </div>
-                        </div>
-                    ` : ''}
-                    <div class="space-y-4">
-                        <div class="grid grid-cols-2 gap-2">
-                            <button onclick="guessHiLo('higher')" ${state.loading ? 'disabled' : ''} class="px-4 py-3 bg-green-600 hover:bg-green-700 rounded-lg font-semibold disabled:opacity-50">
-                                ⬆️ Higher
-                            </button>
-                            <button onclick="guessHiLo('lower')" ${state.loading ? 'disabled' : ''} class="px-4 py-3 bg-red-600 hover:bg-red-700 rounded-lg font-semibold disabled:opacity-50">
-                                ⬇️ Lower
-                            </button>
-                        </div>
-                        <button onclick="cashoutHiLo()" class="w-full px-4 py-3 bg-yellow-600 hover:bg-yellow-700 rounded-lg font-semibold">
-                            Cash Out - ${((state.bet * state.multiplier) / 100).toFixed(2)}
-                        </button>
-                    </div>
-                </div>
-            `;
-        }
-
-        async function startHiLo() {
-            gameStates.hilo.loading = true;
-            gameStates.hilo.multiplier = 1.0;
-            gameStates.hilo.gameOver = false;
-            gameStates.hilo.nextCard = null;
-            renderMainApp();
-
-            try {
-                const res = await fetch(`${API_URL}/game/hilo/start`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        username: currentUser.username, 
-                        bet: gameStates.hilo.bet,
-                        isDemo 
-                    })
-                });
-                const data = await res.json();
-                
-                if (!res.ok) {
-                    alert(data.error || 'Error starting game');
-                    gameStates.hilo.loading = false;
-                    renderMainApp();
-                    return;
-                }
-                
-                if (data.balance !== undefined) updateBalance(data.balance);
-                gameStates.hilo.currentCard = data.currentCard;
-                gameStates.hilo.gameActive = true;
-            } catch (err) {
-                alert('Error: ' + err.message);
-            }
-            gameStates.hilo.loading = false;
-            renderMainApp();
-        }
-
-        async function guessHiLo(direction) {
-            gameStates.hilo.loading = true;
-            renderMainApp();
-
-            try {
-                const res = await fetch(`${API_URL}/game/hilo/guess`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username: currentUser.username, direction })
-                });
-                const data = await res.json();
-                
-                gameStates.hilo.nextCard = data.nextCard;
-                
-                if (!data.won) {
-                    gameStates.hilo.gameActive = false;
-                    gameStates.hilo.gameOver = true;
-                    gameStates.hilo.won = false;
-                } else if (data.gameOver) {
-                    gameStates.hilo.gameActive = false;
-                    gameStates.hilo.gameOver = true;
-                    gameStates.hilo.won = true;
-                    gameStates.hilo.winAmount = data.winAmount;
-                    if (data.balance !== undefined) updateBalance(data.balance);
-                } else {
-                    gameStates.hilo.currentCard = data.nextCard;
-                    gameStates.hilo.multiplier = data.multiplier;
-                    gameStates.hilo.nextCard = null;
-                }
-                
-                gameStates.hilo.loading = false;
-                renderMainApp();
-            } catch (err) {
-                alert('Error: ' + err.message);
-                gameStates.hilo.loading = false;
-                renderMainApp();
-            }
-        }
-
-        async function cashoutHiLo() {
-            try {
-                const res = await fetch(`${API_URL}/game/hilo/cashout`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username: currentUser.username })
-                });
-                const data = await res.json();
-                
-                if (data.balance !== undefined) updateBalance(data.balance);
-                gameStates.hilo.gameActive = false;
-                gameStates.hilo.gameOver = true;
-                gameStates.hilo.won = true;
-                gameStates.hilo.winAmount = data.winAmount;
-                renderMainApp();
-            } catch (err) {
-                alert('Error: ' + err.message);
-            }
-        }
-
-        // Utility Functions
-        function updateBalance(newBalance) {
-            if (isDemo) {
-                currentUser.freeBalance = newBalance;
-            } else {
-                currentUser.balance = newBalance;
-            }
-        }
-
-        function toggleDemo() {
-            isDemo = !isDemo;
-            renderMainApp();
-        }
-
-        function selectGame(gameId) {
-            currentGame = gameId;
-            renderMainApp();
-        }
-
-        function backToGames() {
-            currentGame = null;
-            renderMainApp();
-        }
-
-        function logout() {
-            currentUser = null;
-            currentGame = null;
-            isDemo = false;
-            adminLoggedIn = false;
-            adminPassword = '';
-            showSettings = false;
-            renderAuthScreen();
-        }
-
-        function showBugReport() {
-            document.getElementById('bug-modal').classList.remove('hidden');
-        }
-
-        function closeBugReport() {
-            document.getElementById('bug-modal').classList.add('hidden');
-        }
-
-        async function submitBugReport() {
-            const game = document.getElementById('bug-game').value;
-            const description = document.getElementById('bug-description').value;
-
-            if (!game || !description) {
-                alert('Please select a game and enter a description');
-                return;
-            }
-
-            try {
-                await fetch(`${API_URL}/api/bug-report`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        username: currentUser.username, 
-                        game, 
-                        description 
-                    })
-                });
-                closeBugReport();
-                document.getElementById('bug-game').value = '';
-                document.getElementById('bug-description').value = '';
-                alert('Bug report submitted! You may receive $0.25 if accepted by admin.');
-            } catch (err) {
-                alert('Failed to submit bug report');
-            }
-        }
-
-        // Initialize app
-        renderAuthScreen();
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
     </script>
 </body>
 </html>
