@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Judeceno Casino</title>
+    <title>Judeceno Casino - Demo Mode</title>
     
     <!-- React & ReactDOM -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
@@ -105,6 +105,16 @@
         box-shadow: 0 0 0 2px rgba(0, 231, 1, 0.1);
         outline: none;
       }
+      
+      .demo-badge {
+        background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+        animation: pulse 2s infinite;
+      }
+      
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.8; }
+      }
     </style>
 </head>
 <body>
@@ -137,11 +147,15 @@
         const authApi = {
             login: async (u, p) => {
                 const res = await apiRequest('/login', { username: u, password: p });
-                return { username: res.username, balance: res.balance };
+                return { username: res.username, balance: res.balance, isDemo: res.isDemo };
             },
             register: async (u, p) => {
                 const res = await apiRequest('/register', { username: u, password: p });
-                return { username: res.username, balance: res.balance };
+                return { username: res.username, balance: res.balance, isDemo: res.isDemo };
+            },
+            demoLogin: async () => {
+                const res = await apiRequest('/demo-login', {});
+                return { username: res.username, balance: res.balance, isDemo: true };
             }
         };
 
@@ -229,6 +243,11 @@
                 <div className="flex items-center gap-4">
                     {user ? (
                         <>
+                            {user.isDemo && (
+                                <div className="demo-badge text-black font-black text-xs px-3 py-1 rounded-full shadow-lg">
+                                    DEMO MODE
+                                </div>
+                            )}
                             <div className="bg-black/40 rounded-full px-5 py-2 flex items-center gap-3 border border-white/10 shadow-inner-light">
                                 <span className="text-sm font-bold font-mono text-stake-green">${(user.balance / 100).toFixed(2)}</span>
                             </div>
@@ -750,7 +769,14 @@
             const handleLogin = async (reg) => {
                 try {
                     const res = reg ? await authApi.register(loginUser, loginPass) : await authApi.login(loginUser, loginPass);
-                    setUser({ username: res.username, balance: res.balance });
+                    setUser({ username: res.username, balance: res.balance, isDemo: res.isDemo || false });
+                } catch (e) { alert(e.message); }
+            };
+
+            const handleDemoLogin = async () => {
+                try {
+                    const res = await authApi.demoLogin();
+                    setUser({ username: res.username, balance: res.balance, isDemo: true });
                 } catch (e) { alert(e.message); }
             };
 
@@ -771,6 +797,21 @@
                             <input type="password" placeholder="Password" value={loginPass} onChange={e => setLoginPass(e.target.value)} className="w-full input-field rounded-xl p-4 text-white text-lg" />
                             <button onClick={() => handleLogin(false)} className="w-full bg-btn-gradient text-black font-black py-4 rounded-xl text-lg hover:shadow-glow transition-all transform hover:-translate-y-0.5">LOGIN</button>
                             <button onClick={() => handleLogin(true)} className="w-full bg-white/5 text-gray-300 font-bold py-4 rounded-xl hover:bg-white/10 transition-all border border-white/5">CREATE ACCOUNT</button>
+                            
+                            <div className="relative my-6">
+                                <div className="absolute inset-0 flex items-center">
+                                    <div className="w-full border-t border-white/10"></div>
+                                </div>
+                                <div className="relative flex justify-center text-sm">
+                                    <span className="px-4 bg-stake-card text-gray-400 font-medium">OR</span>
+                                </div>
+                            </div>
+                            
+                            <button onClick={handleDemoLogin} className="w-full bg-gradient-to-r from-yellow-400 to-orange-500 text-black font-black py-4 rounded-xl hover:shadow-[0_0_20px_rgba(251,191,36,0.4)] transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-2">
+                                <span>🎮</span>
+                                TRY DEMO MODE
+                                <span className="text-xs font-normal">(Free $100)</span>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -819,6 +860,11 @@
                                     <div className="flex items-center gap-4 mb-8">
                                         <div className="w-1.5 h-8 bg-stake-green rounded-full shadow-glow"></div>
                                         <h2 className="text-3xl font-black text-white tracking-tight">Lobby</h2>
+                                        {user.isDemo && (
+                                            <div className="demo-badge text-black font-bold text-sm px-4 py-1.5 rounded-full shadow-lg">
+                                                🎮 DEMO MODE - Playing with Free Credits
+                                            </div>
+                                        )}
                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                                         <GameCard id="mines" name="Mines" icon="💣" gradient="from-yellow-500 to-red-600" />
