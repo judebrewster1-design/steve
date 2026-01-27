@@ -70,18 +70,11 @@
       ::-webkit-scrollbar-thumb { background: #2f4553; border-radius: 99px; }
       ::-webkit-scrollbar-thumb:hover { background: #415969; }
 
-      /* Animations */
       @keyframes pop-in {
         0% { transform: scale(0.8) translateY(10px); opacity: 0; }
         100% { transform: scale(1) translateY(0); opacity: 1; }
       }
       .animate-pop-in { animation: pop-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
-
-      @keyframes float {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-5px); }
-      }
-      .animate-float { animation: float 3s ease-in-out infinite; }
 
       @keyframes shake {
         0%, 100% { transform: translateX(0); }
@@ -90,13 +83,11 @@
       }
       .animate-shake { animation: shake 0.4s ease-in-out; }
 
-      /* 3D Coin Flip */
       .perspective-1000 { perspective: 1000px; }
       .transform-style-3d { transform-style: preserve-3d; }
       .backface-hidden { backface-visibility: hidden; }
       .rotate-y-180 { transform: rotateY(180deg); }
       
-      /* Glassmorphism utility */
       .glass {
         background: rgba(26, 44, 56, 0.7);
         backdrop-filter: blur(12px);
@@ -122,14 +113,7 @@
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
 
-        // ==========================================
-        // BACKEND API CONNECTION
-        // ==========================================
-        
         const API_URL = 'http://localhost:5000';
-        
-        // Local store ONLY for demo mode
-        const DEMO_BALANCES = {};
 
         async function apiRequest(endpoint, body = {}, method = 'POST') {
             try {
@@ -148,12 +132,6 @@
                 console.error(`API Error [${endpoint}]:`, err);
                 throw err;
             }
-        }
-
-        // Get current balance from backend
-        async function getBalance(username) {
-            const data = await apiRequest(`/balance/${username}`, {}, 'GET');
-            return data.balance;
         }
 
         const authApi = {
@@ -238,7 +216,7 @@
             );
         };
 
-        const TopBar = ({ user, onToggleSidebar, onLogout, isDemo, onToggleDemo, onResetDemoBalance }) => (
+        const TopBar = ({ user, onToggleSidebar, onLogout }) => (
             <div className="h-16 glass fixed top-0 w-full z-50 border-b border-white/5 shadow-lg flex items-center justify-between px-6 backdrop-blur-md">
                 <div className="flex items-center gap-6">
                     <button onClick={onToggleSidebar} className="p-2 hover:bg-white/10 rounded-lg text-gray-300 transition-colors">
@@ -251,13 +229,8 @@
                 <div className="flex items-center gap-4">
                     {user ? (
                         <>
-                            <div className="hidden md:flex items-center gap-1 bg-black/40 rounded-full p-1 border border-white/10">
-                                <button onClick={!isDemo ? onToggleDemo : undefined} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${isDemo ? 'bg-yellow-500 text-black shadow-glow-yellow' : 'text-gray-500 hover:text-white'}`}>Demo</button>
-                                <button onClick={isDemo ? onToggleDemo : undefined} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${!isDemo ? 'bg-stake-green text-black shadow-glow' : 'text-gray-500 hover:text-white'}`}>Real</button>
-                            </div>
                             <div className="bg-black/40 rounded-full px-5 py-2 flex items-center gap-3 border border-white/10 shadow-inner-light">
-                                <span className={`text-sm font-bold font-mono ${isDemo ? 'text-yellow-400' : 'text-stake-green'}`}>${(user.balance / 100).toFixed(2)}</span>
-                                {isDemo && <button onClick={onResetDemoBalance} className="text-gray-500 hover:text-white transition-colors">↺</button>}
+                                <span className="text-sm font-bold font-mono text-stake-green">${(user.balance / 100).toFixed(2)}</span>
                             </div>
                             <div className="flex items-center gap-3 cursor-pointer hover:bg-white/5 p-1.5 pr-3 rounded-full transition-colors border border-transparent hover:border-white/10" onClick={onLogout}>
                                 <div className="w-8 h-8 bg-gradient-to-br from-stake-hover to-stake-card rounded-full flex items-center justify-center text-white font-bold border border-white/20 shadow-lg">{user.username[0].toUpperCase()}</div>
@@ -269,14 +242,12 @@
         );
 
         // ==========================================
-        // GAME COMPONENTS (Using Real Backend)
+        // GAME COMPONENTS
         // ==========================================
 
         const CardView = ({ card, hidden }) => {
             if (hidden) return (
-                <div className="w-24 h-36 bg-stake-card border-2 border-stake-hover rounded-xl flex items-center justify-center shadow-2xl relative overflow-hidden transform transition-all hover:-translate-y-1">
-                     <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/diagmonds-light.png')]"></div>
-                     <div className="w-full h-full bg-gradient-to-br from-white/5 to-transparent absolute"></div>
+                <div className="w-24 h-36 bg-stake-card border-2 border-stake-hover rounded-xl flex items-center justify-center shadow-2xl relative overflow-hidden">
                      <span className="text-4xl opacity-50">♠️</span>
                 </div>
             );
@@ -290,7 +261,7 @@
             );
         };
 
-        const Blackjack = ({ user, updateBalance, isDemo }) => {
+        const Blackjack = ({ user, updateBalance }) => {
             const [state, setState] = useState({ bet: 10, result: null, playerHand: [], dealerHand: [], gameStarted: false });
             
             const deal = async () => {
@@ -361,6 +332,84 @@
             );
         };
 
+        const Mines = ({ user, updateBalance }) => {
+            const [state, setState] = useState({ bet: 10, mineCount: 3, revealed: Array(25).fill(false), mines: [], active: false, multiplier: 1.0 });
+            const [isShaking, setIsShaking] = useState(false);
+
+            const startGame = async () => {
+                if (state.bet * 100 > user.balance) return alert("Insufficient funds");
+                try {
+                    const res = await minesApi.start(user.username, state.bet * 100, state.mineCount);
+                    updateBalance(res.newBalance);
+                    setState({ ...state, active: true, revealed: Array(25).fill(false), mines: [], multiplier: 1.0 });
+                } catch (e) { alert(e.message); }
+            };
+
+            const clickTile = async (index) => {
+                if (!state.active || state.revealed[index]) return;
+                try {
+                    const res = await minesApi.reveal(user.username, index);
+                    const newRevealed = [...state.revealed]; newRevealed[index] = true;
+                    if (res.hit === 'mine') {
+                        setIsShaking(true);
+                        setState({ ...state, active: false, revealed: Array(25).fill(true), mines: res.mines });
+                        setTimeout(() => setIsShaking(false), 500);
+                    } else {
+                        setState({ ...state, revealed: newRevealed, multiplier: res.multiplier });
+                    }
+                } catch (e) { alert(e.message); }
+            };
+
+            const cashout = async () => {
+                try {
+                    const res = await minesApi.cashout(user.username);
+                    updateBalance(res.newBalance);
+                    setState({ ...state, active: false, revealed: Array(25).fill(true), mines: res.mines });
+                } catch (e) { alert(e.message); }
+            };
+
+            return (
+                <div className="flex flex-col lg:flex-row gap-8 w-full max-w-6xl mx-auto p-4">
+                    <div className="w-full lg:w-80 glass p-6 rounded-2xl h-fit border border-white/5 flex flex-col gap-6">
+                        <div>
+                            <label className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-2 block">Bet Amount</label>
+                            <input type="number" value={state.bet} onChange={e => setState({ ...state, bet: Number(e.target.value) })} disabled={state.active} className="w-full input-field rounded-xl p-3 text-white font-mono font-bold" />
+                        </div>
+                        <div>
+                            <label className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-2 block">Mines</label>
+                            <select value={state.mineCount} onChange={e => setState({ ...state, mineCount: Number(e.target.value) })} disabled={state.active} className="w-full input-field rounded-xl p-3 text-white font-bold cursor-pointer">
+                                {[1, 2, 3, 4, 5, 10, 15, 20, 24].map(n => <option key={n} value={n}>{n}</option>)}
+                            </select>
+                        </div>
+                        {state.active ? (
+                            <>
+                                <div className="bg-black/30 p-4 rounded-xl border border-white/5">
+                                    <div className="text-gray-400 text-xs font-bold uppercase mb-1">Current Multiplier</div>
+                                    <div className="text-stake-green text-4xl font-black font-mono tracking-tighter drop-shadow-md">{state.multiplier.toFixed(2)}x</div>
+                                </div>
+                                <button onClick={cashout} className="w-full bg-btn-gradient text-black font-black py-4 rounded-xl shadow-glow transition-all transform hover:-translate-y-1">CASHOUT ${(state.bet * state.multiplier).toFixed(2)}</button>
+                            </>
+                        ) : <button onClick={startGame} className="w-full bg-btn-gradient text-black font-black py-4 rounded-xl shadow-glow transition-all transform hover:-translate-y-1">BET</button>}
+                    </div>
+                    
+                    <div className={`flex-1 glass rounded-2xl p-8 border border-white/5 flex flex-col items-center justify-center relative min-h-[500px] ${isShaking ? 'animate-shake' : ''}`}>
+                         <div className="grid grid-cols-5 gap-3 w-full max-w-[500px] aspect-square">
+                            {state.revealed.map((r, i) => (
+                                <button key={i} disabled={!state.active || r} onClick={() => clickTile(i)} 
+                                    className={`rounded-xl relative transition-all duration-300 overflow-hidden group
+                                    ${r 
+                                        ? 'bg-black/40 border-2 border-transparent scale-95 shadow-inner' 
+                                        : 'bg-stake-card shadow-[0_4px_0_0_rgba(0,0,0,0.2)] hover:-translate-y-1 hover:shadow-[0_6px_0_0_rgba(0,0,0,0.3)] hover:bg-stake-hover border-b-4 border-black/20'
+                                    }`}>
+                                    {r && <div className="animate-pop-in flex justify-center items-center h-full text-4xl drop-shadow-md">{state.mines[i] ? '💣' : '💎'}</div>}
+                                </button>
+                            ))}
+                         </div>
+                    </div>
+                </div>
+            );
+        };
+
         const Coinflip = ({ user, updateBalance }) => {
             const [state, setState] = useState({ bet: 1, choice: 'heads', isFlipping: false, result: null });
             const [rotation, setRotation] = useState(0);
@@ -413,6 +462,280 @@
             );
         };
 
+        const Plinko = ({ user, updateBalance }) => {
+            const [bet, setBet] = useState(10);
+            const [balls, setBalls] = useState([]);
+            const lastId = useRef(0);
+            const multipliers = [19.6, 7.84, 3.92, 1.96, 0.49, 0.29, 0.29, 0.29, 0.49, 1.96, 3.92, 7.84, 19.6];
+            
+            const drop = async () => {
+                if (bet * 100 > user.balance) return alert("Insufficient funds");
+                try {
+                    const res = await plinkoApi.drop(user.username, bet * 100, 'medium');
+                    updateBalance(res.newBalance);
+                    
+                    const rows = 12;
+                    const slot = res.slot;
+                    const rights = slot;
+                    const lefts = rows - rights;
+                    const path = Array(lefts).fill(0).concat(Array(rights).fill(1));
+                    for (let i = path.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [path[i], path[j]] = [path[j], path[i]];
+                    }
+                    
+                    setBalls(p => [...p, { id: lastId.current++, x: 50, y: 0, path, step: 0, progress: 0 }]);
+                } catch (e) { alert(e.message); }
+            };
+
+            useEffect(() => {
+                let frame;
+                const loop = () => {
+                    setBalls(bs => bs.map(b => {
+                        let { x, y, step, progress } = b;
+                        progress += 0.05;
+                        if (progress >= 1) { progress = 0; step++; }
+                        y = (step + progress) * (100 / 13);
+                        if (step < b.path.length) {
+                             const idx = b.path.slice(0, step).reduce((a,c) => a+c, 0);
+                             const nextIdx = idx + b.path[step];
+                             const startX = 50 + (idx - step/2) * (80/12);
+                             const endX = 50 + (nextIdx - (step+1)/2) * (80/12);
+                             x = startX + (endX - startX) * progress;
+                        }
+                        return { ...b, x, y, step, progress };
+                    }).filter(b => b.step <= 12));
+                    frame = requestAnimationFrame(loop);
+                };
+                loop();
+                return () => cancelAnimationFrame(frame);
+            }, []);
+
+            return (
+                <div className="flex gap-8 max-w-6xl mx-auto p-4 flex-col lg:flex-row">
+                    <div className="w-full lg:w-80 glass p-6 rounded-2xl border border-white/5 h-fit">
+                        <label className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-2 block">Bet Amount</label>
+                        <input type="number" value={bet} onChange={e => setBet(Number(e.target.value))} className="w-full input-field rounded-xl p-3 text-white font-mono font-bold mb-6" />
+                        <button onClick={drop} className="w-full bg-btn-gradient text-black font-black py-4 rounded-xl shadow-glow transition-all transform hover:-translate-y-1">DROP</button>
+                    </div>
+                    <div className="flex-1 glass rounded-2xl border border-white/5 relative h-[600px] overflow-hidden bg-black/20">
+                        <div className="absolute inset-0 flex flex-col justify-between py-12 px-4">
+                             {Array.from({ length: 13 }).map((_, r) => <div key={r} className="flex justify-center gap-4">{Array.from({ length: r + 3 }).map((_, c) => <div key={c} className="w-2 h-2 rounded-full bg-white/30 shadow-[0_0_5px_rgba(255,255,255,0.2)]"></div>)}</div>)}
+                        </div>
+                        <div className="absolute bottom-2 w-full flex justify-between px-4 gap-2">
+                            {multipliers.map((m, i) => {
+                                let bg = 'bg-[#0f212e]';
+                                if (m >= 10) bg = 'bg-red-500 shadow-glow-red';
+                                else if (m >= 2) bg = 'bg-orange-500';
+                                else bg = 'bg-stake-green text-black';
+                                return <div key={i} className={`flex-1 h-8 rounded-md flex items-center justify-center text-[10px] font-bold ${bg} shadow-lg transition-transform hover:scale-110`}>{m}x</div>
+                            })}
+                        </div>
+                        {balls.map(b => <div key={b.id} className="absolute w-4 h-4 rounded-full bg-white shadow-[0_0_15px_rgba(255,255,255,0.8)] z-10" style={{ left: `${b.x}%`, top: `${b.y}%`, transform: 'translate(-50%,-50%)' }}></div>)}
+                    </div>
+                </div>
+            );
+        };
+
+        const Towers = ({ user, updateBalance }) => {
+            const [state, setState] = useState({ bet: 10, difficulty: 'medium', active: false, row: 0, revealed: Array(8).fill(-1), multiplier: 1.0, safeTiles: [] });
+            
+            const startGame = async () => {
+                if (state.bet * 100 > user.balance) return alert("Insufficient funds");
+                try {
+                    const res = await towersApi.start(user.username, state.bet * 100, state.difficulty);
+                    updateBalance(res.newBalance);
+                    setState({ ...state, active: true, row: 0, revealed: Array(8).fill(-1), multiplier: 1.0, safeTiles: [] });
+                } catch (e) { alert(e.message); }
+            };
+            
+            const pick = async (col) => {
+                if (!state.active) return;
+                try {
+                    const res = await towersApi.pick(user.username, col);
+                    const rev = [...state.revealed]; rev[state.row] = col;
+                    if (res.hit === 'bomb') {
+                        setState({ ...state, active: false, revealed: rev, safeTiles: res.safeTiles });
+                    } else if (res.won) {
+                        updateBalance(res.newBalance);
+                        setState({ ...state, active: false, revealed: rev, safeTiles: res.safeTiles });
+                    } else {
+                        setState({ ...state, revealed: rev, row: res.currentRow, multiplier: res.multiplier, safeTiles: res.safeTiles });
+                    }
+                } catch (e) { alert(e.message); }
+            };
+            
+            const cashout = async () => {
+                try {
+                    const res = await towersApi.cashout(user.username);
+                    updateBalance(res.newBalance);
+                    setState({ ...state, active: false });
+                } catch (e) { alert(e.message); }
+            };
+
+            return (
+                <div className="flex gap-8 max-w-6xl mx-auto p-4 flex-col lg:flex-row">
+                    <div className="w-full lg:w-80 glass p-6 rounded-2xl border border-white/5 h-fit">
+                        <input type="number" value={state.bet} onChange={e => setState({ ...state, bet: Number(e.target.value) })} disabled={state.active} className="w-full input-field rounded-xl p-3 text-white font-mono font-bold mb-6" />
+                        {state.active ? <><div className="bg-black/30 p-4 rounded-xl border border-white/5 mb-4"><div className="text-gray-400 text-xs font-bold uppercase mb-1">Multiplier</div><div className="text-stake-green text-3xl font-black">{state.multiplier.toFixed(2)}x</div></div><button onClick={cashout} className="w-full bg-btn-gradient text-black font-black py-4 rounded-xl shadow-glow">CASHOUT</button></> : <button onClick={startGame} className="w-full bg-btn-gradient text-black font-black py-4 rounded-xl shadow-glow">PLAY</button>}
+                    </div>
+                    <div className="flex-1 glass rounded-2xl border border-white/5 p-8 flex flex-col-reverse items-center justify-center gap-3 min-h-[500px]">
+                        {Array.from({ length: 8 }).map((_, r) => (
+                            <div key={r} className={`grid grid-cols-3 gap-4 ${state.row === r && state.active ? 'opacity-100 scale-105' : 'opacity-40 grayscale'}`}>
+                                {[0, 1, 2].map(c => {
+                                    const picked = state.revealed[r] === c;
+                                    const isSafe = state.safeTiles.includes(c);
+                                    const isBomb = picked && !isSafe && !state.active;
+                                    return <button key={c} disabled={!(state.row === r && state.active)} onClick={() => pick(c)} className={`w-24 h-16 rounded-xl flex items-center justify-center font-bold text-3xl transition-all shadow-lg ${picked ? (isBomb ? 'bg-red-500/20 border-2 border-red-500 shadow-glow-red' : 'bg-stake-green text-black shadow-glow') : 'bg-stake-card border border-white/5 hover:bg-white/10'}`}>{picked && (isBomb ? '💣' : '💎')}</button>;
+                                })}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        const Roulette = ({ user, updateBalance }) => {
+            const [betAmount, setBetAmount] = useState(1);
+            const [bets, setBets] = useState({});
+            const [rotation, setRotation] = useState(0);
+            const [spinning, setSpinning] = useState(false);
+            
+            const placeBet = (k) => !spinning && setBets(p => ({ ...p, [k]: (p[k] || 0) + betAmount }));
+            
+            const spin = async () => {
+                const totalBet = Object.entries(bets).reduce((sum, [k, amt]) => sum + amt, 0);
+                if (totalBet * 100 > user.balance) return alert("Insufficient funds");
+                const k = Object.keys(bets)[0];
+                if (!k) return alert("Place bet");
+                
+                try {
+                    setSpinning(true);
+                    const res = await rouletteApi.spin(user.username, bets[k] * 100, k);
+                    const order = [0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26];
+                    const idx = order.indexOf(res.outcome);
+                    setRotation(r => r + 1440 + (360 - (idx * (360 / 37))));
+                    
+                    setTimeout(() => { 
+                        setSpinning(false);
+                        updateBalance(res.newBalance); 
+                        if (res.won) alert(`Won $${(res.payout/100).toFixed(2)}`);
+                        setBets({}); 
+                    }, 3000);
+                } catch (e) { setSpinning(false); alert(e.message); }
+            };
+
+            const getRouletteColor = (num) => {
+                if (num === 0) return 'green';
+                const red = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36];
+                return red.includes(num) ? 'red' : 'black';
+            };
+
+            return (
+                <div className="flex flex-col gap-12 max-w-4xl mx-auto p-4">
+                    <div className="flex justify-center py-8">
+                        <div className="relative">
+                            <div className="w-4 absolute -top-4 left-1/2 -translate-x-1/2 text-white text-3xl z-10 font-bold">▼</div>
+                            <div className="w-80 h-80 rounded-full border-[8px] border-gray-800 relative overflow-hidden transition-transform duration-[3000ms] cubic-bezier(0.25, 0.1, 0.25, 1) shadow-[0_0_50px_rgba(0,0,0,0.5)]" style={{ background: `conic-gradient(#00e701 0deg 9.7deg, #ff4d4d 9.7deg 19.4deg, #1a2c38 19.4deg 29.1deg, #ff4d4d 29.1deg 38.8deg, #1a2c38 38.8deg 48.5deg, #ff4d4d 48.5deg 58.2deg, #1a2c38 58.2deg 67.9deg, #ff4d4d 67.9deg 77.6deg, #1a2c38 77.6deg 87.3deg, #ff4d4d 87.3deg 97deg, #1a2c38 97deg 106.7deg, #ff4d4d 106.7deg 116.4deg, #1a2c38 116.4deg 126.1deg, #ff4d4d 126.1deg 135.8deg, #1a2c38 135.8deg 145.5deg, #ff4d4d 145.5deg 155.2deg, #1a2c38 155.2deg 164.9deg, #ff4d4d 164.9deg 174.6deg, #1a2c38 174.6deg 184.3deg, #ff4d4d 184.3deg 194deg, #1a2c38 194deg 203.7deg, #ff4d4d 203.7deg 213.4deg, #1a2c38 213.4deg 223.1deg, #ff4d4d 223.1deg 232.8deg, #1a2c38 232.8deg 242.5deg, #ff4d4d 242.5deg 252.2deg, #1a2c38 252.2deg 261.9deg, #ff4d4d 261.9deg 271.6deg, #1a2c38 271.6deg 281.3deg, #ff4d4d 281.3deg 291deg, #1a2c38 291deg 300.7deg, #ff4d4d 300.7deg 310.4deg, #1a2c38 310.4deg 320.1deg, #ff4d4d 320.1deg 329.8deg, #1a2c38 329.8deg 339.5deg, #ff4d4d 339.5deg 349.2deg, #1a2c38 349.2deg 360deg)`, transform: `rotate(${rotation}deg)` }}>
+                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-[#0f212e] rounded-full flex items-center justify-center border-4 border-gray-800 shadow-inner">
+                                    <span className="text-white font-bold tracking-widest text-sm opacity-50">ROULETTE</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="glass p-8 rounded-2xl border border-white/5 shadow-2xl">
+                        <div className="flex gap-4 mb-6 items-center">
+                            <input type="number" value={betAmount} onChange={e => setBetAmount(Number(e.target.value))} className="w-32 input-field rounded-lg p-2 text-white font-mono" />
+                            <button onClick={() => setBets({})} className="text-gray-400 hover:text-white text-sm font-bold uppercase tracking-wider">Clear Bets</button>
+                        </div>
+                        <div className="grid grid-cols-14 gap-1">
+                             <button onClick={() => placeBet('0')} className="col-span-2 row-span-3 bg-stake-green hover:brightness-110 rounded-l-lg flex items-center justify-center font-bold text-stake-dark relative text-lg">0 {bets['0'] && <span className="absolute inset-0 bg-black/60 backdrop-blur-sm text-white text-xs flex items-center justify-center rounded-l-lg border-2 border-stake-green">${bets['0']}</span>}</button>
+                            {Array.from({ length: 36 }).map((_, i) => <button key={i + 1} onClick={() => placeBet((i + 1).toString())} className={`col-span-1 h-14 text-white font-bold relative transition-colors ${getRouletteColor(i + 1) === 'red' ? 'bg-stake-red hover:bg-red-500' : 'bg-[#2f4553] hover:bg-[#3d596b]'}`}>{i + 1}{bets[(i + 1).toString()] && <span className="absolute inset-0 bg-black/60 backdrop-blur-sm text-xs flex items-center justify-center border-2 border-white">${bets[(i + 1).toString()]}</span>}</button>)}
+                             <div className="col-span-2"></div>
+                            {['red', 'black', 'even', 'odd'].map(t => <button key={t} onClick={() => placeBet(t)} className="col-span-3 h-12 bg-[#1a2c38] border border-white/5 hover:bg-white/5 flex items-center justify-center text-xs font-bold text-white uppercase relative tracking-wider">{t} {bets[t] && <div className="absolute top-1 right-1 w-2 h-2 bg-stake-green rounded-full shadow-glow"></div>}</button>)}
+                        </div>
+                        <button onClick={spin} disabled={spinning} className="w-full mt-6 bg-btn-gradient text-black font-black py-4 rounded-xl shadow-glow transition-all transform hover:-translate-y-1">SPIN</button>
+                    </div>
+                </div>
+            );
+        };
+
+        const HiLo = ({ user, updateBalance }) => {
+            const [state, setState] = useState({ bet: 10, active: false, card: null, multi: 1.0, odds: null, nextCard: null });
+            const [history, setHistory] = useState([]);
+            
+            const startGame = async () => {
+                if (state.bet * 100 > user.balance) return alert("Insufficient funds");
+                try {
+                    const res = await hiloApi.start(user.username, state.bet * 100);
+                    updateBalance(res.newBalance);
+                    setState({ ...state, active: true, card: res.currentCard, multi: 1.0, odds: { high: res.higherOdds, low: res.lowerOdds } });
+                    setHistory([]);
+                } catch (e) { alert(e.message); }
+            };
+            
+            const guess = async (dir) => {
+                try {
+                    const res = await hiloApi.guess(user.username, dir);
+                    setHistory(h => [state.card, ...h]);
+                    if (res.gameOver) {
+                        setState({ ...state, active: false, card: res.nextCard, odds: null });
+                        if (res.won) updateBalance(res.newBalance);
+                    } else {
+                        setState({ ...state, card: res.nextCard, multi: res.multiplier, odds: { high: res.higherOdds, low: res.lowerOdds } });
+                    }
+                } catch (e) { alert(e.message); }
+            };
+            
+            const cashout = async () => {
+                if (history.length === 0) return alert("Must make at least one move");
+                try {
+                    const res = await hiloApi.cashout(user.username);
+                    updateBalance(res.newBalance);
+                    setState({ ...state, active: false });
+                } catch (e) { alert(e.message); }
+            };
+
+            return (
+                <div className="flex flex-col lg:flex-row gap-8 max-w-6xl mx-auto p-4">
+                    <div className="w-full lg:w-80 glass p-6 rounded-2xl border border-white/5 h-fit">
+                        <input type="number" value={state.bet} onChange={e => setState({ ...state, bet: Number(e.target.value) })} disabled={state.active} className="w-full input-field rounded-xl p-3 text-white font-mono font-bold mb-6" />
+                        {state.active ? (
+                            <>
+                                <div className="bg-black/30 p-4 rounded-xl border border-white/5 mb-4">
+                                    <div className="text-gray-400 text-xs font-bold uppercase mb-1">Multiplier</div>
+                                    <div className="text-stake-green text-3xl font-black">{state.multi.toFixed(2)}x</div>
+                                </div>
+                                <button 
+                                    onClick={cashout} 
+                                    disabled={history.length === 0}
+                                    className={`w-full font-black py-4 rounded-xl shadow-glow transition-all ${history.length === 0 ? 'bg-gray-600 text-gray-400 cursor-not-allowed' : 'bg-btn-gradient text-black'}`}
+                                >
+                                    CASHOUT
+                                </button>
+                            </>
+                        ) : <button onClick={startGame} className="w-full bg-btn-gradient text-black font-black py-4 rounded-xl shadow-glow">START GAME</button>}
+                    </div>
+                    <div className="flex-1 glass rounded-2xl border border-white/5 p-8 flex flex-col items-center justify-center min-h-[500px]">
+                        <div className="flex gap-3 mb-8 h-20 opacity-60">
+                            {history.slice(0,5).map((c,i) => <div key={i} className="transform scale-75 origin-top"><CardView card={c} /></div>)}
+                        </div>
+                        {state.card ? <div className="transform scale-125 transition-all"><CardView card={state.card} /></div> : <div className="w-32 h-48 border-2 border-dashed border-gray-600 rounded-xl flex items-center justify-center text-4xl text-gray-500 font-bold">?</div>}
+                        <div className="flex gap-4 mt-12 w-full max-w-lg">
+                            <button disabled={!state.active} onClick={() => guess('lower')} className="flex-1 bg-[#1a2c38] border border-white/10 p-6 rounded-2xl hover:bg-white/5 disabled:opacity-50 transition-all group">
+                                <div className="text-gray-400 font-bold text-sm uppercase mb-1">Lower or Same</div>
+                                <div className="text-white font-black text-2xl group-hover:text-stake-green transition-colors">{state.odds?.low}x</div>
+                            </button>
+                            <button disabled={!state.active} onClick={() => guess('higher')} className="flex-1 bg-[#1a2c38] border border-white/10 p-6 rounded-2xl hover:bg-white/5 disabled:opacity-50 transition-all group">
+                                <div className="text-gray-400 font-bold text-sm uppercase mb-1">Higher or Same</div>
+                                <div className="text-white font-black text-2xl group-hover:text-stake-green transition-colors">{state.odds?.high}x</div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
         // ==========================================
         // MAIN APP COMPONENT
         // ==========================================
@@ -421,9 +744,6 @@
             const [user, setUser] = useState(null);
             const [activeGame, setActiveGame] = useState(null);
             const [isSidebarOpen, setSidebarOpen] = useState(true);
-            const [isDemo, setIsDemo] = useState(false); // Default to REAL mode
-            
-            // Auth Fields
             const [loginUser, setLoginUser] = useState('');
             const [loginPass, setLoginPass] = useState('');
 
@@ -432,13 +752,6 @@
                     const res = reg ? await authApi.register(loginUser, loginPass) : await authApi.login(loginUser, loginPass);
                     setUser({ username: res.username, balance: res.balance });
                 } catch (e) { alert(e.message); }
-            };
-
-            const refreshBalance = async () => {
-                if (user && !isDemo) {
-                    const newBalance = await getBalance(user.username);
-                    setUser({ ...user, balance: newBalance });
-                }
             };
 
             const updateBalance = (newBalance) => {
@@ -481,10 +794,7 @@
                     <TopBar 
                         user={user} 
                         onToggleSidebar={() => setSidebarOpen(!isSidebarOpen)} 
-                        onLogout={() => setUser(null)} 
-                        isDemo={isDemo} 
-                        onToggleDemo={() => setIsDemo(!isDemo)} 
-                        onResetDemoBalance={() => {}} 
+                        onLogout={() => setUser(null)}
                     />
                     <Sidebar activeGame={activeGame} onSelectGame={setActiveGame} isOpen={isSidebarOpen} />
                     <main className={`pt-24 transition-all duration-300 ${isSidebarOpen ? 'pl-64' : 'pl-24'} pr-6 pb-6`}>
@@ -496,8 +806,13 @@
                                         <span className="text-white/20">/</span>
                                         <span className="text-white font-bold capitalize">{activeGame}</span>
                                     </div>
-                                    {activeGame === 'blackjack' && <Blackjack user={user} updateBalance={updateBalance} isDemo={isDemo} />}
-                                    {activeGame === 'coinflip' && <Coinflip user={user} updateBalance={updateBalance} isDemo={isDemo} />}
+                                    {activeGame === 'blackjack' && <Blackjack user={user} updateBalance={updateBalance} />}
+                                    {activeGame === 'mines' && <Mines user={user} updateBalance={updateBalance} />}
+                                    {activeGame === 'coinflip' && <Coinflip user={user} updateBalance={updateBalance} />}
+                                    {activeGame === 'plinko' && <Plinko user={user} updateBalance={updateBalance} />}
+                                    {activeGame === 'towers' && <Towers user={user} updateBalance={updateBalance} />}
+                                    {activeGame === 'roulette' && <Roulette user={user} updateBalance={updateBalance} />}
+                                    {activeGame === 'hilo' && <HiLo user={user} updateBalance={updateBalance} />}
                                 </div>
                             ) : (
                                 <div>
@@ -506,7 +821,12 @@
                                         <h2 className="text-3xl font-black text-white tracking-tight">Lobby</h2>
                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                                        <GameCard id="mines" name="Mines" icon="💣" gradient="from-yellow-500 to-red-600" />
                                         <GameCard id="blackjack" name="Blackjack" icon="🃏" gradient="from-purple-600 to-blue-600" />
+                                        <GameCard id="plinko" name="Plinko" icon="🎯" gradient="from-pink-500 to-rose-600" />
+                                        <GameCard id="roulette" name="Roulette" icon="🎡" gradient="from-green-500 to-emerald-700" />
+                                        <GameCard id="towers" name="Towers" icon="🏢" gradient="from-orange-500 to-amber-600" />
+                                        <GameCard id="hilo" name="HiLo" icon="📈" gradient="from-blue-400 to-indigo-700" />
                                         <GameCard id="coinflip" name="Coin Flip" icon="🪙" gradient="from-yellow-400 to-yellow-600" />
                                     </div>
                                 </div>
