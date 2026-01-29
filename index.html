@@ -2,12 +2,15 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Judeceno Casino - Demo Mode</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0f212e">
+    <title>Judeceno Casino - Mobile Optimized</title>
     
     <!-- React & ReactDOM -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     
     <!-- Babel for JSX/TSX -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -35,9 +38,6 @@
             fontFamily: {
               sans: ['Inter', 'sans-serif'],
             },
-            gridTemplateColumns: {
-              '14': 'repeat(14, minmax(0, 1fr))',
-            },
             boxShadow: {
               'glow': '0 0 15px rgba(0, 231, 1, 0.4)',
               'glow-red': '0 0 15px rgba(255, 77, 77, 0.4)',
@@ -58,23 +58,31 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
     <style>
+      * {
+        -webkit-tap-highlight-color: transparent;
+        -webkit-touch-callout: none;
+      }
+      
       body {
         font-family: 'Inter', sans-serif;
         background-color: #0f212e;
         background-image: radial-gradient(circle at 50% -20%, #213743 0%, #0f212e 50%, #07151e 100%);
         background-attachment: fixed;
         color: #b1bad3;
+        overscroll-behavior: none;
+        -webkit-overflow-scrolling: touch;
       }
-      ::-webkit-scrollbar { width: 6px; height: 6px; }
+      
+      ::-webkit-scrollbar { width: 4px; height: 4px; }
       ::-webkit-scrollbar-track { background: transparent; }
       ::-webkit-scrollbar-thumb { background: #2f4553; border-radius: 99px; }
       ::-webkit-scrollbar-thumb:hover { background: #415969; }
 
       @keyframes pop-in {
-        0% { transform: scale(0.8) translateY(10px); opacity: 0; }
+        0% { transform: scale(0.9) translateY(10px); opacity: 0; }
         100% { transform: scale(1) translateY(0); opacity: 1; }
       }
-      .animate-pop-in { animation: pop-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+      .animate-pop-in { animation: pop-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
 
       @keyframes shake {
         0%, 100% { transform: translateX(0); }
@@ -82,6 +90,12 @@
         20%, 40%, 60%, 80% { transform: translateX(4px); }
       }
       .animate-shake { animation: shake 0.4s ease-in-out; }
+
+      @keyframes slide-up {
+        from { transform: translateY(100%); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+      }
+      .animate-slide-up { animation: slide-up 0.3s ease-out forwards; }
 
       .perspective-1000 { perspective: 1000px; }
       .transform-style-3d { transform-style: preserve-3d; }
@@ -99,6 +113,7 @@
         background: #07151e;
         border: 1px solid #2f4553;
         transition: all 0.2s;
+        font-size: 16px; /* Prevent iOS zoom */
       }
       .input-field:focus {
         border-color: #00e701;
@@ -115,15 +130,81 @@
         0%, 100% { opacity: 1; }
         50% { opacity: 0.8; }
       }
+
+      /* Mobile optimizations */
+      @media (max-width: 768px) {
+        .mobile-bottom-nav {
+          position: fixed;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          background: rgba(15, 33, 46, 0.95);
+          backdrop-filter: blur(20px);
+          border-top: 1px solid rgba(255, 255, 255, 0.05);
+          padding: 8px 0 max(8px, env(safe-area-inset-bottom));
+          z-index: 100;
+        }
+        
+        .safe-area-bottom {
+          padding-bottom: max(1rem, env(safe-area-inset-bottom));
+        }
+        
+        .safe-area-top {
+          padding-top: max(1rem, env(safe-area-inset-top));
+        }
+      }
+
+      /* Touch feedback */
+      .touch-feedback:active {
+        transform: scale(0.97);
+        opacity: 0.9;
+      }
+
+      /* Loading spinner */
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+      .spinner {
+        border: 3px solid rgba(255, 255, 255, 0.1);
+        border-top-color: #00e701;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 0.8s linear infinite;
+      }
+
+      /* Prevent text selection on game elements */
+      .no-select {
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+      }
+
+      /* Smooth scrolling */
+      .smooth-scroll {
+        scroll-behavior: smooth;
+        -webkit-overflow-scrolling: touch;
+      }
     </style>
 </head>
 <body>
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect, useRef } = React;
+        const { useState, useEffect, useRef, useMemo, useCallback } = React;
 
         const API_URL = 'https://attacks-estimates-conferences-korea.trycloudflare.com';
+
+        // Debounce hook for performance
+        function useDebounce(value, delay) {
+            const [debouncedValue, setDebouncedValue] = useState(value);
+            useEffect(() => {
+                const handler = setTimeout(() => setDebouncedValue(value), delay);
+                return () => clearTimeout(handler);
+            }, [value, delay]);
+            return debouncedValue;
+        }
 
         async function apiRequest(endpoint, body = {}, method = 'POST') {
             try {
@@ -199,10 +280,44 @@
         // UI COMPONENTS
         // ==========================================
 
-        const Sidebar = ({ activeGame, onSelectGame, isOpen }) => {
-            const gamesList = [
-                { id: 'blackjack', name: 'Blackjack', icon: '🃏' },
+        const LoadingSpinner = () => (
+            <div className="flex items-center justify-center p-8">
+                <div className="spinner"></div>
+            </div>
+        );
+
+        const MobileBottomNav = ({ activeGame, onSelectGame, onShowMenu }) => {
+            const games = [
+                { id: null, name: 'Home', icon: '🏠' },
                 { id: 'mines', name: 'Mines', icon: '💣' },
+                { id: 'blackjack', name: 'Cards', icon: '🃏' },
+                { id: 'more', name: 'More', icon: '⋯' },
+            ];
+
+            return (
+                <div className="mobile-bottom-nav block md:hidden">
+                    <div className="flex justify-around items-center">
+                        {games.map((game) => (
+                            <button
+                                key={game.id || 'home'}
+                                onClick={() => game.id === 'more' ? onShowMenu() : onSelectGame(game.id)}
+                                className={`flex flex-col items-center gap-1 px-4 py-2 transition-all touch-feedback ${
+                                    activeGame === game.id ? 'text-stake-green' : 'text-gray-400'
+                                }`}
+                            >
+                                <span className="text-2xl">{game.icon}</span>
+                                <span className="text-xs font-medium">{game.name}</span>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        const MobileGameMenu = ({ onClose, onSelectGame }) => {
+            const allGames = [
+                { id: 'mines', name: 'Mines', icon: '💣' },
+                { id: 'blackjack', name: 'Blackjack', icon: '🃏' },
                 { id: 'plinko', name: 'Plinko', icon: '🎯' },
                 { id: 'roulette', name: 'Roulette', icon: '🎡' },
                 { id: 'coinflip', name: 'Coin Flip', icon: '🪙' },
@@ -211,51 +326,53 @@
             ];
 
             return (
-                <div className={`fixed left-4 top-20 h-[calc(100vh-6rem)] glass border border-white/5 rounded-2xl transition-all duration-300 z-40 ${isOpen ? 'w-60' : 'w-16'} overflow-hidden shadow-2xl`}>
-                  <div className="flex flex-col p-3 gap-2 h-full overflow-y-auto">
-                    <button onClick={() => onSelectGame(null)} className={`flex items-center gap-4 p-3 rounded-xl transition-all duration-200 group ${activeGame === null ? 'bg-stake-hover text-white shadow-glow' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
-                      <span className="text-xl">🏠</span>
-                      <span className={`font-semibold whitespace-nowrap transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0 hidden'}`}>Lobby</span>
-                    </button>
-                    <div className={`mt-4 mb-2 px-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider ${!isOpen && 'hidden'}`}>Games</div>
-                    {gamesList.map((game) => (
-                      <button key={game.id} onClick={() => onSelectGame(game.id)} className={`flex items-center gap-4 p-3 rounded-xl transition-all duration-200 group relative overflow-hidden ${activeGame === game.id ? 'bg-stake-hover text-white shadow-glow' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
-                        <span className="text-xl group-hover:scale-110 transition-transform relative z-10">{game.icon}</span>
-                        <span className={`font-medium whitespace-nowrap transition-opacity duration-200 relative z-10 ${isOpen ? 'opacity-100' : 'opacity-0 hidden'}`}>{game.name}</span>
-                        {activeGame === game.id && <div className="absolute inset-0 bg-gradient-to-r from-stake-green/10 to-transparent"></div>}
-                      </button>
-                    ))}
-                  </div>
+                <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm" onClick={onClose}>
+                    <div className="fixed bottom-0 left-0 right-0 bg-stake-card rounded-t-3xl p-6 animate-slide-up safe-area-bottom" onClick={e => e.stopPropagation()}>
+                        <div className="w-12 h-1 bg-gray-600 rounded-full mx-auto mb-6"></div>
+                        <h3 className="text-xl font-bold text-white mb-4">All Games</h3>
+                        <div className="grid grid-cols-3 gap-3 max-h-96 overflow-y-auto smooth-scroll">
+                            {allGames.map((game) => (
+                                <button
+                                    key={game.id}
+                                    onClick={() => {
+                                        onSelectGame(game.id);
+                                        onClose();
+                                    }}
+                                    className="flex flex-col items-center gap-2 p-4 bg-stake-hover rounded-xl touch-feedback transition-all hover:bg-stake-hover/80"
+                                >
+                                    <span className="text-4xl">{game.icon}</span>
+                                    <span className="text-sm font-medium text-white">{game.name}</span>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
                 </div>
             );
         };
 
-        const TopBar = ({ user, onToggleSidebar, onLogout }) => (
-            <div className="h-16 glass fixed top-0 w-full z-50 border-b border-white/5 shadow-lg flex items-center justify-between px-6 backdrop-blur-md">
-                <div className="flex items-center gap-6">
-                    <button onClick={onToggleSidebar} className="p-2 hover:bg-white/10 rounded-lg text-gray-300 transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
-                    </button>
-                    <div className="text-2xl font-black text-white tracking-tight flex items-center gap-1 cursor-pointer" onClick={() => window.location.reload()}>
-                        <span className="text-stake-green drop-shadow-[0_0_8px_rgba(0,231,1,0.5)]">JUD</span>ECENO
+        const TopBar = ({ user, onLogout }) => (
+            <div className="h-16 glass fixed top-0 w-full z-50 border-b border-white/5 shadow-lg flex items-center justify-between px-4 backdrop-blur-md safe-area-top">
+                <div className="flex items-center gap-3">
+                    <div className="text-xl md:text-2xl font-black text-white tracking-tight flex items-center gap-1 cursor-pointer" onClick={() => window.location.reload()}>
+                        <span className="text-stake-green drop-shadow-[0_0_8px_rgba(0,231,1,0.5)]">JUD</span><span className="hidden sm:inline">ECENO</span>
                     </div>
                 </div>
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 md:gap-4">
                     {user ? (
                         <>
                             {user.isDemo && (
-                                <div className="demo-badge text-black font-black text-xs px-3 py-1 rounded-full shadow-lg">
-                                    DEMO MODE
+                                <div className="demo-badge text-black font-black text-[10px] md:text-xs px-2 md:px-3 py-1 rounded-full shadow-lg">
+                                    DEMO
                                 </div>
                             )}
-                            <div className="bg-black/40 rounded-full px-5 py-2 flex items-center gap-3 border border-white/10 shadow-inner-light">
-                                <span className="text-sm font-bold font-mono text-stake-green">${(user.balance / 100).toFixed(2)}</span>
+                            <div className="bg-black/40 rounded-full px-3 md:px-5 py-1.5 md:py-2 flex items-center gap-2 border border-white/10 shadow-inner-light">
+                                <span className="text-xs md:text-sm font-bold font-mono text-stake-green">${(user.balance / 100).toFixed(2)}</span>
                             </div>
-                            <div className="flex items-center gap-3 cursor-pointer hover:bg-white/5 p-1.5 pr-3 rounded-full transition-colors border border-transparent hover:border-white/10" onClick={onLogout}>
-                                <div className="w-8 h-8 bg-gradient-to-br from-stake-hover to-stake-card rounded-full flex items-center justify-center text-white font-bold border border-white/20 shadow-lg">{user.username[0].toUpperCase()}</div>
-                            </div>
+                            <button onClick={onLogout} className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br from-stake-hover to-stake-card rounded-full flex items-center justify-center text-white font-bold border border-white/20 shadow-lg touch-feedback">
+                                {user.username[0].toUpperCase()}
+                            </button>
                         </>
-                    ) : <button className="bg-btn-gradient text-black font-bold px-6 py-2 rounded-full hover:shadow-glow transition-all transform hover:-translate-y-0.5">Sign In</button>}
+                    ) : null}
                 </div>
             </div>
         );
@@ -264,35 +381,44 @@
         // GAME COMPONENTS
         // ==========================================
 
-        const CardView = ({ card, hidden }) => {
+        const CardView = ({ card, hidden, small }) => {
+            const sizeClass = small ? 'w-16 h-24 text-sm' : 'w-20 h-32 md:w-24 md:h-36';
+            
             if (hidden) return (
-                <div className="w-24 h-36 bg-stake-card border-2 border-stake-hover rounded-xl flex items-center justify-center shadow-2xl relative overflow-hidden">
-                     <span className="text-4xl opacity-50">♠️</span>
+                <div className={`${sizeClass} bg-stake-card border-2 border-stake-hover rounded-xl flex items-center justify-center shadow-2xl relative overflow-hidden`}>
+                     <span className="text-2xl md:text-4xl opacity-50">♠️</span>
                 </div>
             );
             if (!card) return null;
             return (
-                <div className={`w-24 h-36 bg-white rounded-xl flex flex-col items-center justify-center shadow-xl transform transition-all hover:-translate-y-2 hover:shadow-glow-card relative overflow-hidden ${card.color === 'red' ? 'text-red-600' : 'text-black'}`}>
-                    <div className="absolute top-2 left-2 text-xl font-bold leading-none">{card.value}</div>
-                    <div className="text-5xl">{card.suit === 'hearts' ? '♥' : card.suit === 'diamonds' ? '♦' : card.suit === 'clubs' ? '♣' : '♠'}</div>
-                    <div className="absolute bottom-2 right-2 text-xl font-bold leading-none rotate-180">{card.value}</div>
+                <div className={`${sizeClass} bg-white rounded-xl flex flex-col items-center justify-center shadow-xl relative overflow-hidden ${card.color === 'red' ? 'text-red-600' : 'text-black'}`}>
+                    <div className="absolute top-1 left-1 md:top-2 md:left-2 text-base md:text-xl font-bold leading-none">{card.value}</div>
+                    <div className="text-3xl md:text-5xl">{card.suit === 'hearts' ? '♥' : card.suit === 'diamonds' ? '♦' : card.suit === 'clubs' ? '♣' : '♠'}</div>
+                    <div className="absolute bottom-1 right-1 md:bottom-2 md:right-2 text-base md:text-xl font-bold leading-none rotate-180">{card.value}</div>
                 </div>
             );
         };
 
         const Blackjack = ({ user, updateBalance }) => {
             const [state, setState] = useState({ bet: 10, result: null, playerHand: [], dealerHand: [], gameStarted: false });
+            const [loading, setLoading] = useState(false);
             
             const deal = async () => {
                 if (state.bet * 100 > user.balance) return alert("Insufficient funds");
+                setLoading(true);
                 try {
                     const res = await blackjackApi.deal(user.username, state.bet * 100);
                     updateBalance(res.newBalance);
                     setState({ ...state, gameStarted: true, playerHand: res.playerHand, dealerHand: res.dealerHand, result: null });
-                } catch (e) { alert(e.message); }
+                } catch (e) { 
+                    alert(e.message); 
+                } finally {
+                    setLoading(false);
+                }
             };
             
             const hit = async () => {
+                setLoading(true);
                 try {
                     const res = await blackjackApi.hit(user.username);
                     if (res.bust) {
@@ -301,49 +427,82 @@
                     } else {
                         setState({ ...state, playerHand: res.playerHand });
                     }
-                } catch (e) { alert(e.message); }
+                } catch (e) { 
+                    alert(e.message); 
+                } finally {
+                    setLoading(false);
+                }
             };
             
             const stand = async () => {
+                setLoading(true);
                 try {
                     const res = await blackjackApi.stand(user.username);
                     updateBalance(res.newBalance);
                     const msg = res.result === 'win' ? 'You Win!' : res.result === 'push' ? 'Push' : 'Dealer Wins';
                     setState({ ...state, dealerHand: res.dealerHand, result: { win: res.result === 'win' ? state.bet * 200 : 0, message: msg } });
-                } catch (e) { alert(e.message); }
+                } catch (e) { 
+                    alert(e.message); 
+                } finally {
+                    setLoading(false);
+                }
             };
 
             return (
-                <div className="flex flex-col items-center justify-center w-full max-w-4xl mx-auto p-4 gap-12">
-                    <div className="flex gap-4 items-center justify-center min-h-[160px]">
+                <div className="flex flex-col items-center justify-center w-full max-w-4xl mx-auto p-4 gap-6 md:gap-12 pb-24 md:pb-4">
+                    <div className="flex gap-2 md:gap-4 items-center justify-center min-h-[100px] md:min-h-[160px] flex-wrap">
                         {state.gameStarted ? state.dealerHand.map((c, i) => 
-                            <div key={i} className="animate-pop-in" style={{animationDelay: `${i*0.1}s`}}><CardView card={c} /></div>
-                        ) : <div className="text-gray-600 font-bold uppercase tracking-widest text-sm border border-gray-700 px-6 py-3 rounded-full">Dealer Pays on 17</div>}
+                            <div key={i} className="animate-pop-in" style={{animationDelay: `${i*0.1}s`}}><CardView card={c} small={window.innerWidth < 768} /></div>
+                        ) : <div className="text-gray-600 font-bold uppercase tracking-widest text-xs md:text-sm border border-gray-700 px-4 md:px-6 py-2 md:py-3 rounded-full">Dealer Pays on 17</div>}
                     </div>
 
                     {state.result && (
-                        <div className="animate-bounce-in bg-black/60 backdrop-blur-md border border-stake-green/30 px-12 py-6 rounded-2xl text-center shadow-glow z-20">
-                            <div className={`text-4xl font-black mb-2 ${state.result.win > 0 ? 'text-stake-green drop-shadow-md' : 'text-white'}`}>{state.result.message}</div>
-                            {state.result.win > 0 && <div className="text-stake-green font-mono text-xl">+${(state.result.win / 100).toFixed(2)}</div>}
+                        <div className="bg-black/60 backdrop-blur-md border border-stake-green/30 px-6 md:px-12 py-4 md:py-6 rounded-2xl text-center shadow-glow z-20">
+                            <div className={`text-2xl md:text-4xl font-black mb-2 ${state.result.win > 0 ? 'text-stake-green drop-shadow-md' : 'text-white'}`}>{state.result.message}</div>
+                            {state.result.win > 0 && <div className="text-stake-green font-mono text-lg md:text-xl">+${(state.result.win / 100).toFixed(2)}</div>}
                         </div>
                     )}
 
-                    <div className="flex gap-4 items-center justify-center min-h-[160px]">
+                    <div className="flex gap-2 md:gap-4 items-center justify-center min-h-[100px] md:min-h-[160px] flex-wrap">
                         {state.gameStarted ? state.playerHand.map((c, i) => 
-                            <div key={i} className="animate-pop-in" style={{animationDelay: `${i*0.1}s`}}><CardView card={c} /></div>
-                        ) : <div className="w-24 h-36 border-2 border-dashed border-gray-700 rounded-xl flex items-center justify-center text-gray-700 font-bold">BET</div>}
+                            <div key={i} className="animate-pop-in" style={{animationDelay: `${i*0.1}s`}}><CardView card={c} small={window.innerWidth < 768} /></div>
+                        ) : <div className="w-20 h-32 md:w-24 md:h-36 border-2 border-dashed border-gray-700 rounded-xl flex items-center justify-center text-gray-700 font-bold text-xs md:text-base">BET</div>}
                     </div>
 
-                    <div className="w-full max-w-lg glass p-6 rounded-2xl shadow-2xl mt-4 border border-white/5">
+                    <div className="w-full max-w-lg glass p-4 md:p-6 rounded-2xl shadow-2xl border border-white/5">
                         {!state.gameStarted || state.result ? (
-                            <div className="flex gap-4">
-                                <input type="number" min="1" value={state.bet} onChange={(e) => setState({ ...state, bet: Math.max(1, Number(e.target.value)) })} className="w-full input-field rounded-xl px-4 py-3 text-white font-mono font-bold text-lg" />
-                                <button onClick={deal} className="bg-btn-gradient hover:shadow-glow text-black font-black px-8 rounded-xl transition-all transform hover:-translate-y-1">DEAL</button>
+                            <div className="flex gap-3 md:gap-4">
+                                <input 
+                                    type="number" 
+                                    min="1" 
+                                    value={state.bet} 
+                                    onChange={(e) => setState({ ...state, bet: Math.max(1, Number(e.target.value)) })} 
+                                    className="w-full input-field rounded-xl px-4 py-3 text-white font-mono font-bold text-base md:text-lg" 
+                                />
+                                <button 
+                                    onClick={deal} 
+                                    disabled={loading}
+                                    className="bg-btn-gradient hover:shadow-glow text-black font-black px-6 md:px-8 rounded-xl transition-all touch-feedback disabled:opacity-50 whitespace-nowrap"
+                                >
+                                    {loading ? '...' : 'DEAL'}
+                                </button>
                             </div>
                         ) : (
-                            <div className="flex gap-4">
-                                <button onClick={hit} className="flex-1 bg-stake-hover hover:bg-stake-hover/80 text-white py-4 rounded-xl font-bold transition-all border border-white/5">HIT</button>
-                                <button onClick={stand} className="flex-1 bg-btn-gradient text-black py-4 rounded-xl font-bold shadow-glow transition-all transform hover:-translate-y-1">STAND</button>
+                            <div className="flex gap-3 md:gap-4">
+                                <button 
+                                    onClick={hit} 
+                                    disabled={loading}
+                                    className="flex-1 bg-stake-hover hover:bg-stake-hover/80 text-white py-3 md:py-4 rounded-xl font-bold transition-all border border-white/5 touch-feedback disabled:opacity-50"
+                                >
+                                    HIT
+                                </button>
+                                <button 
+                                    onClick={stand} 
+                                    disabled={loading}
+                                    className="flex-1 bg-btn-gradient text-black py-3 md:py-4 rounded-xl font-bold shadow-glow transition-all touch-feedback disabled:opacity-50"
+                                >
+                                    STAND
+                                </button>
                             </div>
                         )}
                     </div>
@@ -354,18 +513,25 @@
         const Mines = ({ user, updateBalance }) => {
             const [state, setState] = useState({ bet: 10, mineCount: 3, revealed: Array(25).fill(false), mines: [], active: false, multiplier: 1.0 });
             const [isShaking, setIsShaking] = useState(false);
+            const [loading, setLoading] = useState(false);
 
             const startGame = async () => {
                 if (state.bet * 100 > user.balance) return alert("Insufficient funds");
+                setLoading(true);
                 try {
                     const res = await minesApi.start(user.username, state.bet * 100, state.mineCount);
                     updateBalance(res.newBalance);
                     setState({ ...state, active: true, revealed: Array(25).fill(false), mines: [], multiplier: 1.0 });
-                } catch (e) { alert(e.message); }
+                } catch (e) { 
+                    alert(e.message); 
+                } finally {
+                    setLoading(false);
+                }
             };
 
             const clickTile = async (index) => {
-                if (!state.active || state.revealed[index]) return;
+                if (!state.active || state.revealed[index] || loading) return;
+                setLoading(true);
                 try {
                     const res = await minesApi.reveal(user.username, index);
                     const newRevealed = [...state.revealed]; newRevealed[index] = true;
@@ -376,51 +542,66 @@
                     } else {
                         setState({ ...state, revealed: newRevealed, multiplier: res.multiplier });
                     }
-                } catch (e) { alert(e.message); }
+                } catch (e) { 
+                    alert(e.message); 
+                } finally {
+                    setLoading(false);
+                }
             };
 
             const cashout = async () => {
+                setLoading(true);
                 try {
                     const res = await minesApi.cashout(user.username);
                     updateBalance(res.newBalance);
                     setState({ ...state, active: false, revealed: Array(25).fill(true), mines: res.mines });
-                } catch (e) { alert(e.message); }
+                } catch (e) { 
+                    alert(e.message); 
+                } finally {
+                    setLoading(false);
+                }
             };
 
             return (
-                <div className="flex flex-col lg:flex-row gap-8 w-full max-w-6xl mx-auto p-4">
-                    <div className="w-full lg:w-80 glass p-6 rounded-2xl h-fit border border-white/5 flex flex-col gap-6">
-                        <div>
-                            <label className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-2 block">Bet Amount</label>
-                            <input type="number" value={state.bet} onChange={e => setState({ ...state, bet: Number(e.target.value) })} disabled={state.active} className="w-full input-field rounded-xl p-3 text-white font-mono font-bold" />
-                        </div>
-                        <div>
-                            <label className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-2 block">Mines</label>
-                            <select value={state.mineCount} onChange={e => setState({ ...state, mineCount: Number(e.target.value) })} disabled={state.active} className="w-full input-field rounded-xl p-3 text-white font-bold cursor-pointer">
-                                {[1, 2, 3, 4, 5, 10, 15, 20, 24].map(n => <option key={n} value={n}>{n}</option>)}
-                            </select>
+                <div className="flex flex-col gap-4 md:gap-8 w-full max-w-6xl mx-auto p-4 pb-24 md:pb-4">
+                    <div className="w-full glass p-4 md:p-6 rounded-2xl border border-white/5 flex flex-col gap-4 md:gap-6">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-2 block">Bet Amount</label>
+                                <input type="number" value={state.bet} onChange={e => setState({ ...state, bet: Number(e.target.value) })} disabled={state.active} className="w-full input-field rounded-xl p-3 text-white font-mono font-bold" />
+                            </div>
+                            <div>
+                                <label className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-2 block">Mines</label>
+                                <select value={state.mineCount} onChange={e => setState({ ...state, mineCount: Number(e.target.value) })} disabled={state.active} className="w-full input-field rounded-xl p-3 text-white font-bold cursor-pointer">
+                                    {[1, 2, 3, 4, 5, 10, 15, 20, 24].map(n => <option key={n} value={n}>{n}</option>)}
+                                </select>
+                            </div>
                         </div>
                         {state.active ? (
                             <>
                                 <div className="bg-black/30 p-4 rounded-xl border border-white/5">
                                     <div className="text-gray-400 text-xs font-bold uppercase mb-1">Current Multiplier</div>
-                                    <div className="text-stake-green text-4xl font-black font-mono tracking-tighter drop-shadow-md">{state.multiplier.toFixed(2)}x</div>
+                                    <div className="text-stake-green text-3xl md:text-4xl font-black font-mono tracking-tighter drop-shadow-md">{state.multiplier.toFixed(2)}x</div>
                                 </div>
-                                <button onClick={cashout} className="w-full bg-btn-gradient text-black font-black py-4 rounded-xl shadow-glow transition-all transform hover:-translate-y-1">CASHOUT ${(state.bet * state.multiplier).toFixed(2)}</button>
+                                <button onClick={cashout} disabled={loading} className="w-full bg-btn-gradient text-black font-black py-3 md:py-4 rounded-xl shadow-glow transition-all touch-feedback disabled:opacity-50">
+                                    CASHOUT ${(state.bet * state.multiplier).toFixed(2)}
+                                </button>
                             </>
-                        ) : <button onClick={startGame} className="w-full bg-btn-gradient text-black font-black py-4 rounded-xl shadow-glow transition-all transform hover:-translate-y-1">BET</button>}
+                        ) : <button onClick={startGame} disabled={loading} className="w-full bg-btn-gradient text-black font-black py-3 md:py-4 rounded-xl shadow-glow transition-all touch-feedback disabled:opacity-50">
+                            {loading ? 'STARTING...' : 'BET'}
+                        </button>}
                     </div>
                     
-                    <div className={`flex-1 glass rounded-2xl p-8 border border-white/5 flex flex-col items-center justify-center relative min-h-[500px] ${isShaking ? 'animate-shake' : ''}`}>
-                         <div className="grid grid-cols-5 gap-3 w-full max-w-[500px] aspect-square">
+                    <div className={`glass rounded-2xl p-4 md:p-8 border border-white/5 ${isShaking ? 'animate-shake' : ''}`}>
+                         <div className="grid grid-cols-5 gap-2 md:gap-3 w-full max-w-[500px] mx-auto aspect-square">
                             {state.revealed.map((r, i) => (
-                                <button key={i} disabled={!state.active || r} onClick={() => clickTile(i)} 
-                                    className={`rounded-xl relative transition-all duration-300 overflow-hidden group
+                                <button key={i} disabled={!state.active || r || loading} onClick={() => clickTile(i)} 
+                                    className={`rounded-lg md:rounded-xl relative transition-all duration-300 overflow-hidden no-select touch-feedback
                                     ${r 
                                         ? 'bg-black/40 border-2 border-transparent scale-95 shadow-inner' 
-                                        : 'bg-stake-card shadow-[0_4px_0_0_rgba(0,0,0,0.2)] hover:-translate-y-1 hover:shadow-[0_6px_0_0_rgba(0,0,0,0.3)] hover:bg-stake-hover border-b-4 border-black/20'
+                                        : 'bg-stake-card shadow-[0_4px_0_0_rgba(0,0,0,0.2)] active:translate-y-1 active:shadow-[0_2px_0_0_rgba(0,0,0,0.3)] border-b-4 border-black/20'
                                     }`}>
-                                    {r && <div className="animate-pop-in flex justify-center items-center h-full text-4xl drop-shadow-md">{state.mines[i] ? '💣' : '💎'}</div>}
+                                    {r && <div className="animate-pop-in flex justify-center items-center h-full text-2xl md:text-4xl drop-shadow-md">{state.mines[i] ? '💣' : '💎'}</div>}
                                 </button>
                             ))}
                          </div>
@@ -449,32 +630,32 @@
             };
 
             return (
-                <div className="flex flex-col items-center max-w-4xl mx-auto p-8 gap-12">
-                    <div className="relative w-64 h-64 perspective-1000 mt-8">
+                <div className="flex flex-col items-center max-w-4xl mx-auto p-4 md:p-8 gap-8 md:gap-12 pb-24 md:pb-4">
+                    <div className="relative w-48 h-48 md:w-64 md:h-64 perspective-1000 mt-4 md:mt-8">
                          <div className="w-full h-full transform-style-3d transition-transform duration-[2000ms] cubic-bezier(0.2, 0.8, 0.2, 1)" style={{ transform: `rotateY(${rotation}deg)` }}>
-                            <div className="absolute w-full h-full rounded-full backface-hidden flex items-center justify-center bg-gradient-to-br from-yellow-300 to-yellow-600 shadow-glow-yellow border-[8px] border-yellow-700/50">
-                                <span className="text-5xl font-black text-yellow-900 drop-shadow-sm">HEADS</span>
+                            <div className="absolute w-full h-full rounded-full backface-hidden flex items-center justify-center bg-gradient-to-br from-yellow-300 to-yellow-600 shadow-glow-yellow border-[6px] md:border-[8px] border-yellow-700/50">
+                                <span className="text-4xl md:text-5xl font-black text-yellow-900 drop-shadow-sm">HEADS</span>
                             </div>
-                            <div className="absolute w-full h-full rounded-full backface-hidden flex items-center justify-center bg-gradient-to-br from-gray-300 to-gray-500 shadow-2xl border-[8px] border-gray-600/50 rotate-y-180">
-                                <span className="text-5xl font-black text-gray-800 drop-shadow-sm">TAILS</span>
+                            <div className="absolute w-full h-full rounded-full backface-hidden flex items-center justify-center bg-gradient-to-br from-gray-300 to-gray-500 shadow-2xl border-[6px] md:border-[8px] border-gray-600/50 rotate-y-180">
+                                <span className="text-4xl md:text-5xl font-black text-gray-800 drop-shadow-sm">TAILS</span>
                             </div>
                          </div>
                     </div>
                     {state.result && !state.isFlipping && (
-                        <div className={`text-4xl font-black animate-pop-in drop-shadow-lg ${state.result.won ? 'text-stake-green' : 'text-stake-red'}`}>{state.result.message}</div>
+                        <div className={`text-2xl md:text-4xl font-black animate-pop-in drop-shadow-lg ${state.result.won ? 'text-stake-green' : 'text-stake-red'}`}>{state.result.message}</div>
                     )}
-                    <div className="w-full glass p-8 rounded-2xl border border-white/5 shadow-2xl">
-                        <div className="flex justify-center gap-6 mb-8">
-                            <button onClick={() => setState({ ...state, choice: 'heads' })} className={`flex-1 py-6 rounded-xl font-black text-xl transition-all border-2 ${state.choice === 'heads' ? 'border-yellow-500 bg-yellow-500/10 text-yellow-500 shadow-glow-yellow' : 'border-white/10 bg-black/20 text-gray-500 hover:bg-white/5'}`}>
+                    <div className="w-full glass p-4 md:p-8 rounded-2xl border border-white/5 shadow-2xl">
+                        <div className="flex justify-center gap-3 md:gap-6 mb-6 md:mb-8">
+                            <button onClick={() => setState({ ...state, choice: 'heads' })} className={`flex-1 py-4 md:py-6 rounded-xl font-black text-base md:text-xl transition-all border-2 touch-feedback ${state.choice === 'heads' ? 'border-yellow-500 bg-yellow-500/10 text-yellow-500 shadow-glow-yellow' : 'border-white/10 bg-black/20 text-gray-500'}`}>
                                 HEADS
                             </button>
-                            <button onClick={() => setState({ ...state, choice: 'tails' })} className={`flex-1 py-6 rounded-xl font-black text-xl transition-all border-2 ${state.choice === 'tails' ? 'border-gray-400 bg-gray-400/10 text-gray-300 shadow-glow' : 'border-white/10 bg-black/20 text-gray-500 hover:bg-white/5'}`}>
+                            <button onClick={() => setState({ ...state, choice: 'tails' })} className={`flex-1 py-4 md:py-6 rounded-xl font-black text-base md:text-xl transition-all border-2 touch-feedback ${state.choice === 'tails' ? 'border-gray-400 bg-gray-400/10 text-gray-300 shadow-glow' : 'border-white/10 bg-black/20 text-gray-500'}`}>
                                 TAILS
                             </button>
                         </div>
-                        <div className="flex gap-4">
-                            <input type="number" value={state.bet} onChange={e => setState({ ...state, bet: Math.max(1, Number(e.target.value)) })} className="w-full input-field rounded-xl px-6 text-white font-mono font-bold text-xl" disabled={state.isFlipping} />
-                            <button onClick={flip} disabled={state.isFlipping} className="px-12 bg-btn-gradient text-black font-black rounded-xl text-xl hover:shadow-glow active:scale-95 transition-all">FLIP</button>
+                        <div className="flex gap-3 md:gap-4">
+                            <input type="number" value={state.bet} onChange={e => setState({ ...state, bet: Math.max(1, Number(e.target.value)) })} className="w-full input-field rounded-xl px-4 md:px-6 text-white font-mono font-bold text-base md:text-xl" disabled={state.isFlipping} />
+                            <button onClick={flip} disabled={state.isFlipping} className="px-8 md:px-12 bg-btn-gradient text-black font-black rounded-xl text-base md:text-xl hover:shadow-glow touch-feedback disabled:opacity-50 whitespace-nowrap">FLIP</button>
                         </div>
                     </div>
                 </div>
@@ -484,11 +665,13 @@
         const Plinko = ({ user, updateBalance }) => {
             const [bet, setBet] = useState(10);
             const [balls, setBalls] = useState([]);
+            const [loading, setLoading] = useState(false);
             const lastId = useRef(0);
             const multipliers = [19.6, 7.84, 3.92, 1.96, 0.49, 0.29, 0.29, 0.29, 0.49, 1.96, 3.92, 7.84, 19.6];
             
             const drop = async () => {
                 if (bet * 100 > user.balance) return alert("Insufficient funds");
+                setLoading(true);
                 try {
                     const res = await plinkoApi.drop(user.username, bet * 100, 'medium');
                     updateBalance(res.newBalance);
@@ -504,7 +687,11 @@
                     }
                     
                     setBalls(p => [...p, { id: lastId.current++, x: 50, y: 0, path, step: 0, progress: 0 }]);
-                } catch (e) { alert(e.message); }
+                } catch (e) { 
+                    alert(e.message); 
+                } finally {
+                    setLoading(false);
+                }
             };
 
             useEffect(() => {
@@ -531,26 +718,30 @@
             }, []);
 
             return (
-                <div className="flex gap-8 max-w-6xl mx-auto p-4 flex-col lg:flex-row">
-                    <div className="w-full lg:w-80 glass p-6 rounded-2xl border border-white/5 h-fit">
+                <div className="flex gap-4 md:gap-8 max-w-6xl mx-auto p-4 flex-col pb-24 md:pb-4">
+                    <div className="w-full glass p-4 md:p-6 rounded-2xl border border-white/5">
                         <label className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-2 block">Bet Amount</label>
-                        <input type="number" value={bet} onChange={e => setBet(Number(e.target.value))} className="w-full input-field rounded-xl p-3 text-white font-mono font-bold mb-6" />
-                        <button onClick={drop} className="w-full bg-btn-gradient text-black font-black py-4 rounded-xl shadow-glow transition-all transform hover:-translate-y-1">DROP</button>
-                    </div>
-                    <div className="flex-1 glass rounded-2xl border border-white/5 relative h-[600px] overflow-hidden bg-black/20">
-                        <div className="absolute inset-0 flex flex-col justify-between py-12 px-4">
-                             {Array.from({ length: 13 }).map((_, r) => <div key={r} className="flex justify-center gap-4">{Array.from({ length: r + 3 }).map((_, c) => <div key={c} className="w-2 h-2 rounded-full bg-white/30 shadow-[0_0_5px_rgba(255,255,255,0.2)]"></div>)}</div>)}
+                        <div className="flex gap-3">
+                            <input type="number" value={bet} onChange={e => setBet(Number(e.target.value))} className="w-full input-field rounded-xl p-3 text-white font-mono font-bold" />
+                            <button onClick={drop} disabled={loading} className="px-6 md:px-8 bg-btn-gradient text-black font-black rounded-xl shadow-glow transition-all touch-feedback disabled:opacity-50 whitespace-nowrap">
+                                {loading ? '...' : 'DROP'}
+                            </button>
                         </div>
-                        <div className="absolute bottom-2 w-full flex justify-between px-4 gap-2">
+                    </div>
+                    <div className="glass rounded-2xl border border-white/5 relative h-[400px] md:h-[600px] overflow-hidden bg-black/20">
+                        <div className="absolute inset-0 flex flex-col justify-between py-6 md:py-12 px-2 md:px-4">
+                             {Array.from({ length: 13 }).map((_, r) => <div key={r} className="flex justify-center gap-2 md:gap-4">{Array.from({ length: r + 3 }).map((_, c) => <div key={c} className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-white/30 shadow-[0_0_5px_rgba(255,255,255,0.2)]"></div>)}</div>)}
+                        </div>
+                        <div className="absolute bottom-2 w-full flex justify-between px-2 md:px-4 gap-1 md:gap-2">
                             {multipliers.map((m, i) => {
                                 let bg = 'bg-[#0f212e]';
                                 if (m >= 10) bg = 'bg-red-500 shadow-glow-red';
                                 else if (m >= 2) bg = 'bg-orange-500';
                                 else bg = 'bg-stake-green text-black';
-                                return <div key={i} className={`flex-1 h-8 rounded-md flex items-center justify-center text-[10px] font-bold ${bg} shadow-lg transition-transform hover:scale-110`}>{m}x</div>
+                                return <div key={i} className={`flex-1 h-6 md:h-8 rounded-md flex items-center justify-center text-[8px] md:text-[10px] font-bold ${bg} shadow-lg transition-transform`}>{m}x</div>
                             })}
                         </div>
-                        {balls.map(b => <div key={b.id} className="absolute w-4 h-4 rounded-full bg-white shadow-[0_0_15px_rgba(255,255,255,0.8)] z-10" style={{ left: `${b.x}%`, top: `${b.y}%`, transform: 'translate(-50%,-50%)' }}></div>)}
+                        {balls.map(b => <div key={b.id} className="absolute w-3 h-3 md:w-4 md:h-4 rounded-full bg-white shadow-[0_0_15px_rgba(255,255,255,0.8)] z-10" style={{ left: `${b.x}%`, top: `${b.y}%`, transform: 'translate(-50%,-50%)' }}></div>)}
                     </div>
                 </div>
             );
@@ -558,18 +749,25 @@
 
         const Towers = ({ user, updateBalance }) => {
             const [state, setState] = useState({ bet: 10, difficulty: 'medium', active: false, row: 0, revealed: Array(8).fill(-1), multiplier: 1.0, safeTiles: [] });
+            const [loading, setLoading] = useState(false);
             
             const startGame = async () => {
                 if (state.bet * 100 > user.balance) return alert("Insufficient funds");
+                setLoading(true);
                 try {
                     const res = await towersApi.start(user.username, state.bet * 100, state.difficulty);
                     updateBalance(res.newBalance);
                     setState({ ...state, active: true, row: 0, revealed: Array(8).fill(-1), multiplier: 1.0, safeTiles: [] });
-                } catch (e) { alert(e.message); }
+                } catch (e) { 
+                    alert(e.message); 
+                } finally {
+                    setLoading(false);
+                }
             };
             
             const pick = async (col) => {
-                if (!state.active) return;
+                if (!state.active || loading) return;
+                setLoading(true);
                 try {
                     const res = await towersApi.pick(user.username, col);
                     const rev = [...state.revealed]; rev[state.row] = col;
@@ -581,31 +779,40 @@
                     } else {
                         setState({ ...state, revealed: rev, row: res.currentRow, multiplier: res.multiplier, safeTiles: res.safeTiles });
                     }
-                } catch (e) { alert(e.message); }
+                } catch (e) { 
+                    alert(e.message); 
+                } finally {
+                    setLoading(false);
+                }
             };
             
             const cashout = async () => {
+                setLoading(true);
                 try {
                     const res = await towersApi.cashout(user.username);
                     updateBalance(res.newBalance);
                     setState({ ...state, active: false });
-                } catch (e) { alert(e.message); }
+                } catch (e) { 
+                    alert(e.message); 
+                } finally {
+                    setLoading(false);
+                }
             };
 
             return (
-                <div className="flex gap-8 max-w-6xl mx-auto p-4 flex-col lg:flex-row">
-                    <div className="w-full lg:w-80 glass p-6 rounded-2xl border border-white/5 h-fit">
-                        <input type="number" value={state.bet} onChange={e => setState({ ...state, bet: Number(e.target.value) })} disabled={state.active} className="w-full input-field rounded-xl p-3 text-white font-mono font-bold mb-6" />
-                        {state.active ? <><div className="bg-black/30 p-4 rounded-xl border border-white/5 mb-4"><div className="text-gray-400 text-xs font-bold uppercase mb-1">Multiplier</div><div className="text-stake-green text-3xl font-black">{state.multiplier.toFixed(2)}x</div></div><button onClick={cashout} className="w-full bg-btn-gradient text-black font-black py-4 rounded-xl shadow-glow">CASHOUT</button></> : <button onClick={startGame} className="w-full bg-btn-gradient text-black font-black py-4 rounded-xl shadow-glow">PLAY</button>}
+                <div className="flex gap-4 md:gap-8 max-w-6xl mx-auto p-4 flex-col pb-24 md:pb-4">
+                    <div className="w-full glass p-4 md:p-6 rounded-2xl border border-white/5">
+                        <input type="number" value={state.bet} onChange={e => setState({ ...state, bet: Number(e.target.value) })} disabled={state.active} className="w-full input-field rounded-xl p-3 text-white font-mono font-bold mb-4" />
+                        {state.active ? <><div className="bg-black/30 p-4 rounded-xl border border-white/5 mb-4"><div className="text-gray-400 text-xs font-bold uppercase mb-1">Multiplier</div><div className="text-stake-green text-2xl md:text-3xl font-black">{state.multiplier.toFixed(2)}x</div></div><button onClick={cashout} disabled={loading} className="w-full bg-btn-gradient text-black font-black py-3 md:py-4 rounded-xl shadow-glow touch-feedback disabled:opacity-50">CASHOUT</button></> : <button onClick={startGame} disabled={loading} className="w-full bg-btn-gradient text-black font-black py-3 md:py-4 rounded-xl shadow-glow touch-feedback disabled:opacity-50">{loading ? 'STARTING...' : 'PLAY'}</button>}
                     </div>
-                    <div className="flex-1 glass rounded-2xl border border-white/5 p-8 flex flex-col-reverse items-center justify-center gap-3 min-h-[500px]">
+                    <div className="glass rounded-2xl border border-white/5 p-4 md:p-8 flex flex-col-reverse items-center justify-center gap-2 md:gap-3 min-h-[400px]">
                         {Array.from({ length: 8 }).map((_, r) => (
-                            <div key={r} className={`grid grid-cols-3 gap-4 ${state.row === r && state.active ? 'opacity-100 scale-105' : 'opacity-40 grayscale'}`}>
+                            <div key={r} className={`grid grid-cols-3 gap-2 md:gap-4 ${state.row === r && state.active ? 'opacity-100 scale-105' : 'opacity-40 grayscale'}`}>
                                 {[0, 1, 2].map(c => {
                                     const picked = state.revealed[r] === c;
                                     const isSafe = state.safeTiles.includes(c);
                                     const isBomb = picked && !isSafe && !state.active;
-                                    return <button key={c} disabled={!(state.row === r && state.active)} onClick={() => pick(c)} className={`w-24 h-16 rounded-xl flex items-center justify-center font-bold text-3xl transition-all shadow-lg ${picked ? (isBomb ? 'bg-red-500/20 border-2 border-red-500 shadow-glow-red' : 'bg-stake-green text-black shadow-glow') : 'bg-stake-card border border-white/5 hover:bg-white/10'}`}>{picked && (isBomb ? '💣' : '💎')}</button>;
+                                    return <button key={c} disabled={!(state.row === r && state.active) || loading} onClick={() => pick(c)} className={`w-20 h-12 md:w-24 md:h-16 rounded-xl flex items-center justify-center font-bold text-2xl md:text-3xl transition-all shadow-lg touch-feedback no-select ${picked ? (isBomb ? 'bg-red-500/20 border-2 border-red-500 shadow-glow-red' : 'bg-stake-green text-black shadow-glow') : 'bg-stake-card border border-white/5'}`}>{picked && (isBomb ? '💣' : '💎')}</button>;
                                 })}
                             </div>
                         ))}
@@ -651,49 +858,55 @@
             };
 
             return (
-                <div className="flex flex-col gap-12 max-w-4xl mx-auto p-4">
-                    <div className="flex justify-center py-8">
+                <div className="flex flex-col gap-6 md:gap-12 max-w-4xl mx-auto p-4 pb-24 md:pb-4">
+                    <div className="flex justify-center py-4 md:py-8">
                         <div className="relative">
-                            <div className="w-4 absolute -top-4 left-1/2 -translate-x-1/2 text-white text-3xl z-10 font-bold">▼</div>
-                            <div className="w-80 h-80 rounded-full border-[8px] border-gray-800 relative overflow-hidden transition-transform duration-[3000ms] cubic-bezier(0.25, 0.1, 0.25, 1) shadow-[0_0_50px_rgba(0,0,0,0.5)]" style={{ background: `conic-gradient(#00e701 0deg 9.7deg, #ff4d4d 9.7deg 19.4deg, #1a2c38 19.4deg 29.1deg, #ff4d4d 29.1deg 38.8deg, #1a2c38 38.8deg 48.5deg, #ff4d4d 48.5deg 58.2deg, #1a2c38 58.2deg 67.9deg, #ff4d4d 67.9deg 77.6deg, #1a2c38 77.6deg 87.3deg, #ff4d4d 87.3deg 97deg, #1a2c38 97deg 106.7deg, #ff4d4d 106.7deg 116.4deg, #1a2c38 116.4deg 126.1deg, #ff4d4d 126.1deg 135.8deg, #1a2c38 135.8deg 145.5deg, #ff4d4d 145.5deg 155.2deg, #1a2c38 155.2deg 164.9deg, #ff4d4d 164.9deg 174.6deg, #1a2c38 174.6deg 184.3deg, #ff4d4d 184.3deg 194deg, #1a2c38 194deg 203.7deg, #ff4d4d 203.7deg 213.4deg, #1a2c38 213.4deg 223.1deg, #ff4d4d 223.1deg 232.8deg, #1a2c38 232.8deg 242.5deg, #ff4d4d 242.5deg 252.2deg, #1a2c38 252.2deg 261.9deg, #ff4d4d 261.9deg 271.6deg, #1a2c38 271.6deg 281.3deg, #ff4d4d 281.3deg 291deg, #1a2c38 291deg 300.7deg, #ff4d4d 300.7deg 310.4deg, #1a2c38 310.4deg 320.1deg, #ff4d4d 320.1deg 329.8deg, #1a2c38 329.8deg 339.5deg, #ff4d4d 339.5deg 349.2deg, #1a2c38 349.2deg 360deg)`, transform: `rotate(${rotation}deg)` }}>
-                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-[#0f212e] rounded-full flex items-center justify-center border-4 border-gray-800 shadow-inner">
-                                    <span className="text-white font-bold tracking-widest text-sm opacity-50">ROULETTE</span>
+                            <div className="w-3 md:w-4 absolute -top-3 md:-top-4 left-1/2 -translate-x-1/2 text-white text-2xl md:text-3xl z-10 font-bold">▼</div>
+                            <div className="w-60 h-60 md:w-80 md:h-80 rounded-full border-[6px] md:border-[8px] border-gray-800 relative overflow-hidden transition-transform duration-[3000ms] cubic-bezier(0.25, 0.1, 0.25, 1) shadow-[0_0_50px_rgba(0,0,0,0.5)]" style={{ background: `conic-gradient(#00e701 0deg 9.7deg, #ff4d4d 9.7deg 19.4deg, #1a2c38 19.4deg 29.1deg, #ff4d4d 29.1deg 38.8deg, #1a2c38 38.8deg 48.5deg, #ff4d4d 48.5deg 58.2deg, #1a2c38 58.2deg 67.9deg, #ff4d4d 67.9deg 77.6deg, #1a2c38 77.6deg 87.3deg, #ff4d4d 87.3deg 97deg, #1a2c38 97deg 106.7deg, #ff4d4d 106.7deg 116.4deg, #1a2c38 116.4deg 126.1deg, #ff4d4d 126.1deg 135.8deg, #1a2c38 135.8deg 145.5deg, #ff4d4d 145.5deg 155.2deg, #1a2c38 155.2deg 164.9deg, #ff4d4d 164.9deg 174.6deg, #1a2c38 174.6deg 184.3deg, #ff4d4d 184.3deg 194deg, #1a2c38 194deg 203.7deg, #ff4d4d 203.7deg 213.4deg, #1a2c38 213.4deg 223.1deg, #ff4d4d 223.1deg 232.8deg, #1a2c38 232.8deg 242.5deg, #ff4d4d 242.5deg 252.2deg, #1a2c38 252.2deg 261.9deg, #ff4d4d 261.9deg 271.6deg, #1a2c38 271.6deg 281.3deg, #ff4d4d 281.3deg 291deg, #1a2c38 291deg 300.7deg, #ff4d4d 300.7deg 310.4deg, #1a2c38 310.4deg 320.1deg, #ff4d4d 320.1deg 329.8deg, #1a2c38 329.8deg 339.5deg, #ff4d4d 339.5deg 349.2deg, #1a2c38 349.2deg 360deg)`, transform: `rotate(${rotation}deg)` }}>
+                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-36 h-36 md:w-48 md:h-48 bg-[#0f212e] rounded-full flex items-center justify-center border-3 md:border-4 border-gray-800 shadow-inner">
+                                    <span className="text-white font-bold tracking-widest text-xs md:text-sm opacity-50">ROULETTE</span>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div className="glass p-8 rounded-2xl border border-white/5 shadow-2xl">
-                        <div className="flex gap-4 mb-6 items-center">
-                            <input type="number" value={betAmount} onChange={e => setBetAmount(Number(e.target.value))} className="w-32 input-field rounded-lg p-2 text-white font-mono" />
-                            <button onClick={() => setBets({})} className="text-gray-400 hover:text-white text-sm font-bold uppercase tracking-wider">Clear Bets</button>
+                    <div className="glass p-4 md:p-8 rounded-2xl border border-white/5 shadow-2xl overflow-x-auto">
+                        <div className="flex gap-3 md:gap-4 mb-4 md:mb-6 items-center min-w-max">
+                            <input type="number" value={betAmount} onChange={e => setBetAmount(Number(e.target.value))} className="w-24 md:w-32 input-field rounded-lg p-2 text-white font-mono" />
+                            <button onClick={() => setBets({})} className="text-gray-400 hover:text-white text-xs md:text-sm font-bold uppercase tracking-wider touch-feedback">Clear</button>
                         </div>
-                        <div className="grid grid-cols-14 gap-1">
-                             <button onClick={() => placeBet('0')} className="col-span-2 row-span-3 bg-stake-green hover:brightness-110 rounded-l-lg flex items-center justify-center font-bold text-stake-dark relative text-lg">0 {bets['0'] && <span className="absolute inset-0 bg-black/60 backdrop-blur-sm text-white text-xs flex items-center justify-center rounded-l-lg border-2 border-stake-green">${bets['0']}</span>}</button>
-                            {Array.from({ length: 36 }).map((_, i) => <button key={i + 1} onClick={() => placeBet((i + 1).toString())} className={`col-span-1 h-14 text-white font-bold relative transition-colors ${getRouletteColor(i + 1) === 'red' ? 'bg-stake-red hover:bg-red-500' : 'bg-[#2f4553] hover:bg-[#3d596b]'}`}>{i + 1}{bets[(i + 1).toString()] && <span className="absolute inset-0 bg-black/60 backdrop-blur-sm text-xs flex items-center justify-center border-2 border-white">${bets[(i + 1).toString()]}</span>}</button>)}
-                             <div className="col-span-2"></div>
-                            {['red', 'black', 'even', 'odd'].map(t => <button key={t} onClick={() => placeBet(t)} className="col-span-3 h-12 bg-[#1a2c38] border border-white/5 hover:bg-white/5 flex items-center justify-center text-xs font-bold text-white uppercase relative tracking-wider">{t} {bets[t] && <div className="absolute top-1 right-1 w-2 h-2 bg-stake-green rounded-full shadow-glow"></div>}</button>)}
+                        <div className="min-w-max">
+                            {['red', 'black', 'even', 'odd'].map(t => <button key={t} onClick={() => placeBet(t)} className="inline-block mr-2 mb-2 px-4 md:px-6 py-2 md:py-3 bg-[#1a2c38] border border-white/5 rounded-lg text-xs md:text-sm font-bold text-white uppercase touch-feedback">{t} {bets[t] && <span className="ml-2 text-stake-green">${bets[t]}</span>}</button>)}
                         </div>
-                        <button onClick={spin} disabled={spinning} className="w-full mt-6 bg-btn-gradient text-black font-black py-4 rounded-xl shadow-glow transition-all transform hover:-translate-y-1">SPIN</button>
+                        <button onClick={spin} disabled={spinning} className="w-full mt-4 md:mt-6 bg-btn-gradient text-black font-black py-3 md:py-4 rounded-xl shadow-glow transition-all touch-feedback disabled:opacity-50">
+                            {spinning ? 'SPINNING...' : 'SPIN'}
+                        </button>
                     </div>
                 </div>
             );
         };
 
         const HiLo = ({ user, updateBalance }) => {
-            const [state, setState] = useState({ bet: 10, active: false, card: null, multi: 1.0, odds: null, nextCard: null });
+            const [state, setState] = useState({ bet: 10, active: false, card: null, multi: 1.0, odds: null });
             const [history, setHistory] = useState([]);
+            const [loading, setLoading] = useState(false);
             
             const startGame = async () => {
                 if (state.bet * 100 > user.balance) return alert("Insufficient funds");
+                setLoading(true);
                 try {
                     const res = await hiloApi.start(user.username, state.bet * 100);
                     updateBalance(res.newBalance);
                     setState({ ...state, active: true, card: res.currentCard, multi: 1.0, odds: { high: res.higherOdds, low: res.lowerOdds } });
                     setHistory([]);
-                } catch (e) { alert(e.message); }
+                } catch (e) { 
+                    alert(e.message); 
+                } finally {
+                    setLoading(false);
+                }
             };
             
             const guess = async (dir) => {
+                setLoading(true);
                 try {
                     const res = await hiloApi.guess(user.username, dir);
                     setHistory(h => [state.card, ...h]);
@@ -703,51 +916,56 @@
                     } else {
                         setState({ ...state, card: res.nextCard, multi: res.multiplier, odds: { high: res.higherOdds, low: res.lowerOdds } });
                     }
-                } catch (e) { alert(e.message); }
+                } catch (e) { 
+                    alert(e.message); 
+                } finally {
+                    setLoading(false);
+                }
             };
             
             const cashout = async () => {
                 if (history.length === 0) return alert("Must make at least one move");
+                setLoading(true);
                 try {
                     const res = await hiloApi.cashout(user.username);
                     updateBalance(res.newBalance);
                     setState({ ...state, active: false });
-                } catch (e) { alert(e.message); }
+                } catch (e) { 
+                    alert(e.message); 
+                } finally {
+                    setLoading(false);
+                }
             };
 
             return (
-                <div className="flex flex-col lg:flex-row gap-8 max-w-6xl mx-auto p-4">
-                    <div className="w-full lg:w-80 glass p-6 rounded-2xl border border-white/5 h-fit">
-                        <input type="number" value={state.bet} onChange={e => setState({ ...state, bet: Number(e.target.value) })} disabled={state.active} className="w-full input-field rounded-xl p-3 text-white font-mono font-bold mb-6" />
+                <div className="flex flex-col gap-4 md:gap-8 max-w-6xl mx-auto p-4 pb-24 md:pb-4">
+                    <div className="w-full glass p-4 md:p-6 rounded-2xl border border-white/5">
+                        <input type="number" value={state.bet} onChange={e => setState({ ...state, bet: Number(e.target.value) })} disabled={state.active} className="w-full input-field rounded-xl p-3 text-white font-mono font-bold mb-4" />
                         {state.active ? (
                             <>
                                 <div className="bg-black/30 p-4 rounded-xl border border-white/5 mb-4">
                                     <div className="text-gray-400 text-xs font-bold uppercase mb-1">Multiplier</div>
-                                    <div className="text-stake-green text-3xl font-black">{state.multi.toFixed(2)}x</div>
+                                    <div className="text-stake-green text-2xl md:text-3xl font-black">{state.multi.toFixed(2)}x</div>
                                 </div>
-                                <button 
-                                    onClick={cashout} 
-                                    disabled={history.length === 0}
-                                    className={`w-full font-black py-4 rounded-xl shadow-glow transition-all ${history.length === 0 ? 'bg-gray-600 text-gray-400 cursor-not-allowed' : 'bg-btn-gradient text-black'}`}
-                                >
+                                <button onClick={cashout} disabled={history.length === 0 || loading} className={`w-full font-black py-3 md:py-4 rounded-xl shadow-glow transition-all touch-feedback ${history.length === 0 ? 'bg-gray-600 text-gray-400' : 'bg-btn-gradient text-black'}`}>
                                     CASHOUT
                                 </button>
                             </>
-                        ) : <button onClick={startGame} className="w-full bg-btn-gradient text-black font-black py-4 rounded-xl shadow-glow">START GAME</button>}
+                        ) : <button onClick={startGame} disabled={loading} className="w-full bg-btn-gradient text-black font-black py-3 md:py-4 rounded-xl shadow-glow touch-feedback disabled:opacity-50">{loading ? 'STARTING...' : 'START'}</button>}
                     </div>
-                    <div className="flex-1 glass rounded-2xl border border-white/5 p-8 flex flex-col items-center justify-center min-h-[500px]">
-                        <div className="flex gap-3 mb-8 h-20 opacity-60">
-                            {history.slice(0,5).map((c,i) => <div key={i} className="transform scale-75 origin-top"><CardView card={c} /></div>)}
+                    <div className="glass rounded-2xl border border-white/5 p-4 md:p-8 flex flex-col items-center justify-center min-h-[400px]">
+                        <div className="flex gap-2 mb-6 h-16 md:h-20 opacity-60 overflow-x-auto">
+                            {history.slice(0,5).map((c,i) => <div key={i} className="transform scale-75 origin-top"><CardView card={c} small /></div>)}
                         </div>
-                        {state.card ? <div className="transform scale-125 transition-all"><CardView card={state.card} /></div> : <div className="w-32 h-48 border-2 border-dashed border-gray-600 rounded-xl flex items-center justify-center text-4xl text-gray-500 font-bold">?</div>}
-                        <div className="flex gap-4 mt-12 w-full max-w-lg">
-                            <button disabled={!state.active} onClick={() => guess('lower')} className="flex-1 bg-[#1a2c38] border border-white/10 p-6 rounded-2xl hover:bg-white/5 disabled:opacity-50 transition-all group">
-                                <div className="text-gray-400 font-bold text-sm uppercase mb-1">Lower or Same</div>
-                                <div className="text-white font-black text-2xl group-hover:text-stake-green transition-colors">{state.odds?.low}x</div>
+                        {state.card ? <div className="transform scale-110 md:scale-125 transition-all mb-6"><CardView card={state.card} small={window.innerWidth < 768} /></div> : <div className="w-24 h-36 md:w-32 md:h-48 border-2 border-dashed border-gray-600 rounded-xl flex items-center justify-center text-3xl md:text-4xl text-gray-500 font-bold mb-6">?</div>}
+                        <div className="flex gap-3 md:gap-4 w-full max-w-lg">
+                            <button disabled={!state.active || loading} onClick={() => guess('lower')} className="flex-1 bg-[#1a2c38] border border-white/10 p-4 md:p-6 rounded-2xl disabled:opacity-50 transition-all touch-feedback">
+                                <div className="text-gray-400 font-bold text-xs md:text-sm uppercase mb-1">Lower</div>
+                                <div className="text-white font-black text-lg md:text-2xl">{state.odds?.low}x</div>
                             </button>
-                            <button disabled={!state.active} onClick={() => guess('higher')} className="flex-1 bg-[#1a2c38] border border-white/10 p-6 rounded-2xl hover:bg-white/5 disabled:opacity-50 transition-all group">
-                                <div className="text-gray-400 font-bold text-sm uppercase mb-1">Higher or Same</div>
-                                <div className="text-white font-black text-2xl group-hover:text-stake-green transition-colors">{state.odds?.high}x</div>
+                            <button disabled={!state.active || loading} onClick={() => guess('higher')} className="flex-1 bg-[#1a2c38] border border-white/10 p-4 md:p-6 rounded-2xl disabled:opacity-50 transition-all touch-feedback">
+                                <div className="text-gray-400 font-bold text-xs md:text-sm uppercase mb-1">Higher</div>
+                                <div className="text-white font-black text-lg md:text-2xl">{state.odds?.high}x</div>
                             </button>
                         </div>
                     </div>
@@ -762,43 +980,56 @@
         const App = () => {
             const [user, setUser] = useState(null);
             const [activeGame, setActiveGame] = useState(null);
-            const [isSidebarOpen, setSidebarOpen] = useState(true);
+            const [showMobileMenu, setShowMobileMenu] = useState(false);
             const [loginUser, setLoginUser] = useState('');
             const [loginPass, setLoginPass] = useState('');
+            const [loading, setLoading] = useState(false);
 
             const handleLogin = async (reg) => {
+                setLoading(true);
                 try {
                     const res = reg ? await authApi.register(loginUser, loginPass) : await authApi.login(loginUser, loginPass);
                     setUser({ username: res.username, balance: res.balance, isDemo: res.isDemo || false });
-                } catch (e) { alert(e.message); }
+                } catch (e) { 
+                    alert(e.message); 
+                } finally {
+                    setLoading(false);
+                }
             };
 
             const handleDemoLogin = async () => {
+                setLoading(true);
                 try {
                     const res = await authApi.demoLogin();
                     setUser({ username: res.username, balance: res.balance, isDemo: true });
-                } catch (e) { alert(e.message); }
+                } catch (e) { 
+                    alert(e.message); 
+                } finally {
+                    setLoading(false);
+                }
             };
 
-            const updateBalance = (newBalance) => {
-                setUser({ ...user, balance: newBalance });
-            };
+            const updateBalance = useCallback((newBalance) => {
+                setUser(prev => ({ ...prev, balance: newBalance }));
+            }, []);
 
             if (!user) return (
                 <div className="min-h-screen flex items-center justify-center p-4 bg-aura-gradient">
-                    <div className="glass p-10 rounded-3xl border border-white/10 w-full max-w-md shadow-2xl relative overflow-hidden animate-pop-in">
+                    <div className="glass p-6 md:p-10 rounded-3xl border border-white/10 w-full max-w-md shadow-2xl relative overflow-hidden animate-pop-in">
                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-stake-green to-transparent"></div>
-                        <div className="text-center mb-10">
-                            <h1 className="text-5xl font-black text-white mb-2 tracking-tight"><span className="text-stake-green drop-shadow-[0_0_10px_rgba(0,231,1,0.5)]">JUD</span>ECENO</h1>
-                            <p className="text-gray-400 font-medium tracking-wide">PREMIUM CRYPTO CASINO</p>
+                        <div className="text-center mb-8 md:mb-10">
+                            <h1 className="text-4xl md:text-5xl font-black text-white mb-2 tracking-tight"><span className="text-stake-green drop-shadow-[0_0_10px_rgba(0,231,1,0.5)]">JUD</span>ECENO</h1>
+                            <p className="text-gray-400 font-medium tracking-wide text-sm md:text-base">PREMIUM CRYPTO CASINO</p>
                         </div>
-                        <div className="space-y-4">
-                            <input placeholder="Username" value={loginUser} onChange={e => setLoginUser(e.target.value)} className="w-full input-field rounded-xl p-4 text-white text-lg" />
-                            <input type="password" placeholder="Password" value={loginPass} onChange={e => setLoginPass(e.target.value)} className="w-full input-field rounded-xl p-4 text-white text-lg" />
-                            <button onClick={() => handleLogin(false)} className="w-full bg-btn-gradient text-black font-black py-4 rounded-xl text-lg hover:shadow-glow transition-all transform hover:-translate-y-0.5">LOGIN</button>
-                            <button onClick={() => handleLogin(true)} className="w-full bg-white/5 text-gray-300 font-bold py-4 rounded-xl hover:bg-white/10 transition-all border border-white/5">CREATE ACCOUNT</button>
+                        <div className="space-y-3 md:space-y-4">
+                            <input placeholder="Username" value={loginUser} onChange={e => setLoginUser(e.target.value)} className="w-full input-field rounded-xl p-3 md:p-4 text-white text-base md:text-lg" />
+                            <input type="password" placeholder="Password" value={loginPass} onChange={e => setLoginPass(e.target.value)} className="w-full input-field rounded-xl p-3 md:p-4 text-white text-base md:text-lg" />
+                            <button onClick={() => handleLogin(false)} disabled={loading} className="w-full bg-btn-gradient text-black font-black py-3 md:py-4 rounded-xl text-base md:text-lg hover:shadow-glow transition-all touch-feedback disabled:opacity-50">
+                                {loading ? 'LOADING...' : 'LOGIN'}
+                            </button>
+                            <button onClick={() => handleLogin(true)} disabled={loading} className="w-full bg-white/5 text-gray-300 font-bold py-3 md:py-4 rounded-xl transition-all border border-white/5 touch-feedback disabled:opacity-50">CREATE ACCOUNT</button>
                             
-                            <div className="relative my-6">
+                            <div className="relative my-4 md:my-6">
                                 <div className="absolute inset-0 flex items-center">
                                     <div className="w-full border-t border-white/10"></div>
                                 </div>
@@ -807,7 +1038,7 @@
                                 </div>
                             </div>
                             
-                            <button onClick={handleDemoLogin} className="w-full bg-gradient-to-r from-yellow-400 to-orange-500 text-black font-black py-4 rounded-xl hover:shadow-[0_0_20px_rgba(251,191,36,0.4)] transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-2">
+                            <button onClick={handleDemoLogin} disabled={loading} className="w-full bg-gradient-to-r from-yellow-400 to-orange-500 text-black font-black py-3 md:py-4 rounded-xl hover:shadow-[0_0_20px_rgba(251,191,36,0.4)] transition-all touch-feedback flex items-center justify-center gap-2 disabled:opacity-50">
                                 <span>🎮</span>
                                 TRY DEMO MODE
                                 <span className="text-xs font-normal">(Free $100)</span>
@@ -818,32 +1049,28 @@
             );
 
             const GameCard = ({ id, name, icon, gradient }) => (
-                <button onClick={() => setActiveGame(id)} className="group relative rounded-2xl overflow-hidden aspect-[4/3] shadow-lg hover:shadow-glow-card transition-all hover:-translate-y-2 bg-stake-card border border-white/5">
+                <button onClick={() => setActiveGame(id)} className="group relative rounded-2xl overflow-hidden aspect-[4/3] shadow-lg hover:shadow-glow-card transition-all hover:-translate-y-2 bg-stake-card border border-white/5 touch-feedback">
                     <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-10 group-hover:opacity-20 transition-opacity`}></div>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center p-6">
-                        <div className="text-6xl mb-6 transform group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300 drop-shadow-2xl">{icon}</div>
-                        <div className="font-black text-2xl text-white tracking-wide uppercase">{name}</div>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center p-4 md:p-6">
+                        <div className="text-4xl md:text-6xl mb-4 md:mb-6 transform group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300 drop-shadow-2xl">{icon}</div>
+                        <div className="font-black text-lg md:text-2xl text-white tracking-wide uppercase">{name}</div>
                     </div>
                     <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
-                        <span className="bg-btn-gradient text-black font-black px-8 py-3 rounded-full transform scale-90 group-hover:scale-100 transition-transform shadow-glow">PLAY</span>
+                        <span className="bg-btn-gradient text-black font-black px-6 md:px-8 py-2 md:py-3 rounded-full transform scale-90 group-hover:scale-100 transition-transform shadow-glow">PLAY</span>
                     </div>
                 </button>
             );
 
             return (
                 <div className="min-h-screen text-stake-text font-sans">
-                    <TopBar 
-                        user={user} 
-                        onToggleSidebar={() => setSidebarOpen(!isSidebarOpen)} 
-                        onLogout={() => setUser(null)}
-                    />
-                    <Sidebar activeGame={activeGame} onSelectGame={setActiveGame} isOpen={isSidebarOpen} />
-                    <main className={`pt-24 transition-all duration-300 ${isSidebarOpen ? 'pl-64' : 'pl-24'} pr-6 pb-6`}>
+                    <TopBar user={user} onLogout={() => setUser(null)} />
+                    
+                    <main className="pt-20 md:pt-24 px-4 pb-20 md:pb-6 smooth-scroll">
                         <div className="max-w-[1600px] mx-auto min-h-[calc(100vh-8rem)]">
                             {activeGame ? (
-                                <div className="animate-fade-in">
-                                    <div className="mb-8 flex items-center gap-3 text-sm text-gray-400 font-medium">
-                                        <span className="cursor-pointer hover:text-white transition-colors" onClick={() => setActiveGame(null)}>Home</span>
+                                <div>
+                                    <div className="mb-4 md:mb-8 flex items-center gap-2 md:gap-3 text-xs md:text-sm text-gray-400 font-medium">
+                                        <button className="hover:text-white transition-colors touch-feedback" onClick={() => setActiveGame(null)}>Home</button>
                                         <span className="text-white/20">/</span>
                                         <span className="text-white font-bold capitalize">{activeGame}</span>
                                     </div>
@@ -857,16 +1084,16 @@
                                 </div>
                             ) : (
                                 <div>
-                                    <div className="flex items-center gap-4 mb-8">
-                                        <div className="w-1.5 h-8 bg-stake-green rounded-full shadow-glow"></div>
-                                        <h2 className="text-3xl font-black text-white tracking-tight">Lobby</h2>
+                                    <div className="flex items-center gap-3 md:gap-4 mb-6 md:mb-8">
+                                        <div className="w-1 md:w-1.5 h-6 md:h-8 bg-stake-green rounded-full shadow-glow"></div>
+                                        <h2 className="text-2xl md:text-3xl font-black text-white tracking-tight">Lobby</h2>
                                         {user.isDemo && (
-                                            <div className="demo-badge text-black font-bold text-sm px-4 py-1.5 rounded-full shadow-lg">
+                                            <div className="demo-badge text-black font-bold text-xs px-3 py-1.5 rounded-full shadow-lg hidden md:block">
                                                 🎮 DEMO MODE - Playing with Free Credits
                                             </div>
                                         )}
                                     </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-8">
                                         <GameCard id="mines" name="Mines" icon="💣" gradient="from-yellow-500 to-red-600" />
                                         <GameCard id="blackjack" name="Blackjack" icon="🃏" gradient="from-purple-600 to-blue-600" />
                                         <GameCard id="plinko" name="Plinko" icon="🎯" gradient="from-pink-500 to-rose-600" />
@@ -879,6 +1106,19 @@
                             )}
                         </div>
                     </main>
+
+                    <MobileBottomNav 
+                        activeGame={activeGame} 
+                        onSelectGame={setActiveGame}
+                        onShowMenu={() => setShowMobileMenu(true)}
+                    />
+
+                    {showMobileMenu && (
+                        <MobileGameMenu 
+                            onClose={() => setShowMobileMenu(false)}
+                            onSelectGame={setActiveGame}
+                        />
+                    )}
                 </div>
             );
         };
