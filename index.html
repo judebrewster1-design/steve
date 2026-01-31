@@ -1166,6 +1166,525 @@
             );
         };
 
+        const Towers = ({ user, updateBalance }) => {
+            const [state, setState] = useState({ bet: 10, difficulty: 'medium', revealed: Array(40).fill(false), positions: [], active: false, multiplier: 1.0, level: 0 });
+            const [loading, setLoading] = useState(false);
+
+            const startGame = async () => {
+                if (state.bet * 100 > user.balance) return alert("Insufficient funds");
+                setLoading(true);
+                try {
+                    const res = await towersApi.start(user.username, state.bet * 100, state.difficulty);
+                    updateBalance(res.newBalance);
+                    setState({ ...state, active: true, revealed: Array(40).fill(false), positions: [], multiplier: 1.0, level: 0 });
+                } catch (e) { 
+                    alert(e.message); 
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const pickTile = async (position) => {
+                if (!state.active || loading) return;
+                setLoading(true);
+                try {
+                    const res = await towersApi.pick(user.username, position);
+                    if (res.hit === 'safe') {
+                        setState({ ...state, level: res.level, multiplier: res.multiplier, positions: [...state.positions, position] });
+                    } else {
+                        setState({ ...state, active: false, positions: res.positions });
+                    }
+                } catch (e) { 
+                    alert(e.message); 
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const cashout = async () => {
+                setLoading(true);
+                try {
+                    const res = await towersApi.cashout(user.username);
+                    updateBalance(res.newBalance);
+                    setState({ ...state, active: false });
+                } catch (e) { 
+                    alert(e.message); 
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const tilesPerRow = state.difficulty === 'easy' ? 2 : state.difficulty === 'medium' ? 3 : 4;
+            const rows = 8;
+
+            return (
+                <div className="flex flex-col gap-4 md:gap-8 w-full max-w-6xl mx-auto p-4 pb-24 md:pb-4">
+                    <div className="w-full glass p-4 md:p-6 rounded-2xl border border-white/5 flex flex-col gap-4 md:gap-6">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-2 block">Bet Amount</label>
+                                <input type="number" value={state.bet} onChange={e => setState({ ...state, bet: Number(e.target.value) })} disabled={state.active} className="w-full input-field rounded-xl p-3 text-white font-mono font-bold" />
+                            </div>
+                            <div>
+                                <label className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-2 block">Difficulty</label>
+                                <select value={state.difficulty} onChange={e => setState({ ...state, difficulty: e.target.value })} disabled={state.active} className="w-full input-field rounded-xl p-3 text-white font-bold cursor-pointer">
+                                    <option value="easy">Easy (2 tiles)</option>
+                                    <option value="medium">Medium (3 tiles)</option>
+                                    <option value="hard">Hard (4 tiles)</option>
+                                </select>
+                            </div>
+                        </div>
+                        {state.active ? (
+                            <>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="bg-black/30 p-4 rounded-xl border border-white/5">
+                                        <div className="text-gray-400 text-xs font-bold uppercase mb-1">Level</div>
+                                        <div className="text-blue-400 text-3xl md:text-4xl font-black font-mono">{state.level}/{rows}</div>
+                                    </div>
+                                    <div className="bg-black/30 p-4 rounded-xl border border-white/5">
+                                        <div className="text-gray-400 text-xs font-bold uppercase mb-1">Multiplier</div>
+                                        <div className="text-stake-green text-3xl md:text-4xl font-black font-mono">{state.multiplier.toFixed(2)}x</div>
+                                    </div>
+                                </div>
+                                <button onClick={cashout} disabled={loading || state.level === 0} className="w-full bg-btn-gradient text-black font-black py-3 md:py-4 rounded-xl shadow-glow transition-all touch-feedback disabled:opacity-50">
+                                    CASHOUT ${(state.bet * state.multiplier).toFixed(2)}
+                                </button>
+                            </>
+                        ) : <button onClick={startGame} disabled={loading} className="w-full bg-btn-gradient text-black font-black py-3 md:py-4 rounded-xl shadow-glow transition-all touch-feedback disabled:opacity-50">
+                            {loading ? 'STARTING...' : 'BET'}
+                        </button>}
+                    </div>
+                    
+                    <div className="glass rounded-2xl p-4 md:p-8 border border-white/5">
+                        <div className="flex flex-col-reverse gap-2 md:gap-3 max-w-md mx-auto">
+                            {Array.from({ length: rows }).map((_, row) => (
+                                <div key={row} className="flex gap-2 md:gap-3 justify-center">
+                                    {Array.from({ length: tilesPerRow }).map((_, col) => {
+                                        const isRevealed = state.positions.includes(row * tilesPerRow + col);
+                                        const isCurrentRow = row === state.level && state.active;
+                                        return (
+                                            <button 
+                                                key={col} 
+                                                disabled={!isCurrentRow || loading}
+                                                onClick={() => pickTile(row * tilesPerRow + col)}
+                                                className={`w-16 h-16 md:w-20 md:h-20 rounded-xl relative transition-all duration-300 overflow-hidden no-select touch-feedback font-black text-2xl md:text-3xl
+                                                ${isRevealed 
+                                                    ? 'bg-stake-green border-2 border-stake-green' 
+                                                    : isCurrentRow 
+                                                        ? 'bg-stake-card shadow-[0_4px_0_0_rgba(0,0,0,0.2)] active:translate-y-1 border-b-4 border-black/20 hover:bg-stake-hover' 
+                                                        : 'bg-stake-darker border-2 border-transparent opacity-50'
+                                                }`}
+                                            >
+                                                {isRevealed && '✓'}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const Plinko = ({ user, updateBalance }) => {
+            const [state, setState] = useState({ bet: 10, risk: 'medium', result: null });
+            const [loading, setLoading] = useState(false);
+            const [animating, setAnimating] = useState(false);
+
+            const drop = async () => {
+                if (state.bet * 100 > user.balance) return alert("Insufficient funds");
+                setLoading(true);
+                setAnimating(true);
+                try {
+                    const res = await plinkoApi.drop(user.username, state.bet * 100, state.risk);
+                    updateBalance(res.newBalance);
+                    setTimeout(() => {
+                        setState({ ...state, result: res });
+                        setAnimating(false);
+                    }, 2000);
+                } catch (e) { 
+                    alert(e.message); 
+                    setAnimating(false);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            return (
+                <div className="flex flex-col gap-4 md:gap-8 w-full max-w-6xl mx-auto p-4 pb-24 md:pb-4">
+                    <div className="w-full glass p-4 md:p-6 rounded-2xl border border-white/5 flex flex-col gap-4 md:gap-6">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-2 block">Bet Amount</label>
+                                <input type="number" value={state.bet} onChange={e => setState({ ...state, bet: Number(e.target.value) })} disabled={loading} className="w-full input-field rounded-xl p-3 text-white font-mono font-bold" />
+                            </div>
+                            <div>
+                                <label className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-2 block">Risk Level</label>
+                                <select value={state.risk} onChange={e => setState({ ...state, risk: e.target.value })} disabled={loading} className="w-full input-field rounded-xl p-3 text-white font-bold cursor-pointer">
+                                    <option value="low">Low Risk</option>
+                                    <option value="medium">Medium Risk</option>
+                                    <option value="high">High Risk</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button onClick={drop} disabled={loading} className="w-full bg-btn-gradient text-black font-black py-3 md:py-4 rounded-xl shadow-glow transition-all touch-feedback disabled:opacity-50">
+                            {loading ? 'DROPPING...' : 'DROP'}
+                        </button>
+                    </div>
+
+                    {state.result && !animating && (
+                        <div className="glass p-6 md:p-8 rounded-2xl border border-white/5 text-center animate-pop-in">
+                            <div className="text-gray-400 text-sm mb-2">Multiplier</div>
+                            <div className={`text-5xl md:text-6xl font-black font-mono mb-4 ${state.result.multiplier >= 1 ? 'text-stake-green' : 'text-red-500'}`}>
+                                {state.result.multiplier.toFixed(2)}x
+                            </div>
+                            <div className="text-gray-400 text-sm mb-2">Payout</div>
+                            <div className="text-3xl md:text-4xl font-black font-mono text-white">
+                                ${(state.result.payout / 100).toFixed(2)}
+                            </div>
+                        </div>
+                    )}
+
+                    {animating && (
+                        <div className="glass p-12 rounded-2xl border border-white/5 text-center">
+                            <div className="text-6xl mb-4 animate-bounce">🎯</div>
+                            <div className="text-gray-400 font-bold">Ball dropping...</div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const Coinflip = ({ user, updateBalance }) => {
+            const [state, setState] = useState({ bet: 10, choice: 'heads', result: null });
+            const [loading, setLoading] = useState(false);
+            const [flipping, setFlipping] = useState(false);
+
+            const flip = async () => {
+                if (state.bet * 100 > user.balance) return alert("Insufficient funds");
+                setLoading(true);
+                setFlipping(true);
+                try {
+                    const res = await coinflipApi.play(user.username, state.bet * 100, state.choice);
+                    updateBalance(res.newBalance);
+                    setTimeout(() => {
+                        setState({ ...state, result: res });
+                        setFlipping(false);
+                    }, 1500);
+                } catch (e) { 
+                    alert(e.message); 
+                    setFlipping(false);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            return (
+                <div className="flex flex-col items-center justify-center gap-6 md:gap-12 w-full max-w-4xl mx-auto p-4 pb-24 md:pb-4">
+                    {flipping ? (
+                        <div className="w-32 h-32 md:w-40 md:h-40 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center text-6xl md:text-7xl shadow-2xl animate-coin-flip">
+                            🪙
+                        </div>
+                    ) : state.result ? (
+                        <div className="text-center animate-pop-in">
+                            <div className="w-32 h-32 md:w-40 md:h-40 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center text-6xl md:text-7xl shadow-2xl mb-6 mx-auto">
+                                {state.result.result === 'heads' ? '👑' : '🦅'}
+                            </div>
+                            <div className={`text-4xl md:text-5xl font-black mb-4 ${state.result.won ? 'text-stake-green' : 'text-red-500'}`}>
+                                {state.result.won ? 'YOU WIN!' : 'YOU LOSE'}
+                            </div>
+                            <div className="text-2xl md:text-3xl font-bold text-white mb-2">
+                                {state.result.result.toUpperCase()}
+                            </div>
+                            {state.result.won && (
+                                <div className="text-stake-green font-mono text-xl md:text-2xl">
+                                    +${(state.result.payout / 100).toFixed(2)}
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        <div className="w-32 h-32 md:w-40 md:h-40 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center text-6xl md:text-7xl shadow-2xl">
+                            🪙
+                        </div>
+                    )}
+
+                    <div className="w-full max-w-lg glass p-4 md:p-6 rounded-2xl shadow-2xl border border-white/5">
+                        <div className="mb-4">
+                            <label className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-2 block">Bet Amount</label>
+                            <input 
+                                type="number" 
+                                value={state.bet} 
+                                onChange={e => setState({ ...state, bet: Number(e.target.value) })} 
+                                disabled={loading}
+                                className="w-full input-field rounded-xl p-3 text-white font-mono font-bold" 
+                            />
+                        </div>
+                        <div className="grid grid-cols-2 gap-3 md:gap-4 mb-4">
+                            <button 
+                                onClick={() => setState({ ...state, choice: 'heads' })}
+                                disabled={loading}
+                                className={`py-3 md:py-4 rounded-xl font-bold transition-all touch-feedback ${state.choice === 'heads' ? 'bg-stake-green text-black shadow-glow' : 'bg-stake-hover text-white border border-white/5'}`}
+                            >
+                                👑 HEADS
+                            </button>
+                            <button 
+                                onClick={() => setState({ ...state, choice: 'tails' })}
+                                disabled={loading}
+                                className={`py-3 md:py-4 rounded-xl font-bold transition-all touch-feedback ${state.choice === 'tails' ? 'bg-stake-green text-black shadow-glow' : 'bg-stake-hover text-white border border-white/5'}`}
+                            >
+                                🦅 TAILS
+                            </button>
+                        </div>
+                        <button 
+                            onClick={flip} 
+                            disabled={loading}
+                            className="w-full bg-btn-gradient text-black font-black py-3 md:py-4 rounded-xl shadow-glow transition-all touch-feedback disabled:opacity-50"
+                        >
+                            {loading ? 'FLIPPING...' : 'FLIP'}
+                        </button>
+                    </div>
+                </div>
+            );
+        };
+
+        const Roulette = ({ user, updateBalance }) => {
+            const [state, setState] = useState({ bet: 10, betType: 'red', result: null });
+            const [loading, setLoading] = useState(false);
+            const [spinning, setSpinning] = useState(false);
+
+            const spin = async () => {
+                if (state.bet * 100 > user.balance) return alert("Insufficient funds");
+                setLoading(true);
+                setSpinning(true);
+                try {
+                    const res = await rouletteApi.spin(user.username, state.bet * 100, state.betType);
+                    updateBalance(res.newBalance);
+                    setTimeout(() => {
+                        setState({ ...state, result: res });
+                        setSpinning(false);
+                    }, 3000);
+                } catch (e) { 
+                    alert(e.message); 
+                    setSpinning(false);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            return (
+                <div className="flex flex-col items-center justify-center gap-6 md:gap-12 w-full max-w-4xl mx-auto p-4 pb-24 md:pb-4">
+                    {spinning ? (
+                        <div className="w-48 h-48 md:w-64 md:h-64 relative">
+                            <div className="w-full h-full rounded-full border-8 border-white/20 flex items-center justify-center animate-roulette">
+                                <div className="text-6xl md:text-8xl">🎡</div>
+                            </div>
+                        </div>
+                    ) : state.result ? (
+                        <div className="text-center animate-pop-in">
+                            <div className={`w-32 h-32 md:w-40 md:h-40 rounded-full flex items-center justify-center text-6xl md:text-7xl font-black mb-6 mx-auto shadow-2xl ${state.result.color === 'red' ? 'bg-red-500' : state.result.color === 'black' ? 'bg-black' : 'bg-green-500'}`}>
+                                {state.result.number}
+                            </div>
+                            <div className={`text-4xl md:text-5xl font-black mb-4 ${state.result.won ? 'text-stake-green' : 'text-red-500'}`}>
+                                {state.result.won ? 'YOU WIN!' : 'YOU LOSE'}
+                            </div>
+                            <div className="text-2xl md:text-3xl font-bold text-white mb-2 uppercase">
+                                {state.result.color} {state.result.number}
+                            </div>
+                            {state.result.won && (
+                                <div className="text-stake-green font-mono text-xl md:text-2xl">
+                                    +${(state.result.payout / 100).toFixed(2)}
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        <div className="w-48 h-48 md:w-64 md:h-64 rounded-full border-8 border-white/20 flex items-center justify-center shadow-2xl">
+                            <div className="text-6xl md:text-8xl">🎡</div>
+                        </div>
+                    )}
+
+                    <div className="w-full max-w-lg glass p-4 md:p-6 rounded-2xl shadow-2xl border border-white/5">
+                        <div className="mb-4">
+                            <label className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-2 block">Bet Amount</label>
+                            <input 
+                                type="number" 
+                                value={state.bet} 
+                                onChange={e => setState({ ...state, bet: Number(e.target.value) })} 
+                                disabled={loading}
+                                className="w-full input-field rounded-xl p-3 text-white font-mono font-bold" 
+                            />
+                        </div>
+                        <div className="grid grid-cols-2 gap-3 mb-4">
+                            <button 
+                                onClick={() => setState({ ...state, betType: 'red' })}
+                                disabled={loading}
+                                className={`py-3 md:py-4 rounded-xl font-bold transition-all touch-feedback ${state.betType === 'red' ? 'bg-red-500 text-white shadow-glow-red' : 'bg-stake-hover text-white border border-white/5'}`}
+                            >
+                                RED (2x)
+                            </button>
+                            <button 
+                                onClick={() => setState({ ...state, betType: 'black' })}
+                                disabled={loading}
+                                className={`py-3 md:py-4 rounded-xl font-bold transition-all touch-feedback ${state.betType === 'black' ? 'bg-black text-white shadow-glow border-2 border-white' : 'bg-stake-hover text-white border border-white/5'}`}
+                            >
+                                BLACK (2x)
+                            </button>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3 mb-4">
+                            <button 
+                                onClick={() => setState({ ...state, betType: 'green' })}
+                                disabled={loading}
+                                className={`py-3 md:py-4 rounded-xl font-bold transition-all touch-feedback ${state.betType === 'green' ? 'bg-stake-green text-black shadow-glow' : 'bg-stake-hover text-white border border-white/5'}`}
+                            >
+                                GREEN (14x)
+                            </button>
+                            <button 
+                                onClick={() => setState({ ...state, betType: 'number' })}
+                                disabled={loading}
+                                className={`py-3 md:py-4 rounded-xl font-bold transition-all touch-feedback ${state.betType === 'number' ? 'bg-purple-600 text-white shadow-glow-purple' : 'bg-stake-hover text-white border border-white/5'}`}
+                            >
+                                NUMBER (36x)
+                            </button>
+                        </div>
+                        <button 
+                            onClick={spin} 
+                            disabled={loading}
+                            className="w-full bg-btn-gradient text-black font-black py-3 md:py-4 rounded-xl shadow-glow transition-all touch-feedback disabled:opacity-50"
+                        >
+                            {loading ? 'SPINNING...' : 'SPIN'}
+                        </button>
+                    </div>
+                </div>
+            );
+        };
+
+        const HiLo = ({ user, updateBalance }) => {
+            const [state, setState] = useState({ bet: 10, currentCard: null, nextCard: null, result: null, multiplier: 1.0, active: false });
+            const [loading, setLoading] = useState(false);
+
+            const startGame = async () => {
+                if (state.bet * 100 > user.balance) return alert("Insufficient funds");
+                setLoading(true);
+                try {
+                    const res = await hiloApi.start(user.username, state.bet * 100);
+                    updateBalance(res.newBalance);
+                    setState({ ...state, active: true, currentCard: res.currentCard, multiplier: 1.0, nextCard: null, result: null });
+                } catch (e) { 
+                    alert(e.message); 
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const guess = async (guessType) => {
+                setLoading(true);
+                try {
+                    const res = await hiloApi.guess(user.username, guessType);
+                    setState({ ...state, currentCard: res.currentCard, multiplier: res.multiplier, result: res.correct ? null : { correct: false } });
+                    if (!res.correct) {
+                        setState(prev => ({ ...prev, active: false }));
+                    }
+                } catch (e) { 
+                    alert(e.message); 
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const cashout = async () => {
+                setLoading(true);
+                try {
+                    const res = await hiloApi.cashout(user.username);
+                    updateBalance(res.newBalance);
+                    setState({ ...state, active: false, result: { payout: res.payout } });
+                } catch (e) { 
+                    alert(e.message); 
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            return (
+                <div className="flex flex-col items-center justify-center gap-6 md:gap-12 w-full max-w-4xl mx-auto p-4 pb-24 md:pb-4">
+                    {state.currentCard && (
+                        <div className="animate-pop-in">
+                            <CardView card={state.currentCard} />
+                        </div>
+                    )}
+
+                    {state.result && (
+                        <div className="glass p-6 rounded-2xl border border-white/5 text-center animate-pop-in">
+                            {state.result.correct === false ? (
+                                <>
+                                    <div className="text-4xl font-black text-red-500 mb-2">WRONG!</div>
+                                    <div className="text-gray-400">Game Over</div>
+                                </>
+                            ) : state.result.payout ? (
+                                <>
+                                    <div className="text-4xl font-black text-stake-green mb-2">CASHED OUT!</div>
+                                    <div className="text-2xl font-mono text-white">+${(state.result.payout / 100).toFixed(2)}</div>
+                                </>
+                            ) : null}
+                        </div>
+                    )}
+
+                    <div className="w-full max-w-lg glass p-4 md:p-6 rounded-2xl shadow-2xl border border-white/5">
+                        {!state.active || state.result ? (
+                            <>
+                                <div className="mb-4">
+                                    <label className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-2 block">Bet Amount</label>
+                                    <input 
+                                        type="number" 
+                                        value={state.bet} 
+                                        onChange={e => setState({ ...state, bet: Number(e.target.value) })} 
+                                        disabled={loading}
+                                        className="w-full input-field rounded-xl p-3 text-white font-mono font-bold" 
+                                    />
+                                </div>
+                                <button 
+                                    onClick={startGame} 
+                                    disabled={loading}
+                                    className="w-full bg-btn-gradient text-black font-black py-3 md:py-4 rounded-xl shadow-glow transition-all touch-feedback disabled:opacity-50"
+                                >
+                                    {loading ? 'STARTING...' : 'START'}
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                <div className="bg-black/30 p-4 rounded-xl border border-white/5 mb-4">
+                                    <div className="text-gray-400 text-xs font-bold uppercase mb-1">Current Multiplier</div>
+                                    <div className="text-stake-green text-4xl font-black font-mono">{state.multiplier.toFixed(2)}x</div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-3 mb-4">
+                                    <button 
+                                        onClick={() => guess('higher')} 
+                                        disabled={loading}
+                                        className="bg-stake-green hover:bg-stake-greenHover text-black py-4 rounded-xl font-bold transition-all touch-feedback disabled:opacity-50"
+                                    >
+                                        ⬆️ HIGHER
+                                    </button>
+                                    <button 
+                                        onClick={() => guess('lower')} 
+                                        disabled={loading}
+                                        className="bg-red-500 hover:bg-red-600 text-white py-4 rounded-xl font-bold transition-all touch-feedback disabled:opacity-50"
+                                    >
+                                        ⬇️ LOWER
+                                    </button>
+                                </div>
+                                <button 
+                                    onClick={cashout} 
+                                    disabled={loading}
+                                    className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-xl font-bold transition-all touch-feedback disabled:opacity-50"
+                                >
+                                    CASHOUT ${(state.bet * state.multiplier).toFixed(2)}
+                                </button>
+                            </>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
         // ==========================================
         // MAIN APP COMPONENT
         // ==========================================
@@ -1270,6 +1789,11 @@
                                     {activeGame === 'poker' && <Poker user={user} updateBalance={updateBalance} />}
                                     {activeGame === 'blackjack' && <Blackjack user={user} updateBalance={updateBalance} />}
                                     {activeGame === 'mines' && <Mines user={user} updateBalance={updateBalance} />}
+                                    {activeGame === 'towers' && <Towers user={user} updateBalance={updateBalance} />}
+                                    {activeGame === 'plinko' && <Plinko user={user} updateBalance={updateBalance} />}
+                                    {activeGame === 'coinflip' && <Coinflip user={user} updateBalance={updateBalance} />}
+                                    {activeGame === 'roulette' && <Roulette user={user} updateBalance={updateBalance} />}
+                                    {activeGame === 'hilo' && <HiLo user={user} updateBalance={updateBalance} />}
                                 </div>
                             ) : (
                                 <div>
@@ -1286,6 +1810,11 @@
                                         <GameCard id="poker" name="Poker" icon="🎴" gradient="from-purple-600 to-indigo-700" />
                                         <GameCard id="blackjack" name="Blackjack" icon="🃏" gradient="from-purple-600 to-blue-600" />
                                         <GameCard id="mines" name="Mines" icon="💣" gradient="from-yellow-500 to-red-600" />
+                                        <GameCard id="towers" name="Towers" icon="🏢" gradient="from-orange-500 to-amber-600" />
+                                        <GameCard id="plinko" name="Plinko" icon="🎯" gradient="from-pink-500 to-rose-600" />
+                                        <GameCard id="roulette" name="Roulette" icon="🎡" gradient="from-red-500 to-pink-600" />
+                                        <GameCard id="coinflip" name="Coin Flip" icon="🪙" gradient="from-yellow-400 to-orange-500" />
+                                        <GameCard id="hilo" name="Hi-Lo" icon="📊" gradient="from-cyan-500 to-blue-600" />
                                     </div>
                                 </div>
                             )}
