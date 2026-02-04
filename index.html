@@ -6,7 +6,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0f212e">
-    <title>Judeceno</title>
+    <title>Judeceno - Enhanced Casino</title>
     
     <!-- React & ReactDOM -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -35,6 +35,7 @@
                 red: '#ff4d4d',
                 purple: '#9333ea',
                 blue: '#3b82f6',
+                gold: '#fbbf24',
               }
             },
             fontFamily: {
@@ -44,13 +45,26 @@
               'glow': '0 0 15px rgba(0, 231, 1, 0.4)',
               'glow-red': '0 0 15px rgba(255, 77, 77, 0.4)',
               'glow-purple': '0 0 15px rgba(147, 51, 234, 0.4)',
+              'glow-gold': '0 0 20px rgba(251, 191, 36, 0.5)',
               'glow-card': '0 0 20px rgba(0,0,0,0.5)',
               'inner-light': 'inset 0 1px 0 rgba(255,255,255,0.1)'
             },
             backgroundImage: {
               'aura-gradient': 'radial-gradient(circle at 50% 0%, #1a2c38 0%, #0f212e 100%)',
               'card-gradient': 'linear-gradient(145deg, #1a2c38, #15232d)',
-              'btn-gradient': 'linear-gradient(to bottom, #00e701, #00c701)'
+              'btn-gradient': 'linear-gradient(to bottom, #00e701, #00c701)',
+              'gold-gradient': 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
+            },
+            animation: {
+              'float': 'float 3s ease-in-out infinite',
+              'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+              'bounce-slow': 'bounce 2s infinite',
+            },
+            keyframes: {
+              float: {
+                '0%, 100%': { transform: 'translateY(0px)' },
+                '50%': { transform: 'translateY(-10px)' },
+              }
             }
           }
         }
@@ -58,7 +72,7 @@
     </script>
     
     <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     
     <style>
       * {
@@ -117,6 +131,31 @@
         100% { transform: rotate(1440deg); }
       }
       .animate-roulette { animation: roulette-spin 3s ease-out; }
+
+      @keyframes card-deal {
+        0% { transform: translateX(-200px) rotate(-20deg); opacity: 0; }
+        100% { transform: translateX(0) rotate(0deg); opacity: 1; }
+      }
+      .animate-card-deal { animation: card-deal 0.5s ease-out forwards; }
+
+      @keyframes chip-stack {
+        0% { transform: translateY(-50px); opacity: 0; }
+        100% { transform: translateY(0); opacity: 1; }
+      }
+      .animate-chip-stack { animation: chip-stack 0.4s ease-out forwards; }
+
+      @keyframes win-celebration {
+        0%, 100% { transform: scale(1); }
+        25% { transform: scale(1.1) rotate(5deg); }
+        75% { transform: scale(1.1) rotate(-5deg); }
+      }
+      .animate-win { animation: win-celebration 0.6s ease-in-out; }
+
+      @keyframes particle-float {
+        0% { transform: translateY(0) scale(1); opacity: 1; }
+        100% { transform: translateY(-100px) scale(0); opacity: 0; }
+      }
+      .animate-particle { animation: particle-float 2s ease-out forwards; }
 
       .perspective-1000 { perspective: 1000px; }
       .transform-style-3d { transform-style: preserve-3d; }
@@ -201,6 +240,70 @@
       .smooth-scroll {
         scroll-behavior: smooth;
         -webkit-overflow-scrolling: touch;
+      }
+
+      /* Enhanced poker table */
+      .poker-felt {
+        background: radial-gradient(ellipse at center, #1b5e20 0%, #0d3818 100%);
+        border: 8px solid #8b4513;
+        box-shadow: inset 0 0 50px rgba(0,0,0,0.5), 0 10px 30px rgba(0,0,0,0.5);
+      }
+
+      .chip-animation {
+        animation: chip-stack 0.3s ease-out;
+      }
+
+      /* Enhanced card styles */
+      .card-3d {
+        transition: transform 0.3s ease;
+      }
+      .card-3d:hover {
+        transform: translateY(-5px) rotateY(10deg);
+      }
+
+      /* Particle effects */
+      .particle {
+        position: absolute;
+        border-radius: 50%;
+        pointer-events: none;
+      }
+
+      /* Mines grid enhancement */
+      .mine-tile {
+        position: relative;
+        overflow: hidden;
+      }
+      .mine-tile::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(45deg, transparent, rgba(0, 231, 1, 0.1), transparent);
+        transform: rotate(45deg);
+        transition: all 0.5s;
+      }
+      .mine-tile:hover::before {
+        animation: shine 1.5s infinite;
+      }
+
+      @keyframes shine {
+        0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+        100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+      }
+
+      /* Roulette wheel */
+      .roulette-wheel {
+        background: radial-gradient(circle, #2c1810 0%, #1a0f0a 100%);
+        border: 10px solid #8b4513;
+        box-shadow: 0 0 30px rgba(0,0,0,0.8), inset 0 0 20px rgba(0,0,0,0.5);
+      }
+
+      /* Plinko board */
+      .plinko-peg {
+        background: radial-gradient(circle, #fbbf24 0%, #f59e0b 100%);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
       }
     </style>
 </head>
@@ -304,8 +407,47 @@
         };
 
         // ==========================================
-        // UI COMPONENTS
+        // ENHANCED UI COMPONENTS
         // ==========================================
+
+        const WinParticles = ({ show, amount }) => {
+            const [particles, setParticles] = useState([]);
+
+            useEffect(() => {
+                if (show) {
+                    const newParticles = Array.from({ length: 20 }, (_, i) => ({
+                        id: i,
+                        x: Math.random() * 100,
+                        y: Math.random() * 100,
+                        size: Math.random() * 10 + 5,
+                        color: ['#00e701', '#fbbf24', '#ffffff'][Math.floor(Math.random() * 3)]
+                    }));
+                    setParticles(newParticles);
+                    setTimeout(() => setParticles([]), 2000);
+                }
+            }, [show]);
+
+            if (!show) return null;
+
+            return (
+                <div className="fixed inset-0 pointer-events-none z-50">
+                    {particles.map(p => (
+                        <div
+                            key={p.id}
+                            className="particle animate-particle"
+                            style={{
+                                left: `${p.x}%`,
+                                top: `${p.y}%`,
+                                width: `${p.size}px`,
+                                height: `${p.size}px`,
+                                background: p.color,
+                                animationDelay: `${Math.random() * 0.5}s`
+                            }}
+                        />
+                    ))}
+                </div>
+            );
+        };
 
         const LoadingSpinner = () => (
             <div className="flex items-center justify-center p-8">
@@ -343,14 +485,14 @@
 
         const MobileGameMenu = ({ onClose, onSelectGame }) => {
             const allGames = [
-                { id: 'poker', name: 'Poker', icon: '🎴' },
-                { id: 'blackjack', name: 'Blackjack', icon: '🃏' },
-                { id: 'mines', name: 'Mines', icon: '💣' },
-                { id: 'towers', name: 'Towers', icon: '🏢' },
-                { id: 'plinko', name: 'Plinko', icon: '🎯' },
-                { id: 'roulette', name: 'Roulette', icon: '🎡' },
-                { id: 'coinflip', name: 'Coin Flip', icon: '🪙' },
-                { id: 'hilo', name: 'Hi-Lo', icon: '📊' },
+                { id: 'poker', name: 'Poker', icon: '🎴', color: 'from-purple-600 to-indigo-700' },
+                { id: 'blackjack', name: 'Blackjack', icon: '🃏', color: 'from-purple-600 to-blue-600' },
+                { id: 'mines', name: 'Mines', icon: '💣', color: 'from-yellow-500 to-red-600' },
+                { id: 'towers', name: 'Towers', icon: '🏢', color: 'from-orange-500 to-amber-600' },
+                { id: 'plinko', name: 'Plinko', icon: '🎯', color: 'from-pink-500 to-rose-600' },
+                { id: 'roulette', name: 'Roulette', icon: '🎡', color: 'from-red-500 to-pink-600' },
+                { id: 'coinflip', name: 'Coin Flip', icon: '🪙', color: 'from-yellow-400 to-orange-500' },
+                { id: 'hilo', name: 'Hi-Lo', icon: '📊', color: 'from-cyan-500 to-blue-600' },
             ];
 
             return (
@@ -366,10 +508,10 @@
                                         onSelectGame(game.id);
                                         onClose();
                                     }}
-                                    className="flex flex-col items-center gap-2 p-4 bg-stake-hover rounded-xl touch-feedback transition-all hover:bg-stake-hover/80"
+                                    className={`flex flex-col items-center gap-2 p-4 rounded-xl touch-feedback transition-all bg-gradient-to-br ${game.color} opacity-80 hover:opacity-100`}
                                 >
-                                    <span className="text-4xl">{game.icon}</span>
-                                    <span className="text-sm font-medium text-white">{game.name}</span>
+                                    <span className="text-4xl drop-shadow-lg">{game.icon}</span>
+                                    <span className="text-sm font-bold text-white drop-shadow">{game.name}</span>
                                 </button>
                             ))}
                         </div>
@@ -406,29 +548,41 @@
         );
 
         // ==========================================
-        // GAME COMPONENTS
+        // ENHANCED CARD COMPONENT
         // ==========================================
 
-        const CardView = ({ card, hidden, small }) => {
+        const CardView = ({ card, hidden, small, animated }) => {
             const sizeClass = small ? 'w-16 h-24 text-sm' : 'w-20 h-32 md:w-24 md:h-36';
             
             if (hidden) return (
-                <div className={`${sizeClass} bg-stake-card border-2 border-stake-hover rounded-xl flex items-center justify-center shadow-2xl relative overflow-hidden`}>
-                     <span className="text-2xl md:text-4xl opacity-50">♠️</span>
+                <div className={`${sizeClass} bg-gradient-to-br from-blue-900 to-purple-900 border-2 border-stake-hover rounded-xl flex items-center justify-center shadow-2xl relative overflow-hidden ${animated ? 'animate-card-deal' : ''}`}>
+                    <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImEiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCI+PHJlY3Qgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIiBmaWxsPSJyZ2JhKDI1NSwyNTUsMjU1LDAuMDUpIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2EpIi8+PC9zdmc+')] opacity-50"></div>
+                    <span className="text-2xl md:text-4xl opacity-50 relative z-10">🂠</span>
                 </div>
             );
             if (!card) return null;
+            
+            const suitSymbol = {
+                'hearts': '♥',
+                'diamonds': '♦',
+                'clubs': '♣',
+                'spades': '♠'
+            }[card.suit];
+
             return (
-                <div className={`${sizeClass} bg-white rounded-xl flex flex-col items-center justify-center shadow-xl relative overflow-hidden ${card.color === 'red' ? 'text-red-600' : 'text-black'}`}>
+                <div className={`${sizeClass} bg-white rounded-xl flex flex-col items-center justify-center shadow-2xl relative overflow-hidden ${card.color === 'red' ? 'text-red-600' : 'text-black'} ${animated ? 'animate-card-deal card-3d' : 'card-3d'} border-2 border-gray-200`}>
                     <div className="absolute top-1 left-1 md:top-2 md:left-2 text-base md:text-xl font-bold leading-none">{card.value}</div>
-                    <div className="text-3xl md:text-5xl">{card.suit === 'hearts' ? '♥' : card.suit === 'diamonds' ? '♦' : card.suit === 'clubs' ? '♣' : '♠'}</div>
+                    <div className="text-4xl md:text-6xl drop-shadow-sm">{suitSymbol}</div>
                     <div className="absolute bottom-1 right-1 md:bottom-2 md:right-2 text-base md:text-xl font-bold leading-none rotate-180">{card.value}</div>
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent pointer-events-none"></div>
                 </div>
             );
         };
 
-        // POKER COMPONENT - FULLY UPDATED WITH ALL NEW FEATURES
-        const Poker = ({ user, updateBalance }) => {
+        // Continue with game components in next part...
+        // This file is getting long, let me create the poker component separately
+
+const Poker = ({ user, updateBalance }) => {
             const [lobbies, setLobbies] = useState({ demo: [], real: [] });
             const [selectedTable, setSelectedTable] = useState(null);
             const [tableData, setTableData] = useState(null);
@@ -437,6 +591,8 @@
             const [buyIn, setBuyIn] = useState(100);
             const [raiseAmount, setRaiseAmount] = useState(10);
             const [error, setError] = useState(null);
+            const [showWin, setShowWin] = useState(false);
+            const [winAmount, setWinAmount] = useState(0);
 
             const loadLobbies = useCallback(async () => {
                 try {
@@ -458,6 +614,15 @@
                     const loadTable = async () => {
                         try {
                             const data = await pokerApi.getTable(selectedTable);
+                            
+                            // Check for win celebration
+                            if (data.showdownResults && data.showdownResults.winners[user.username]) {
+                                const amount = data.showdownResults.winners[user.username].amount;
+                                setWinAmount(amount);
+                                setShowWin(true);
+                                setTimeout(() => setShowWin(false), 3000);
+                            }
+                            
                             setTableData(data);
                             setError(null);
                         } catch (e) {
@@ -469,7 +634,7 @@
                     const interval = setInterval(loadTable, 2000);
                     return () => clearInterval(interval);
                 }
-            }, [selectedTable]);
+            }, [selectedTable, user.username]);
 
             const createTable = async () => {
                 setLoading(true);
@@ -559,80 +724,85 @@
 
                 return (
                     <div className="flex flex-col gap-4 md:gap-8 w-full max-w-6xl mx-auto p-4 pb-24 md:pb-4">
+                        <WinParticles show={showWin} amount={winAmount} />
+                        
                         <div className="flex items-center justify-between">
-                            <button onClick={leaveTable} disabled={loading} className="px-4 py-2 bg-red-500 text-white rounded-lg font-bold touch-feedback hover:bg-red-600 disabled:opacity-50">
+                            <button onClick={leaveTable} disabled={loading} className="px-4 py-2 bg-red-500 text-white rounded-lg font-bold touch-feedback hover:bg-red-600 disabled:opacity-50 transition-all shadow-lg">
                                 ← Leave Table
                             </button>
                             {error && (
-                                <div className="text-red-500 text-sm font-bold bg-red-500/10 px-3 py-1 rounded">
+                                <div className="text-red-500 text-sm font-bold bg-red-500/10 px-3 py-1 rounded animate-shake">
                                     {error}
                                 </div>
                             )}
                         </div>
 
-                        <div className="glass rounded-2xl p-6 md:p-8 border border-white/5">
-                            {/* Pot and Betting Round */}
-                            <div className="text-center mb-6">
-                                <div className="text-gray-400 text-xs md:text-sm mb-2 font-bold uppercase tracking-wider">
-                                    {bettingRoundDisplay[tableData.bettingRound] || 'Waiting'}
-                                </div>
-                                
-                                {/* NEW: Side Pots Display */}
-                                {tableData.sidePots && tableData.sidePots.length > 1 ? (
-                                    <div className="space-y-2">
-                                        {tableData.sidePots.map((pot, index) => (
-                                            <div key={index} className={`${index === 0 ? 'text-stake-green text-3xl md:text-4xl' : 'text-yellow-500 text-xl md:text-2xl'} font-black font-mono drop-shadow-md`}>
-                                                {index === 0 ? '💰 Main' : `🎁 Side ${index}`} Pot: ${(pot.amount / 100).toFixed(2)}
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div className="text-stake-green text-4xl md:text-5xl font-black font-mono drop-shadow-[0_0_10px_rgba(0,231,1,0.3)]">
-                                        ${(tableData.pot / 100).toFixed(2)}
-                                    </div>
-                                )}
-                                
-                                <div className="text-gray-500 text-xs md:text-sm mt-1">POT</div>
-                                {tableData.currentBet > 0 && (
-                                    <div className="text-yellow-500 text-sm md:text-base mt-2 font-bold">
-                                        Current Bet: ${(tableData.currentBet / 100).toFixed(2)}
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* NEW: SHOWDOWN DISPLAY - 5 Second Results Screen */}
-                            {tableData.gameState === 'showdown' && tableData.showdownResults && (
-                                <div className="mb-8 bg-gradient-to-b from-black/60 to-black/40 p-6 md:p-8 rounded-2xl border-2 border-stake-green shadow-glow animate-pop-in">
-                                    <div className="text-center text-stake-green text-2xl md:text-3xl font-black mb-6 flex items-center justify-center gap-3">
-                                        <span>🏆</span>
-                                        <span>SHOWDOWN RESULTS</span>
-                                        <span>🏆</span>
+                        <div className="poker-felt rounded-3xl p-6 md:p-10 border-8 border-[#8b4513] shadow-2xl">
+                            {/* Pot Display - Enhanced */}
+                            <div className="text-center mb-8">
+                                <div className="inline-block bg-black/40 rounded-2xl px-6 py-4 border-2 border-stake-gold shadow-glow-gold">
+                                    <div className="text-gray-300 text-xs md:text-sm mb-2 font-bold uppercase tracking-wider">
+                                        {bettingRoundDisplay[tableData.bettingRound] || 'Waiting'}
                                     </div>
                                     
-                                    {/* Show all hands */}
-                                    <div className="space-y-4 mb-6">
+                                    {tableData.sidePots && tableData.sidePots.length > 1 ? (
+                                        <div className="space-y-2">
+                                            {tableData.sidePots.map((pot, index) => (
+                                                <div key={index} className={`${index === 0 ? 'text-stake-gold text-4xl md:text-5xl' : 'text-yellow-400 text-2xl md:text-3xl'} font-black font-mono drop-shadow-lg animate-pulse-slow`}>
+                                                    {index === 0 ? '💰 Main' : `🎁 Side ${index}`}: ${(pot.amount / 100).toFixed(2)}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="text-stake-gold text-5xl md:text-6xl font-black font-mono drop-shadow-[0_0_15px_rgba(251,191,36,0.5)] animate-pulse-slow">
+                                            ${(tableData.pot / 100).toFixed(2)}
+                                        </div>
+                                    )}
+                                    
+                                    <div className="text-gray-400 text-xs md:text-sm mt-2 font-bold">TOTAL POT</div>
+                                    {tableData.currentBet > 0 && (
+                                        <div className="text-yellow-400 text-base md:text-lg mt-3 font-bold bg-black/30 rounded-lg px-4 py-1">
+                                            Current Bet: ${(tableData.currentBet / 100).toFixed(2)}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* SHOWDOWN RESULTS - Enhanced */}
+                            {tableData.gameState === 'showdown' && tableData.showdownResults && (
+                                <div className="mb-8 bg-gradient-to-b from-black/80 to-black/60 p-6 md:p-10 rounded-3xl border-4 border-stake-gold shadow-glow-gold animate-pop-in">
+                                    <div className="text-center text-stake-gold text-3xl md:text-4xl font-black mb-8 flex items-center justify-center gap-4 animate-bounce-slow">
+                                        <span className="text-5xl">🏆</span>
+                                        <span>SHOWDOWN!</span>
+                                        <span className="text-5xl">🏆</span>
+                                    </div>
+                                    
+                                    <div className="space-y-6 mb-8">
                                         {tableData.showdownResults.hands.map((hand, i) => {
                                             const isWinner = tableData.showdownResults.winners[hand.username];
                                             return (
-                                                <div key={i} className={`p-4 md:p-6 rounded-xl border-2 transition-all ${isWinner ? 'border-stake-green bg-stake-green/10 shadow-glow scale-105' : 'border-white/10 bg-black/20'}`}>
-                                                    <div className="flex items-center justify-between mb-3">
-                                                        <div className={`font-bold text-lg md:text-xl ${isWinner ? 'text-stake-green' : 'text-white'}`}>
-                                                            {hand.username} {isWinner && <span className="animate-pulse">👑</span>}
+                                                <div key={i} className={`p-6 md:p-8 rounded-2xl border-4 transition-all ${isWinner ? 'border-stake-gold bg-gradient-to-br from-stake-gold/20 to-stake-gold/5 shadow-glow-gold scale-105 animate-win' : 'border-white/20 bg-black/40'}`}>
+                                                    <div className="flex items-center justify-between mb-4">
+                                                        <div className={`font-black text-xl md:text-2xl ${isWinner ? 'text-stake-gold' : 'text-white'} flex items-center gap-2`}>
+                                                            {hand.username}
+                                                            {isWinner && <span className="text-3xl animate-bounce">👑</span>}
                                                         </div>
-                                                        <div className={`text-sm md:text-base font-semibold ${isWinner ? 'text-stake-green' : 'text-gray-400'}`}>
+                                                        <div className={`text-base md:text-lg font-bold px-4 py-2 rounded-full ${isWinner ? 'bg-stake-gold text-black' : 'bg-gray-700 text-gray-300'}`}>
                                                             {hand.handDescription}
                                                         </div>
                                                     </div>
-                                                    <div className="flex gap-2 justify-center flex-wrap">
+                                                    <div className="flex gap-3 justify-center flex-wrap">
                                                         {hand.hand.map((card, j) => (
                                                             <div key={j} className="animate-pop-in" style={{animationDelay: `${j*0.1}s`}}>
-                                                                <CardView card={card} small={true} />
+                                                                <CardView card={card} small={true} animated={true} />
                                                             </div>
                                                         ))}
                                                     </div>
                                                     {isWinner && (
-                                                        <div className="text-center mt-4 text-stake-green font-black text-2xl md:text-3xl animate-pulse">
-                                                            +${(isWinner.amount / 100).toFixed(2)}
+                                                        <div className="text-center mt-6">
+                                                            <div className="inline-block bg-stake-gold text-black font-black text-3xl md:text-4xl px-8 py-4 rounded-2xl shadow-glow-gold animate-pulse">
+                                                                +${(isWinner.amount / 100).toFixed(2)}
+                                                            </div>
                                                         </div>
                                                     )}
                                                 </div>
@@ -640,43 +810,47 @@
                                         })}
                                     </div>
 
-                                    {/* Show pot distribution if multiple pots */}
                                     {tableData.showdownResults.pots.length > 1 && (
-                                        <div className="border-t border-white/10 pt-4">
-                                            <div className="text-gray-300 text-sm md:text-base font-bold mb-3 text-center">📊 Pot Distribution:</div>
+                                        <div className="border-t-2 border-stake-gold/30 pt-6">
+                                            <div className="text-stake-gold text-lg md:text-xl font-black mb-4 text-center flex items-center justify-center gap-2">
+                                                <span>📊</span>
+                                                <span>Pot Distribution</span>
+                                            </div>
                                             {tableData.showdownResults.pots.map((pot, i) => (
-                                                <div key={i} className="text-sm md:text-base text-gray-300 mb-2 p-2 bg-black/20 rounded">
-                                                    <span className="text-yellow-500 font-bold">{i === 0 ? '💰 Main' : `🎁 Side ${i}`} Pot</span> (${(pot.potAmount / 100).toFixed(2)}): 
-                                                    <span className="text-stake-green font-bold ml-2">{pot.winners.join(', ')}</span> - {pot.winningHand}
+                                                <div key={i} className="text-base md:text-lg text-white mb-3 p-4 bg-black/40 rounded-xl border border-stake-gold/30">
+                                                    <span className="text-yellow-400 font-black">{i === 0 ? '💰 Main' : `🎁 Side ${i}`} Pot</span>
+                                                    <span className="text-gray-300"> (${(pot.potAmount / 100).toFixed(2)}): </span>
+                                                    <span className="text-stake-gold font-black">{pot.winners.join(', ')}</span>
+                                                    <span className="text-gray-400"> - {pot.winningHand}</span>
                                                 </div>
                                             ))}
                                         </div>
                                     )}
                                     
-                                    <div className="text-center text-gray-400 text-xs md:text-sm mt-6 animate-pulse">
-                                        ⏳ New hand starting in a few seconds...
+                                    <div className="text-center text-gray-300 text-sm md:text-base mt-8 animate-pulse bg-black/40 rounded-lg py-3">
+                                        ⏳ New hand starting soon...
                                     </div>
                                 </div>
                             )}
 
-                            {/* Community Cards */}
+                            {/* Community Cards - Enhanced */}
                             {tableData.communityCards && tableData.communityCards.length > 0 && (
                                 <div className="mb-8">
-                                    <div className="text-center text-gray-400 text-xs md:text-sm mb-3 font-bold uppercase tracking-wider">
-                                        Community Cards
+                                    <div className="text-center text-gray-300 text-sm md:text-base mb-4 font-bold uppercase tracking-wider bg-black/30 inline-block px-6 py-2 rounded-full mx-auto block w-fit">
+                                        🃏 Community Cards
                                     </div>
-                                    <div className="flex gap-2 md:gap-3 justify-center flex-wrap">
+                                    <div className="flex gap-3 md:gap-4 justify-center flex-wrap">
                                         {tableData.communityCards.map((card, i) => (
-                                            <div key={i} className="animate-pop-in" style={{animationDelay: `${i*0.1}s`}}>
-                                                <CardView card={card} small={window.innerWidth < 768} />
+                                            <div key={i} className="animate-pop-in" style={{animationDelay: `${i*0.15}s`}}>
+                                                <CardView card={card} small={window.innerWidth < 768} animated={true} />
                                             </div>
                                         ))}
                                     </div>
                                 </div>
                             )}
 
-                            {/* Players Grid - WITH DEALER BUTTON & ALL-IN INDICATOR */}
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 mb-6">
+                            {/* Players Grid - Enhanced */}
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 mb-8">
                                 {tableData.players.map((player, i) => {
                                     const isCurrentPlayer = player.username === tableData.currentPlayer;
                                     const isMe = player.username === user.username;
@@ -686,113 +860,124 @@
                                     return (
                                         <div 
                                             key={i} 
-                                            className={`glass p-3 md:p-4 rounded-xl border transition-all relative ${
+                                            className={`glass p-4 md:p-6 rounded-2xl border-2 transition-all relative ${
                                                 isCurrentPlayer 
-                                                    ? 'border-stake-green shadow-glow scale-105' 
+                                                    ? 'border-stake-green shadow-glow scale-105 animate-pulse-slow' 
                                                     : isMe 
-                                                        ? 'border-blue-500' 
-                                                        : 'border-white/5'
-                                            }`}
+                                                        ? 'border-blue-400 shadow-lg' 
+                                                        : 'border-white/10'
+                                            } ${player.hasFolded ? 'opacity-50 grayscale' : ''}`}
                                         >
-                                            {/* NEW: Dealer Button */}
                                             {isDealer && (
-                                                <div className="absolute -top-2 -right-2 w-8 h-8 md:w-10 md:h-10 bg-white rounded-full flex items-center justify-center text-black font-black text-xs md:text-sm border-2 border-stake-green shadow-glow z-10">
+                                                <div className="absolute -top-3 -right-3 w-12 h-12 md:w-14 md:h-14 bg-gradient-to-br from-stake-gold to-yellow-600 rounded-full flex items-center justify-center text-black font-black text-lg md:text-xl border-4 border-white shadow-glow-gold z-10 animate-bounce-slow">
                                                     D
                                                 </div>
                                             )}
                                             
-                                            <div className="flex items-center justify-between mb-2">
-                                                <div className={`font-bold text-sm md:text-base ${isMe ? 'text-blue-400' : 'text-white'}`}>
+                                            <div className="flex items-center justify-between mb-3">
+                                                <div className={`font-bold text-base md:text-lg ${isMe ? 'text-blue-300' : 'text-white'}`}>
                                                     {player.username} {isMe && '(You)'}
                                                 </div>
                                                 {isCurrentPlayer && (
-                                                    <span className="text-xs bg-stake-green text-black px-2 py-0.5 rounded-full font-bold">
-                                                        TURN
+                                                    <span className="text-xs bg-stake-green text-black px-3 py-1 rounded-full font-black uppercase animate-pulse">
+                                                        Your Turn
                                                     </span>
                                                 )}
                                             </div>
-                                            <div className="text-xs md:text-sm text-gray-400">
-                                                💰 ${(player.chips / 100).toFixed(2)}
+                                            
+                                            <div className="space-y-2">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-xl">💰</span>
+                                                    <span className="text-stake-green font-mono font-bold text-lg">
+                                                        ${(player.chips / 100).toFixed(2)}
+                                                    </span>
+                                                </div>
+                                                
+                                                {player.hasFolded && (
+                                                    <div className="text-sm text-red-400 font-black bg-red-500/20 px-3 py-1 rounded-full inline-block">
+                                                        ❌ FOLDED
+                                                    </div>
+                                                )}
+                                                
+                                                {isAllIn && (
+                                                    <div className="text-sm text-stake-green font-black animate-pulse bg-stake-green/20 px-3 py-1 rounded-full inline-block">
+                                                        🔥 ALL-IN!
+                                                    </div>
+                                                )}
+                                                
+                                                {player.currentBet > 0 && !player.hasFolded && (
+                                                    <div className="text-sm text-yellow-400 font-bold bg-yellow-500/20 px-3 py-1 rounded-full">
+                                                        Bet: ${(player.currentBet / 100).toFixed(2)}
+                                                    </div>
+                                                )}
                                             </div>
-                                            {player.hasFolded && (
-                                                <div className="text-xs text-red-500 mt-1 font-bold">❌ FOLDED</div>
-                                            )}
-                                            {/* NEW: All-In Indicator */}
-                                            {isAllIn && (
-                                                <div className="text-xs text-stake-green mt-1 font-bold animate-pulse">
-                                                    🔥 ALL-IN
-                                                </div>
-                                            )}
-                                            {player.currentBet > 0 && !player.hasFolded && (
-                                                <div className="text-xs text-stake-green mt-1 font-bold">
-                                                    Bet: ${(player.currentBet / 100).toFixed(2)}
-                                                </div>
-                                            )}
                                         </div>
                                     );
                                 })}
                             </div>
 
-                            {/* Your Hand */}
+                            {/* Your Hand - Enhanced */}
                             {myPlayer && myPlayer.hand && myPlayer.hand.length > 0 && (
-                                <div className="mb-6 bg-black/20 p-4 md:p-6 rounded-xl border border-blue-500/30">
-                                    <div className="text-center text-blue-400 text-xs md:text-sm mb-3 font-bold uppercase tracking-wider">
-                                        Your Hand
+                                <div className="mb-8 bg-gradient-to-br from-blue-900/40 to-purple-900/40 p-6 md:p-8 rounded-2xl border-2 border-blue-400 shadow-xl">
+                                    <div className="text-center text-blue-300 text-sm md:text-base mb-4 font-bold uppercase tracking-wider flex items-center justify-center gap-2">
+                                        <span className="text-2xl">🎴</span>
+                                        <span>Your Hand</span>
                                     </div>
-                                    <div className="flex gap-2 md:gap-3 justify-center">
+                                    <div className="flex gap-3 md:gap-4 justify-center">
                                         {myPlayer.hand.map((card, i) => (
                                             <div key={i} className="animate-pop-in" style={{animationDelay: `${i*0.1}s`}}>
-                                                <CardView card={card} small={window.innerWidth < 768} />
+                                                <CardView card={card} small={window.innerWidth < 768} animated={true} />
                                             </div>
                                         ))}
                                     </div>
                                 </div>
                             )}
 
-                            {/* Action Buttons */}
+                            {/* Action Buttons - Enhanced */}
                             {isMyTurn && myPlayer && !myPlayer.hasFolded && tableData.gameState === 'playing' && (
-                                <div className="space-y-3">
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
+                                <div className="space-y-4">
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
                                         <button 
                                             onClick={() => performAction('fold')} 
                                             disabled={loading} 
-                                            className="bg-red-500 hover:bg-red-600 text-white py-3 md:py-4 rounded-xl font-bold touch-feedback disabled:opacity-50 transition-all"
+                                            className="bg-gradient-to-br from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 text-white py-4 md:py-5 rounded-2xl font-black text-lg touch-feedback disabled:opacity-50 transition-all shadow-lg hover:shadow-glow-red"
                                         >
-                                            FOLD
+                                            ❌ FOLD
                                         </button>
                                         
                                         {canCheck ? (
                                             <button 
                                                 onClick={() => performAction('check')} 
                                                 disabled={loading} 
-                                                className="bg-gray-600 hover:bg-gray-700 text-white py-3 md:py-4 rounded-xl font-bold touch-feedback disabled:opacity-50 transition-all"
+                                                className="bg-gradient-to-br from-gray-600 to-gray-800 hover:from-gray-700 hover:to-gray-900 text-white py-4 md:py-5 rounded-2xl font-black text-lg touch-feedback disabled:opacity-50 transition-all shadow-lg"
                                             >
-                                                CHECK
+                                                ✓ CHECK
                                             </button>
                                         ) : (
                                             <button 
                                                 onClick={() => performAction('call')} 
                                                 disabled={loading} 
-                                                className="bg-blue-500 hover:bg-blue-600 text-white py-3 md:py-4 rounded-xl font-bold touch-feedback disabled:opacity-50 transition-all"
+                                                className="bg-gradient-to-br from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white py-4 md:py-5 rounded-2xl font-black text-lg touch-feedback disabled:opacity-50 transition-all shadow-lg"
                                             >
-                                                CALL<br/>
-                                                <span className="text-xs">${(callAmount / 100).toFixed(2)}</span>
+                                                📞 CALL<br/>
+                                                <span className="text-sm font-normal">${(callAmount / 100).toFixed(2)}</span>
                                             </button>
                                         )}
                                         
                                         <button 
                                             onClick={() => performAction('bet', raiseAmount)} 
                                             disabled={loading || raiseAmount < Math.max(1, callAmount / 100)} 
-                                            className="bg-stake-green hover:bg-stake-greenHover text-black py-3 md:py-4 rounded-xl font-bold touch-feedback disabled:opacity-50 transition-all col-span-2"
+                                            className="col-span-2 bg-gradient-to-br from-stake-green to-stake-greenHover hover:from-stake-greenHover hover:to-stake-green text-black py-4 md:py-5 rounded-2xl font-black text-lg touch-feedback disabled:opacity-50 transition-all shadow-lg hover:shadow-glow"
                                         >
-                                            RAISE<br/>
-                                            <span className="text-xs">${raiseAmount.toFixed(2)}</span>
+                                            💪 RAISE<br/>
+                                            <span className="text-sm font-normal">${raiseAmount.toFixed(2)}</span>
                                         </button>
                                     </div>
                                     
-                                    <div className="glass p-3 md:p-4 rounded-xl">
-                                        <label className="text-gray-400 text-xs font-bold uppercase mb-2 block">
-                                            Raise Amount
+                                    <div className="glass p-4 md:p-6 rounded-2xl border border-white/10">
+                                        <label className="text-gray-300 text-sm font-bold uppercase mb-3 block flex items-center gap-2">
+                                            <span>💵</span>
+                                            <span>Raise Amount</span>
                                         </label>
                                         <input 
                                             type="range" 
@@ -801,11 +986,11 @@
                                             step="0.5"
                                             value={raiseAmount} 
                                             onChange={e => setRaiseAmount(Number(e.target.value))}
-                                            className="w-full"
+                                            className="w-full h-3 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-stake-green"
                                         />
-                                        <div className="flex justify-between text-xs text-gray-400 mt-1">
+                                        <div className="flex justify-between text-sm text-gray-400 mt-2 font-mono">
                                             <span>${Math.max(1, callAmount / 100).toFixed(2)}</span>
-                                            <span className="text-stake-green font-bold">${raiseAmount.toFixed(2)}</span>
+                                            <span className="text-stake-green font-black text-lg">${raiseAmount.toFixed(2)}</span>
                                             <span>${Math.max(1, myPlayer.chips / 100).toFixed(2)}</span>
                                         </div>
                                     </div>
@@ -813,10 +998,10 @@
                             )}
 
                             {tableData.gameState === 'waiting' && !tableData.showdownResults && (
-                                <div className="text-center text-gray-400 mt-4 p-6 bg-black/20 rounded-xl">
-                                    <div className="text-2xl mb-2">⏳</div>
-                                    <div className="font-bold">Waiting for next hand...</div>
-                                    <div className="text-sm mt-1">
+                                <div className="text-center text-gray-300 mt-6 p-8 bg-black/40 rounded-2xl border border-white/10">
+                                    <div className="text-5xl mb-4 animate-bounce">⏳</div>
+                                    <div className="font-black text-xl mb-2">Waiting for next hand...</div>
+                                    <div className="text-base mt-2">
                                         {tableData.players.length < 2 
                                             ? 'Need at least 2 players to start' 
                                             : 'Starting soon...'}
@@ -833,51 +1018,74 @@
             return (
                 <div className="flex flex-col gap-4 md:gap-8 w-full max-w-6xl mx-auto p-4 pb-24 md:pb-4">
                     <div className="flex items-center justify-between">
-                        <h2 className="text-2xl font-black text-white">
+                        <h2 className="text-2xl md:text-3xl font-black text-white flex items-center gap-3">
                             {user.isDemo ? '🎮 Demo Poker Lobbies' : '💰 Real Money Poker'}
                         </h2>
-                        <button onClick={() => setCreateMode(!createMode)} className="px-4 py-2 bg-btn-gradient text-black font-bold rounded-xl touch-feedback">
-                            {createMode ? 'Cancel' : '+ New Table'}
+                        <button onClick={() => setCreateMode(!createMode)} className="px-6 py-3 bg-btn-gradient text-black font-black rounded-xl touch-feedback shadow-glow hover:scale-105 transition-transform">
+                            {createMode ? '✕ Cancel' : '+ New Table'}
                         </button>
                     </div>
 
                     {error && (
-                        <div className="bg-red-500/10 border border-red-500/30 text-red-500 p-4 rounded-xl text-center font-bold">
-                            {error}
+                        <div className="bg-red-500/10 border-2 border-red-500/50 text-red-400 p-4 rounded-xl text-center font-bold animate-shake">
+                            ⚠️ {error}
                         </div>
                     )}
 
                     {createMode && (
-                        <div className="glass p-6 rounded-2xl border border-white/5 animate-pop-in">
-                            <h3 className="text-xl font-bold text-white mb-4">Create New Table</h3>
-                            <div className="mb-4">
-                                <label className="text-gray-400 text-sm mb-2 block">Buy-in Amount</label>
-                                <input type="number" value={buyIn} onChange={e => setBuyIn(Math.max(1, Number(e.target.value)))} className="w-full input-field rounded-xl p-3 text-white font-mono font-bold" />
+                        <div className="glass p-6 md:p-8 rounded-2xl border border-white/10 animate-pop-in shadow-xl">
+                            <h3 className="text-xl md:text-2xl font-black text-white mb-6 flex items-center gap-2">
+                                <span>🎴</span>
+                                <span>Create New Table</span>
+                            </h3>
+                            <div className="mb-6">
+                                <label className="text-gray-300 text-sm font-bold mb-3 block">💵 Buy-in Amount</label>
+                                <input 
+                                    type="number" 
+                                    value={buyIn} 
+                                    onChange={e => setBuyIn(Math.max(1, Number(e.target.value)))} 
+                                    className="w-full input-field rounded-xl p-4 text-white font-mono font-bold text-lg" 
+                                />
                             </div>
-                            <button onClick={createTable} disabled={loading} className="w-full bg-btn-gradient text-black font-black py-4 rounded-xl shadow-glow touch-feedback disabled:opacity-50">
+                            <button 
+                                onClick={createTable} 
+                                disabled={loading} 
+                                className="w-full bg-btn-gradient text-black font-black py-5 rounded-xl shadow-glow touch-feedback disabled:opacity-50 text-lg hover:scale-105 transition-transform"
+                            >
                                 {loading ? 'CREATING...' : `CREATE TABLE ($${buyIn})`}
                             </button>
                         </div>
                     )}
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                         {currentLobbies.map((table, i) => (
-                            <div key={table.id} className="glass p-6 rounded-2xl border border-white/5 hover:border-stake-green/30 transition-all">
-                                <div className="flex items-center justify-between mb-4">
+                            <div key={table.id} className="glass p-6 md:p-8 rounded-2xl border border-white/10 hover:border-stake-green/50 transition-all hover:scale-105 shadow-lg">
+                                <div className="flex items-center justify-between mb-6">
                                     <div>
-                                        <div className="text-white font-bold text-lg">Table #{table.id.slice(0, 8)}</div>
-                                        <div className="text-gray-400 text-sm">Buy-in: ${(table.buyIn / 100).toFixed(2)}</div>
+                                        <div className="text-white font-black text-xl mb-1">
+                                            🎴 Table #{table.id.slice(0, 8)}
+                                        </div>
+                                        <div className="text-gray-400 text-sm font-bold">
+                                            Buy-in: ${(table.buyIn / 100).toFixed(2)}
+                                        </div>
                                     </div>
                                     <div className="text-right">
-                                        <div className="text-stake-green font-mono text-xl font-bold">${(table.pot / 100).toFixed(2)}</div>
-                                        <div className="text-gray-400 text-xs">POT</div>
+                                        <div className="text-stake-gold font-mono text-2xl md:text-3xl font-black drop-shadow-glow animate-pulse-slow">
+                                            ${(table.pot / 100).toFixed(2)}
+                                        </div>
+                                        <div className="text-gray-400 text-xs font-bold uppercase">Pot</div>
                                     </div>
                                 </div>
                                 <div className="flex items-center justify-between">
-                                    <div className="text-sm text-gray-400">
-                                        👥 {table.playerCount}/{table.maxPlayers} players
+                                    <div className="text-base text-gray-300 font-bold flex items-center gap-2">
+                                        <span>👥</span>
+                                        <span>{table.playerCount}/{table.maxPlayers} players</span>
                                     </div>
-                                    <button onClick={() => joinTable(table.id)} disabled={loading || table.playerCount >= table.maxPlayers} className="px-4 py-2 bg-stake-green text-black font-bold rounded-lg touch-feedback disabled:opacity-50 disabled:bg-gray-600">
+                                    <button 
+                                        onClick={() => joinTable(table.id)} 
+                                        disabled={loading || table.playerCount >= table.maxPlayers} 
+                                        className="px-6 py-3 bg-stake-green text-black font-black rounded-xl touch-feedback disabled:opacity-50 disabled:bg-gray-600 hover:scale-105 transition-transform shadow-lg"
+                                    >
                                         {table.playerCount >= table.maxPlayers ? 'FULL' : 'JOIN'}
                                     </button>
                                 </div>
@@ -885,10 +1093,13 @@
                         ))}
 
                         {currentLobbies.length === 0 && (
-                            <div className="col-span-2 glass p-12 rounded-2xl border border-white/5 text-center">
-                                <div className="text-6xl mb-4">🎴</div>
-                                <div className="text-gray-400 mb-4">No active tables</div>
-                                <button onClick={() => setCreateMode(true)} className="px-6 py-3 bg-btn-gradient text-black font-bold rounded-xl touch-feedback">
+                            <div className="col-span-2 glass p-16 rounded-2xl border border-white/10 text-center">
+                                <div className="text-8xl mb-6 animate-float">🎴</div>
+                                <div className="text-gray-400 text-xl mb-6 font-bold">No active tables</div>
+                                <button 
+                                    onClick={() => setCreateMode(true)} 
+                                    className="px-8 py-4 bg-btn-gradient text-black font-black rounded-xl touch-feedback shadow-glow hover:scale-105 transition-transform text-lg"
+                                >
                                     Create First Table
                                 </button>
                             </div>
@@ -898,13 +1109,14 @@
             );
         };
 
-        // [ALL OTHER GAME COMPONENTS - Blackjack, Mines, Towers, Plinko, Coinflip, Roulette, HiLo]
-        // Keeping them exactly the same as before for brevity...
-        // Include all game components from previous version here
-
+        // ==========================================
+        // BLACKJACK - ENHANCED
+        // ==========================================
+        
         const Blackjack = ({ user, updateBalance }) => {
             const [state, setState] = useState({ bet: 10, result: null, playerHand: [], dealerHand: [], gameStarted: false });
             const [loading, setLoading] = useState(false);
+            const [showWin, setShowWin] = useState(false);
             
             const deal = async () => {
                 if (state.bet * 100 > user.balance) return alert("Insufficient funds");
@@ -944,6 +1156,10 @@
                     updateBalance(res.newBalance);
                     const msg = res.result === 'win' ? 'You Win!' : res.result === 'push' ? 'Push' : 'Dealer Wins';
                     setState({ ...state, dealerHand: res.dealerHand, result: { win: res.result === 'win' ? state.bet * 200 : 0, message: msg }, gameStarted: false });
+                    if (res.result === 'win') {
+                        setShowWin(true);
+                        setTimeout(() => setShowWin(false), 2000);
+                    }
                 } catch (e) { 
                     alert(e.message); 
                 } finally {
@@ -952,57 +1168,101 @@
             };
 
             return (
-                <div className="flex flex-col items-center justify-center w-full max-w-4xl mx-auto p-4 gap-6 md:gap-12 pb-24 md:pb-4">
-                    <div className="flex gap-2 md:gap-4 items-center justify-center min-h-[100px] md:min-h-[160px] flex-wrap">
-                        {state.gameStarted ? state.dealerHand.map((c, i) => 
-                            <div key={i} className="animate-pop-in" style={{animationDelay: `${i*0.1}s`}}><CardView card={c} small={window.innerWidth < 768} /></div>
-                        ) : <div className="text-gray-600 font-bold uppercase tracking-widest text-xs md:text-sm border border-gray-700 px-4 md:px-6 py-2 md:py-3 rounded-full">Dealer Pays on 17</div>}
+                <div className="flex flex-col items-center justify-center w-full max-w-4xl mx-auto p-4 gap-8 md:gap-16 pb-24 md:pb-4">
+                    <WinParticles show={showWin} />
+                    
+                    {/* Dealer Hand */}
+                    <div className="w-full">
+                        <div className="text-center text-gray-400 text-sm font-bold uppercase mb-4">🎩 Dealer</div>
+                        <div className="flex gap-3 md:gap-4 items-center justify-center min-h-[100px] md:min-h-[160px] flex-wrap">
+                            {state.gameStarted ? state.dealerHand.map((c, i) => 
+                                <div key={i} className="animate-pop-in" style={{animationDelay: `${i*0.1}s`}}>
+                                    <CardView card={c} small={window.innerWidth < 768} animated={true} />
+                                </div>
+                            ) : (
+                                <div className="glass px-8 py-4 rounded-2xl border border-gray-700">
+                                    <span className="text-gray-500 font-bold uppercase tracking-widest text-sm">Dealer Pays on 17</span>
+                                </div>
+                            )}
+                        </div>
                     </div>
 
+                    {/* Result Display */}
                     {state.result && (
-                        <div className="bg-black/60 backdrop-blur-md border border-stake-green/30 px-6 md:px-12 py-4 md:py-6 rounded-2xl text-center shadow-glow z-20 animate-pop-in">
-                            <div className={`text-2xl md:text-4xl font-black mb-2 ${state.result.win > 0 ? 'text-stake-green drop-shadow-md' : 'text-white'}`}>{state.result.message}</div>
-                            {state.result.win > 0 && <div className="text-stake-green font-mono text-lg md:text-xl">+${(state.result.win / 100).toFixed(2)}</div>}
+                        <div className="glass px-8 md:px-16 py-6 md:py-8 rounded-3xl text-center shadow-2xl border-2 border-stake-green/50 animate-pop-in">
+                            <div className={`text-3xl md:text-5xl font-black mb-3 ${state.result.win > 0 ? 'text-stake-green drop-shadow-glow animate-win' : 'text-white'}`}>
+                                {state.result.message}
+                            </div>
+                            {state.result.win > 0 && (
+                                <div className="text-stake-green font-mono text-2xl md:text-3xl font-black">
+                                    +${(state.result.win / 100).toFixed(2)}
+                                </div>
+                            )}
                         </div>
                     )}
 
-                    <div className="flex gap-2 md:gap-4 items-center justify-center min-h-[100px] md:min-h-[160px] flex-wrap">
-                        {state.gameStarted ? state.playerHand.map((c, i) => 
-                            <div key={i} className="animate-pop-in" style={{animationDelay: `${i*0.1}s`}}><CardView card={c} small={window.innerWidth < 768} /></div>
-                        ) : <div className="w-20 h-32 md:w-24 md:h-36 border-2 border-dashed border-gray-700 rounded-xl flex items-center justify-center text-gray-700 font-bold text-xs md:text-base">BET</div>}
+                    {/* Player Hand */}
+                    <div className="w-full">
+                        <div className="text-center text-blue-400 text-sm font-bold uppercase mb-4">👤 You</div>
+                        <div className="flex gap-3 md:gap-4 items-center justify-center min-h-[100px] md:min-h-[160px] flex-wrap">
+                            {state.gameStarted ? state.playerHand.map((c, i) => 
+                                <div key={i} className="animate-pop-in" style={{animationDelay: `${i*0.1}s`}}>
+                                    <CardView card={c} small={window.innerWidth < 768} animated={true} />
+                                </div>
+                            ) : (
+                                <div className="w-20 h-32 md:w-24 md:h-36 border-4 border-dashed border-gray-700 rounded-2xl flex items-center justify-center text-gray-700 font-black text-base md:text-xl">
+                                    PLACE BET
+                                </div>
+                            )}
+                        </div>
                     </div>
 
-                    <div className="w-full max-w-lg glass p-4 md:p-6 rounded-2xl shadow-2xl border border-white/5">
+                    {/* Controls */}
+                    <div className="w-full max-w-lg glass p-6 md:p-8 rounded-3xl shadow-2xl border border-white/5">
                         {!state.gameStarted || state.result ? (
-                            <div className="flex gap-3 md:gap-4">
-                                <input 
-                                    type="number" 
-                                    min="1" 
-                                    value={state.bet} 
-                                    onChange={(e) => setState({ ...state, bet: Math.max(1, Number(e.target.value)) })} 
-                                    className="w-full input-field rounded-xl px-4 py-3 text-white font-mono font-bold text-base md:text-lg" 
-                                />
-                                <button 
-                                    onClick={deal} 
-                                    disabled={loading}
-                                    className="bg-btn-gradient hover:shadow-glow text-black font-black px-6 md:px-8 rounded-xl transition-all touch-feedback disabled:opacity-50 whitespace-nowrap"
-                                >
-                                    {loading ? '...' : 'DEAL'}
-                                </button>
+                            <div className="space-y-4">
+                                <div className="flex gap-4">
+                                    <input 
+                                        type="number" 
+                                        min="1" 
+                                        value={state.bet} 
+                                        onChange={(e) => setState({ ...state, bet: Math.max(1, Number(e.target.value)) })} 
+                                        className="flex-1 input-field rounded-xl px-6 py-4 text-white font-mono font-black text-xl" 
+                                        placeholder="Bet amount"
+                                    />
+                                    <button 
+                                        onClick={deal} 
+                                        disabled={loading}
+                                        className="bg-btn-gradient hover:shadow-glow text-black font-black px-10 py-4 rounded-xl transition-all touch-feedback disabled:opacity-50 text-lg whitespace-nowrap hover:scale-105"
+                                    >
+                                        {loading ? '...' : 'DEAL'}
+                                    </button>
+                                </div>
+                                <div className="flex gap-2">
+                                    {[5, 10, 25, 50, 100].map(amt => (
+                                        <button 
+                                            key={amt}
+                                            onClick={() => setState({ ...state, bet: amt })}
+                                            className="flex-1 glass px-4 py-2 rounded-lg text-white font-bold hover:bg-white/10 transition-all touch-feedback"
+                                        >
+                                            ${amt}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
                         ) : (
-                            <div className="flex gap-3 md:gap-4">
+                            <div className="flex gap-4">
                                 <button 
                                     onClick={hit} 
                                     disabled={loading}
-                                    className="flex-1 bg-stake-hover hover:bg-stake-hover/80 text-white py-3 md:py-4 rounded-xl font-bold transition-all border border-white/5 touch-feedback disabled:opacity-50"
+                                    className="flex-1 bg-gradient-to-br from-stake-hover to-stake-card hover:from-stake-card hover:to-stake-hover text-white py-5 rounded-xl font-black text-lg transition-all border-2 border-white/10 touch-feedback disabled:opacity-50 hover:scale-105"
                                 >
                                     HIT
                                 </button>
                                 <button 
                                     onClick={stand} 
                                     disabled={loading}
-                                    className="flex-1 bg-btn-gradient text-black py-3 md:py-4 rounded-xl font-bold shadow-glow transition-all touch-feedback disabled:opacity-50"
+                                    className="flex-1 bg-btn-gradient text-black py-5 rounded-xl font-black text-lg shadow-glow transition-all touch-feedback disabled:opacity-50 hover:scale-105"
                                 >
                                     STAND
                                 </button>
@@ -1013,13 +1273,15 @@
             );
         };
 
-        // Continue with Mines, Towers, Plinko, Coinflip, Roulette, HiLo components...
-        // (Including all from the original code - same as before)
+        // ==========================================
+        // MINES - ENHANCED
+        // ==========================================
 
         const Mines = ({ user, updateBalance }) => {
             const [state, setState] = useState({ bet: 10, mineCount: 3, revealed: Array(25).fill(false), mines: [], active: false, multiplier: 1.0 });
             const [isShaking, setIsShaking] = useState(false);
             const [loading, setLoading] = useState(false);
+            const [showWin, setShowWin] = useState(false);
 
             const startGame = async () => {
                 if (state.bet * 100 > user.balance) return alert("Insufficient funds");
@@ -1061,6 +1323,8 @@
                     const res = await minesApi.cashout(user.username);
                     updateBalance(res.newBalance);
                     setState({ ...state, active: false, revealed: Array(25).fill(true), mines: res.mines });
+                    setShowWin(true);
+                    setTimeout(() => setShowWin(false), 2000);
                 } catch (e) { 
                     alert(e.message); 
                 } finally {
@@ -1069,55 +1333,897 @@
             };
 
             return (
-                <div className="flex flex-col gap-4 md:gap-8 w-full max-w-6xl mx-auto p-4 pb-24 md:pb-4">
-                    <div className="w-full glass p-4 md:p-6 rounded-2xl border border-white/5 flex flex-col gap-4 md:gap-6">
-                        <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-col gap-6 md:gap-8 w-full max-w-6xl mx-auto p-4 pb-24 md:pb-4">
+                    <WinParticles show={showWin} />
+                    
+                    <div className="w-full glass p-6 md:p-8 rounded-3xl border border-white/5 shadow-2xl">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-2 block">Bet Amount</label>
-                                <input type="number" value={state.bet} onChange={e => setState({ ...state, bet: Number(e.target.value) })} disabled={state.active} className="w-full input-field rounded-xl p-3 text-white font-mono font-bold" />
+                                <label className="text-gray-300 text-sm font-bold uppercase tracking-wider mb-3 block flex items-center gap-2">
+                                    <span>💵</span>
+                                    <span>Bet Amount</span>
+                                </label>
+                                <input 
+                                    type="number" 
+                                    value={state.bet} 
+                                    onChange={e => setState({ ...state, bet: Number(e.target.value) })} 
+                                    disabled={state.active} 
+                                    className="w-full input-field rounded-xl p-4 text-white font-mono font-black text-lg" 
+                                />
                             </div>
                             <div>
-                                <label className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-2 block">Mine Count</label>
-                                <select value={state.mineCount} onChange={e => setState({ ...state, mineCount: Number(e.target.value) })} disabled={state.active} className="w-full input-field rounded-xl p-3 text-white font-bold cursor-pointer">
+                                <label className="text-gray-300 text-sm font-bold uppercase tracking-wider mb-3 block flex items-center gap-2">
+                                    <span>💣</span>
+                                    <span>Mine Count</span>
+                                </label>
+                                <select 
+                                    value={state.mineCount} 
+                                    onChange={e => setState({ ...state, mineCount: Number(e.target.value) })} 
+                                    disabled={state.active} 
+                                    className="w-full input-field rounded-xl p-4 text-white font-bold cursor-pointer text-lg"
+                                >
                                     {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 18, 20, 24].map(n => <option key={n} value={n}>{n} Mines</option>)}
                                 </select>
                             </div>
                         </div>
+                        
                         {state.active ? (
                             <>
-                                <div className="bg-black/30 p-4 rounded-xl border border-white/5">
-                                    <div className="text-gray-400 text-xs font-bold uppercase mb-1">Current Multiplier</div>
-                                    <div className="text-stake-green text-3xl md:text-4xl font-black font-mono tracking-tighter drop-shadow-md">{state.multiplier.toFixed(2)}x</div>
+                                <div className="glass p-6 rounded-2xl border border-white/10 mt-6">
+                                    <div className="text-gray-300 text-sm font-bold uppercase mb-2 flex items-center gap-2">
+                                        <span>📈</span>
+                                        <span>Current Multiplier</span>
+                                    </div>
+                                    <div className="text-stake-green text-5xl md:text-6xl font-black font-mono tracking-tighter drop-shadow-glow animate-pulse-slow">
+                                        {state.multiplier.toFixed(2)}x
+                                    </div>
                                 </div>
-                                <button onClick={cashout} disabled={loading} className="w-full bg-btn-gradient text-black font-black py-3 md:py-4 rounded-xl shadow-glow transition-all touch-feedback disabled:opacity-50">
-                                    CASHOUT ${(state.bet * state.multiplier).toFixed(2)}
+                                <button 
+                                    onClick={cashout} 
+                                    disabled={loading} 
+                                    className="w-full mt-6 bg-btn-gradient text-black font-black py-5 rounded-xl shadow-glow transition-all touch-feedback disabled:opacity-50 text-xl hover:scale-105"
+                                >
+                                    💰 CASHOUT ${(state.bet * state.multiplier).toFixed(2)}
                                 </button>
                             </>
-                        ) : <button onClick={startGame} disabled={loading} className="w-full bg-btn-gradient text-black font-black py-3 md:py-4 rounded-xl shadow-glow transition-all touch-feedback disabled:opacity-50">
-                            {loading ? 'STARTING...' : 'BET'}
-                        </button>}
+                        ) : (
+                            <button 
+                                onClick={startGame} 
+                                disabled={loading} 
+                                className="w-full mt-6 bg-btn-gradient text-black font-black py-5 rounded-xl shadow-glow transition-all touch-feedback disabled:opacity-50 text-xl hover:scale-105"
+                            >
+                                {loading ? 'STARTING...' : '🎮 START GAME'}
+                            </button>
+                        )}
                     </div>
                     
-                    <div className={`glass rounded-2xl p-4 md:p-8 border border-white/5 ${isShaking ? 'animate-shake' : ''}`}>
-                         <div className="grid grid-cols-5 gap-2 md:gap-3 w-full max-w-[500px] mx-auto aspect-square">
+                    <div className={`glass rounded-3xl p-6 md:p-10 border border-white/5 shadow-2xl ${isShaking ? 'animate-shake' : ''}`}>
+                        <div className="grid grid-cols-5 gap-2 md:gap-4 w-full max-w-[600px] mx-auto">
                             {state.revealed.map((r, i) => (
-                                <button key={i} disabled={!state.active || r || loading} onClick={() => clickTile(i)} 
-                                    className={`rounded-lg md:rounded-xl relative transition-all duration-300 overflow-hidden no-select touch-feedback
+                                <button 
+                                    key={i} 
+                                    disabled={!state.active || r || loading} 
+                                    onClick={() => clickTile(i)} 
+                                    className={`mine-tile aspect-square rounded-xl md:rounded-2xl relative transition-all duration-300 overflow-hidden no-select touch-feedback text-3xl md:text-5xl
                                     ${r 
-                                        ? 'bg-black/40 border-2 border-transparent scale-95 shadow-inner' 
-                                        : 'bg-stake-card shadow-[0_4px_0_0_rgba(0,0,0,0.2)] active:translate-y-1 active:shadow-[0_2px_0_0_rgba(0,0,0,0.3)] border-b-4 border-black/20'
-                                    }`}>
-                                    {r && <div className="animate-pop-in flex justify-center items-center h-full text-2xl md:text-4xl drop-shadow-md">{state.mines[i] ? '💣' : '💎'}</div>}
+                                        ? state.mines[i]
+                                            ? 'bg-gradient-to-br from-red-500 to-red-700 border-2 border-red-300 scale-95 shadow-glow-red'
+                                            : 'bg-gradient-to-br from-stake-green to-green-600 border-2 border-stake-green scale-95 shadow-glow'
+                                        : 'bg-gradient-to-br from-stake-card to-stake-hover hover:from-stake-hover hover:to-stake-card shadow-lg active:translate-y-1 border-b-4 border-black/30 hover:border-stake-green/50'
+                                    }`}
+                                >
+                                    {r && (
+                                        <div className="animate-pop-in flex justify-center items-center h-full drop-shadow-2xl">
+                                            {state.mines[i] ? '💣' : '💎'}
+                                        </div>
+                                    )}
                                 </button>
                             ))}
-                         </div>
+                        </div>
                     </div>
                 </div>
             );
         };
 
-        // [INCLUDE ALL OTHER GAMES: Towers, Plinko, Coinflip, Roulette, HiLo - Same as original]
-        // For brevity, I'm not repeating them all here, but they should be included exactly as before
+        // ==========================================
+        // COINFLIP - ENHANCED
+        // ==========================================
+        
+        const Coinflip = ({ user, updateBalance }) => {
+            const [state, setState] = useState({ bet: 10, choice: 'heads', flipping: false, result: null });
+            const [loading, setLoading] = useState(false);
+            const [showWin, setShowWin] = useState(false);
+
+            const play = async () => {
+                if (state.bet * 100 > user.balance) return alert("Insufficient funds");
+                setLoading(true);
+                setState({ ...state, flipping: true, result: null });
+                
+                try {
+                    const res = await coinflipApi.play(user.username, state.bet * 100, state.choice);
+                    updateBalance(res.newBalance);
+                    
+                    setTimeout(() => {
+                        setState({ ...state, flipping: false, result: res });
+                        if (res.won) {
+                            setShowWin(true);
+                            setTimeout(() => setShowWin(false), 2000);
+                        }
+                    }, 1000);
+                } catch (e) { 
+                    alert(e.message);
+                    setState({ ...state, flipping: false });
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            return (
+                <div className="flex flex-col items-center justify-center w-full max-w-3xl mx-auto p-4 gap-8 md:gap-12 pb-24 md:pb-4">
+                    <WinParticles show={showWin} />
+                    
+                    {/* Coin Display */}
+                    <div className={`w-48 h-48 md:w-64 md:h-64 rounded-full bg-gradient-to-br from-yellow-400 via-yellow-500 to-yellow-600 shadow-2xl flex items-center justify-center text-7xl md:text-9xl border-8 border-yellow-300 ${state.flipping ? 'animate-coin-flip' : 'animate-float'}`}>
+                        {state.result ? (state.result.outcome === 'heads' ? '👑' : '🌟') : (state.choice === 'heads' ? '👑' : '🌟')}
+                    </div>
+
+                    {/* Result */}
+                    {state.result && !state.flipping && (
+                        <div className={`glass px-12 py-6 rounded-3xl text-center shadow-2xl border-2 animate-pop-in ${state.result.won ? 'border-stake-green' : 'border-red-500'}`}>
+                            <div className={`text-4xl md:text-5xl font-black mb-3 ${state.result.won ? 'text-stake-green animate-win' : 'text-red-500'}`}>
+                                {state.result.won ? '🎉 YOU WIN!' : '😔 YOU LOSE'}
+                            </div>
+                            {state.result.won && (
+                                <div className="text-stake-green font-mono text-3xl font-black">
+                                    +${(state.result.payout / 100).toFixed(2)}
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Controls */}
+                    <div className="w-full glass p-8 rounded-3xl shadow-2xl border border-white/5 space-y-6">
+                        <div>
+                            <label className="text-gray-300 text-sm font-bold uppercase mb-3 block">Choose Side</label>
+                            <div className="grid grid-cols-2 gap-4">
+                                <button
+                                    onClick={() => setState({ ...state, choice: 'heads' })}
+                                    disabled={state.flipping || loading}
+                                    className={`py-6 rounded-xl font-black text-lg transition-all touch-feedback ${
+                                        state.choice === 'heads' 
+                                            ? 'bg-btn-gradient text-black shadow-glow scale-105' 
+                                            : 'glass text-white'
+                                    }`}
+                                >
+                                    👑 HEADS
+                                </button>
+                                <button
+                                    onClick={() => setState({ ...state, choice: 'tails' })}
+                                    disabled={state.flipping || loading}
+                                    className={`py-6 rounded-xl font-black text-lg transition-all touch-feedback ${
+                                        state.choice === 'tails' 
+                                            ? 'bg-btn-gradient text-black shadow-glow scale-105' 
+                                            : 'glass text-white'
+                                    }`}
+                                >
+                                    🌟 TAILS
+                                </button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="text-gray-300 text-sm font-bold uppercase mb-3 block">Bet Amount</label>
+                            <input 
+                                type="number" 
+                                value={state.bet} 
+                                onChange={e => setState({ ...state, bet: Math.max(1, Number(e.target.value)) })}
+                                disabled={state.flipping || loading}
+                                className="w-full input-field rounded-xl p-4 text-white font-mono font-black text-xl"
+                            />
+                        </div>
+
+                        <button 
+                            onClick={play}
+                            disabled={state.flipping || loading}
+                            className="w-full bg-btn-gradient text-black font-black py-5 rounded-xl shadow-glow transition-all touch-feedback disabled:opacity-50 text-xl hover:scale-105"
+                        >
+                            {state.flipping ? '🪙 FLIPPING...' : '🎲 FLIP COIN'}
+                        </button>
+                    </div>
+                </div>
+            );
+        };
+
+        // ==========================================
+        // ROULETTE - ENHANCED & FIXED
+        // ==========================================
+        
+        const Roulette = ({ user, updateBalance }) => {
+            const [state, setState] = useState({ bet: 10, betType: 'red', spinning: false, result: null });
+            const [loading, setLoading] = useState(false);
+            const [showWin, setShowWin] = useState(false);
+            const [rotation, setRotation] = useState(0);
+
+            const redNumbers = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36];
+
+            const betTypes = [
+                { id: 'red', name: 'Red', color: 'from-red-500 to-red-700', icon: '🔴', multiplier: '1.96x' },
+                { id: 'black', name: 'Black', color: 'from-gray-800 to-black', icon: '⚫', multiplier: '1.96x' },
+                { id: 'even', name: 'Even', color: 'from-blue-500 to-blue-700', icon: '2️⃣', multiplier: '1.96x' },
+                { id: 'odd', name: 'Odd', color: 'from-purple-500 to-purple-700', icon: '1️⃣', multiplier: '1.96x' },
+            ];
+
+            const getNumberColor = (num) => {
+                if (num === 0) return 'green';
+                return redNumbers.includes(num) ? 'red' : 'black';
+            };
+
+            const spin = async () => {
+                if (state.bet * 100 > user.balance) return alert("Insufficient funds");
+                setLoading(true);
+                setState({ ...state, spinning: true, result: null });
+                setRotation(rotation + 1440 + Math.random() * 360);
+                
+                try {
+                    const res = await rouletteApi.spin(user.username, state.bet * 100, state.betType);
+                    updateBalance(res.newBalance);
+                    
+                    setTimeout(() => {
+                        setState({ ...state, spinning: false, result: res });
+                        if (res.won) {
+                            setShowWin(true);
+                            setTimeout(() => setShowWin(false), 2000);
+                        }
+                    }, 3000);
+                } catch (e) { 
+                    alert(e.message);
+                    setState({ ...state, spinning: false });
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            return (
+                <div className="flex flex-col items-center justify-center w-full max-w-4xl mx-auto p-4 gap-8 md:gap-12 pb-24 md:pb-4">
+                    <WinParticles show={showWin} />
+                    
+                    {/* Roulette Wheel */}
+                    <div className="relative">
+                        <div 
+                            className="roulette-wheel w-64 h-64 md:w-80 md:h-80 rounded-full flex items-center justify-center transition-transform duration-3000 ease-out"
+                            style={{ transform: `rotate(${rotation}deg)` }}
+                        >
+                            <div className="absolute inset-0 rounded-full" style={{
+                                background: 'conic-gradient(from 0deg, #dc2626 0deg 10deg, #000 10deg 20deg, #dc2626 20deg 30deg, #000 30deg 40deg, #dc2626 40deg 50deg, #000 50deg 60deg, #dc2626 60deg 70deg, #000 70deg 80deg, #dc2626 80deg 90deg, #000 90deg 100deg, #dc2626 100deg 110deg, #000 110deg 120deg, #dc2626 120deg 130deg, #000 130deg 140deg, #dc2626 140deg 150deg, #000 150deg 160deg, #dc2626 160deg 170deg, #000 170deg 180deg, #dc2626 180deg 190deg, #000 190deg 200deg, #dc2626 200deg 210deg, #000 210deg 220deg, #dc2626 220deg 230deg, #000 230deg 240deg, #dc2626 240deg 250deg, #000 250deg 260deg, #dc2626 260deg 270deg, #000 270deg 280deg, #dc2626 280deg 290deg, #000 290deg 300deg, #dc2626 300deg 310deg, #000 310deg 320deg, #dc2626 320deg 330deg, #000 330deg 340deg, #dc2626 340deg 350deg, #000 350deg 360deg)'
+                            }}></div>
+                            <div className="relative z-10 w-16 h-16 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full border-4 border-yellow-300 shadow-2xl flex items-center justify-center text-3xl">
+                                🎡
+                            </div>
+                        </div>
+                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+                            <div className="w-4 h-12 bg-gradient-to-b from-red-500 to-red-700 -mt-32 mx-auto rounded-full shadow-lg"></div>
+                        </div>
+                    </div>
+
+                    {/* Result */}
+                    {state.result && !state.spinning && (
+                        <div className={`glass px-12 py-6 rounded-3xl text-center shadow-2xl border-2 animate-pop-in ${state.result.won ? 'border-stake-green' : 'border-red-500'}`}>
+                            <div className={`text-6xl md:text-7xl font-black mb-3 ${
+                                getNumberColor(state.result.outcome) === 'red' ? 'text-red-500' : 
+                                getNumberColor(state.result.outcome) === 'black' ? 'text-gray-900' : 
+                                'text-green-500'
+                            }`}>
+                                {state.result.outcome}
+                            </div>
+                            <div className={`text-lg font-bold mb-2 ${
+                                getNumberColor(state.result.outcome) === 'red' ? 'text-red-400' : 
+                                getNumberColor(state.result.outcome) === 'black' ? 'text-gray-400' : 
+                                'text-green-400'
+                            }`}>
+                                {getNumberColor(state.result.outcome).toUpperCase()}
+                            </div>
+                            <div className={`text-3xl md:text-4xl font-black mb-2 ${state.result.won ? 'text-stake-green animate-win' : 'text-red-500'}`}>
+                                {state.result.won ? '🎉 YOU WIN!' : '😔 TRY AGAIN'}
+                            </div>
+                            {state.result.won && (
+                                <div className="text-stake-green font-mono text-3xl font-black">
+                                    +${(state.result.payout / 100).toFixed(2)}
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Controls */}
+                    <div className="w-full glass p-8 rounded-3xl shadow-2xl border border-white/5 space-y-6">
+                        <div>
+                            <label className="text-gray-300 text-sm font-bold uppercase mb-4 block">Choose Your Bet</label>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                {betTypes.map(type => (
+                                    <button
+                                        key={type.id}
+                                        onClick={() => setState({ ...state, betType: type.id })}
+                                        disabled={state.spinning || loading}
+                                        className={`p-6 rounded-xl font-black text-lg transition-all touch-feedback ${
+                                            state.betType === type.id 
+                                                ? `bg-gradient-to-br ${type.color} text-white shadow-glow scale-105` 
+                                                : 'glass text-white hover:scale-105'
+                                        }`}
+                                    >
+                                        <div className="text-3xl mb-2">{type.icon}</div>
+                                        <div>{type.name}</div>
+                                        <div className="text-xs mt-1 opacity-75">{type.multiplier}</div>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="text-gray-300 text-sm font-bold uppercase mb-3 block">Bet Amount</label>
+                            <input 
+                                type="number" 
+                                value={state.bet} 
+                                onChange={e => setState({ ...state, bet: Math.max(1, Number(e.target.value)) })}
+                                disabled={state.spinning || loading}
+                                className="w-full input-field rounded-xl p-4 text-white font-mono font-black text-xl"
+                            />
+                        </div>
+
+                        <button 
+                            onClick={spin}
+                            disabled={state.spinning || loading}
+                            className="w-full bg-btn-gradient text-black font-black py-5 rounded-xl shadow-glow transition-all touch-feedback disabled:opacity-50 text-xl hover:scale-105"
+                        >
+                            {state.spinning ? '🎡 SPINNING...' : '🎲 SPIN WHEEL'}
+                        </button>
+                    </div>
+                </div>
+            );
+        };
+
+        // ==========================================
+        // TOWERS - ENHANCED
+        // ==========================================
+        
+        const Towers = ({ user, updateBalance }) => {
+            const [state, setState] = useState({ bet: 10, difficulty: 'medium', active: false, currentRow: 0, path: [], multiplier: 1.0, safeTiles: null });
+            const [loading, setLoading] = useState(false);
+            const [showWin, setShowWin] = useState(false);
+
+            const difficulties = [
+                { id: 'easy', name: 'Easy', color: 'from-green-500 to-green-700', icon: '😊' },
+                { id: 'medium', name: 'Medium', color: 'from-yellow-500 to-yellow-700', icon: '😐' },
+                { id: 'hard', name: 'Hard', color: 'from-red-500 to-red-700', icon: '😈' },
+            ];
+
+            const startGame = async () => {
+                if (state.bet * 100 > user.balance) return alert("Insufficient funds");
+                setLoading(true);
+                try {
+                    const res = await towersApi.start(user.username, state.bet * 100, state.difficulty);
+                    updateBalance(res.newBalance);
+                    setState({ ...state, active: true, currentRow: 0, path: [], multiplier: 1.0, safeTiles: null });
+                } catch (e) { 
+                    alert(e.message); 
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const pickTile = async (position) => {
+                if (!state.active || loading) return;
+                setLoading(true);
+                try {
+                    const res = await towersApi.pick(user.username, position);
+                    
+                    const newPath = [...state.path];
+                    newPath[state.currentRow] = { position, safe: res.hit === 'safe', safeTiles: res.safeTiles };
+                    
+                    if (res.hit === 'bomb') {
+                        setState({ ...state, active: false, safeTiles: res.safeTiles, path: newPath });
+                    } else if (res.won) {
+                        updateBalance(res.newBalance);
+                        setState({ ...state, active: false, currentRow: res.currentRow, multiplier: res.multiplier, path: newPath });
+                        setShowWin(true);
+                        setTimeout(() => setShowWin(false), 2000);
+                    } else {
+                        setState({ ...state, currentRow: res.currentRow, multiplier: res.multiplier, path: newPath });
+                    }
+                } catch (e) { 
+                    alert(e.message); 
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const cashout = async () => {
+                setLoading(true);
+                try {
+                    const res = await towersApi.cashout(user.username);
+                    updateBalance(res.newBalance);
+                    setState({ ...state, active: false });
+                    setShowWin(true);
+                    setTimeout(() => setShowWin(false), 2000);
+                } catch (e) { 
+                    alert(e.message); 
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            return (
+                <div className="flex flex-col gap-6 md:gap-8 w-full max-w-5xl mx-auto p-4 pb-24 md:pb-4">
+                    <WinParticles show={showWin} />
+                    
+                    <div className="w-full glass p-6 md:p-8 rounded-3xl border border-white/5 shadow-2xl">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label className="text-gray-300 text-sm font-bold uppercase mb-3 block">💵 Bet Amount</label>
+                                <input 
+                                    type="number" 
+                                    value={state.bet} 
+                                    onChange={e => setState({ ...state, bet: Number(e.target.value) })} 
+                                    disabled={state.active} 
+                                    className="w-full input-field rounded-xl p-4 text-white font-mono font-black text-lg" 
+                                />
+                            </div>
+                            <div>
+                                <label className="text-gray-300 text-sm font-bold uppercase mb-3 block">🎯 Difficulty</label>
+                                <div className="grid grid-cols-3 gap-2">
+                                    {difficulties.map(diff => (
+                                        <button
+                                            key={diff.id}
+                                            onClick={() => setState({ ...state, difficulty: diff.id })}
+                                            disabled={state.active}
+                                            className={`py-3 rounded-xl font-bold transition-all touch-feedback ${
+                                                state.difficulty === diff.id 
+                                                    ? `bg-gradient-to-br ${diff.color} text-white shadow-glow scale-105` 
+                                                    : 'glass text-white'
+                                            }`}
+                                        >
+                                            <div className="text-2xl mb-1">{diff.icon}</div>
+                                            <div className="text-xs">{diff.name}</div>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {state.active ? (
+                            <>
+                                <div className="glass p-6 rounded-2xl border border-white/10 mt-6">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <div className="text-gray-300 text-sm font-bold uppercase mb-2">Current Row</div>
+                                            <div className="text-white text-3xl font-black">{state.currentRow}/8</div>
+                                        </div>
+                                        <div>
+                                            <div className="text-gray-300 text-sm font-bold uppercase mb-2 text-right">Multiplier</div>
+                                            <div className="text-stake-green text-4xl font-black font-mono animate-pulse-slow">
+                                                {state.multiplier.toFixed(2)}x
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button 
+                                    onClick={cashout} 
+                                    disabled={loading || state.currentRow === 0} 
+                                    className="w-full mt-6 bg-btn-gradient text-black font-black py-5 rounded-xl shadow-glow transition-all touch-feedback disabled:opacity-50 text-xl hover:scale-105"
+                                >
+                                    💰 CASHOUT ${(state.bet * state.multiplier).toFixed(2)}
+                                </button>
+                            </>
+                        ) : (
+                            <button 
+                                onClick={startGame} 
+                                disabled={loading} 
+                                className="w-full mt-6 bg-btn-gradient text-black font-black py-5 rounded-xl shadow-glow transition-all touch-feedback disabled:opacity-50 text-xl hover:scale-105"
+                            >
+                                {loading ? 'STARTING...' : '🏢 CLIMB TOWER'}
+                            </button>
+                        )}
+                    </div>
+                    
+                    <div className="glass rounded-3xl p-6 md:p-8 border border-white/5 shadow-2xl">
+                        <div className="space-y-3">
+                            {[...Array(8)].map((_, row) => {
+                                const rowData = state.path[row];
+                                return (
+                                    <div key={row} className="grid grid-cols-3 gap-3">
+                                        {[0, 1, 2].map(pos => {
+                                            const isCurrentRow = state.active && row === state.currentRow;
+                                            const isPassed = state.currentRow > row;
+                                            const isChosen = rowData && rowData.position === pos;
+                                            const isSafe = rowData && rowData.safeTiles && rowData.safeTiles.includes(pos);
+                                            const isBomb = rowData && !rowData.safe && isChosen;
+                                            
+                                            return (
+                                                <button
+                                                    key={pos}
+                                                    onClick={() => isCurrentRow && pickTile(pos)}
+                                                    disabled={!isCurrentRow || loading}
+                                                    className={`aspect-[2/1] rounded-xl font-black text-2xl transition-all touch-feedback ${
+                                                        isPassed && isChosen
+                                                            ? 'bg-gradient-to-br from-stake-green to-green-600 text-black shadow-glow'
+                                                            : isPassed 
+                                                                ? 'bg-gradient-to-br from-gray-600 to-gray-800 text-gray-500'
+                                                                : isCurrentRow
+                                                                    ? 'bg-gradient-to-br from-stake-card to-stake-hover hover:from-stake-hover hover:to-stake-card shadow-lg border-2 border-stake-green/50 animate-pulse-slow'
+                                                                    : 'bg-gradient-to-br from-stake-card to-stake-hover opacity-50'
+                                                    } ${!state.active && rowData && rowData.safeTiles ? (isSafe ? 'bg-gradient-to-br from-green-500 to-green-700 text-white' : 'bg-gradient-to-br from-gray-600 to-gray-800 text-gray-500') : ''} ${isBomb ? 'bg-gradient-to-br from-red-500 to-red-700 text-white shadow-glow-red' : ''}`}
+                                                >
+                                                    {!state.active && rowData && rowData.safeTiles ? (isSafe ? '✓' : (isChosen ? '💣' : '')) : (isPassed && isChosen ? '✓' : '')}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // ==========================================
+        // PLINKO - ENHANCED & FIXED
+        // ==========================================
+        
+        const Plinko = ({ user, updateBalance }) => {
+            const [state, setState] = useState({ bet: 10, risk: 'medium', results: [] });
+            const [loading, setLoading] = useState(false);
+            const [showWin, setShowWin] = useState(false);
+            const [droppingBalls, setDroppingBalls] = useState([]);
+
+            const risks = [
+                { id: 'low', name: 'Low', color: 'from-green-500 to-green-700', icon: '🟢' },
+                { id: 'medium', name: 'Medium', color: 'from-yellow-500 to-yellow-700', icon: '🟡' },
+                { id: 'high', name: 'High', color: 'from-red-500 to-red-700', icon: '🔴' },
+            ];
+
+            const drop = async () => {
+                if (state.bet * 100 > user.balance) return alert("Insufficient funds");
+                setLoading(true);
+                
+                const ballId = Date.now();
+                
+                try {
+                    const res = await plinkoApi.drop(user.username, state.bet * 100, state.risk);
+                    updateBalance(res.newBalance);
+                    
+                    // Animate ball drop
+                    setDroppingBalls(prev => [...prev, { id: ballId, slot: res.slot, progress: 0 }]);
+                    
+                    const dropDuration = 2000;
+                    const frames = 60;
+                    const frameTime = dropDuration / frames;
+                    
+                    for (let i = 0; i <= frames; i++) {
+                        setTimeout(() => {
+                            setDroppingBalls(prev => prev.map(ball => 
+                                ball.id === ballId ? { ...ball, progress: i / frames } : ball
+                            ));
+                        }, i * frameTime);
+                    }
+                    
+                    setTimeout(() => {
+                        setDroppingBalls(prev => prev.filter(ball => ball.id !== ballId));
+                        setState(prevState => ({
+                            ...prevState,
+                            results: [res, ...prevState.results].slice(0, 5)
+                        }));
+                        
+                        if (res.payout > state.bet * 100) {
+                            setShowWin(true);
+                            setTimeout(() => setShowWin(false), 1500);
+                        }
+                    }, dropDuration);
+                } catch (e) { 
+                    alert(e.message);
+                    setDroppingBalls(prev => prev.filter(ball => ball.id !== ballId));
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const multipliers = {
+                'low': [5.6, 2.1, 1.1, 1.0, 0.5, 0.3, 0.3, 0.3, 0.5, 1.0, 1.1, 2.1, 5.6],
+                'medium': [13, 3, 1.3, 0.7, 0.4, 0.2, 0.2, 0.2, 0.4, 0.7, 1.3, 3, 13],
+                'high': [29, 4, 1.5, 0.3, 0.2, 0.1, 0.1, 0.1, 0.2, 0.3, 1.5, 4, 29]
+            };
+
+            return (
+                <div className="flex flex-col gap-6 md:gap-8 w-full max-w-4xl mx-auto p-4 pb-24 md:pb-4">
+                    <WinParticles show={showWin} />
+                    
+                    {/* Controls */}
+                    <div className="w-full glass p-6 md:p-8 rounded-3xl border border-white/5 shadow-2xl space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label className="text-gray-300 text-sm font-bold uppercase mb-3 block">💵 Bet Amount</label>
+                                <input 
+                                    type="number" 
+                                    value={state.bet} 
+                                    onChange={e => setState({ ...state, bet: Math.max(1, Number(e.target.value)) })}
+                                    disabled={loading}
+                                    className="w-full input-field rounded-xl p-4 text-white font-mono font-black text-xl"
+                                />
+                            </div>
+                            <div>
+                                <label className="text-gray-300 text-sm font-bold uppercase mb-3 block">🎯 Risk Level</label>
+                                <div className="grid grid-cols-3 gap-2">
+                                    {risks.map(risk => (
+                                        <button
+                                            key={risk.id}
+                                            onClick={() => setState({ ...state, risk: risk.id })}
+                                            disabled={loading}
+                                            className={`py-3 rounded-xl font-bold transition-all touch-feedback ${
+                                                state.risk === risk.id 
+                                                    ? `bg-gradient-to-br ${risk.color} text-white shadow-glow scale-105` 
+                                                    : 'glass text-white'
+                                            }`}
+                                        >
+                                            <div className="text-2xl mb-1">{risk.icon}</div>
+                                            <div className="text-xs">{risk.name}</div>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        <button 
+                            onClick={drop}
+                            disabled={loading}
+                            className="w-full bg-btn-gradient text-black font-black py-5 rounded-xl shadow-glow transition-all touch-feedback disabled:opacity-50 text-xl hover:scale-105"
+                        >
+                            {loading ? '🎯 DROPPING...' : '🎲 DROP BALL'}
+                        </button>
+                    </div>
+
+                    {/* Recent Results */}
+                    {state.results.length > 0 && (
+                        <div className="glass p-6 rounded-2xl border border-white/5">
+                            <div className="text-gray-300 text-sm font-bold uppercase mb-4">Recent Drops</div>
+                            <div className="space-y-2">
+                                {state.results.map((result, i) => (
+                                    <div key={i} className="flex items-center justify-between p-3 bg-black/20 rounded-lg">
+                                        <div className="flex items-center gap-3">
+                                            <div className={`text-2xl font-black ${result.payout > state.bet * 100 ? 'text-stake-green' : 'text-gray-400'}`}>
+                                                {result.multiplier}x
+                                            </div>
+                                            <div className="text-gray-400 text-sm">Slot {result.slot}</div>
+                                        </div>
+                                        <div className={`font-mono font-bold ${result.payout > state.bet * 100 ? 'text-stake-green' : 'text-gray-400'}`}>
+                                            ${(result.payout / 100).toFixed(2)}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Plinko Board */}
+                    <div className="glass rounded-3xl p-8 border border-white/5 shadow-2xl relative overflow-hidden bg-gradient-to-b from-stake-card to-stake-darker">
+                        <div className="relative h-96">
+                            {/* Pegs */}
+                            {[...Array(8)].map((_, row) => (
+                                <div key={row} className="flex justify-center gap-8 mb-6" style={{ marginTop: row === 0 ? '20px' : '0' }}>
+                                    {[...Array(row + 5)].map((_, col) => (
+                                        <div key={col} className="plinko-peg w-3 h-3 rounded-full"></div>
+                                    ))}
+                                </div>
+                            ))}
+                            
+                            {/* Dropping Balls */}
+                            {droppingBalls.map(ball => {
+                                const xPos = 50 + ((ball.slot - 6) * ball.progress * 3.5);
+                                const yPos = ball.progress * 100;
+                                
+                                return (
+                                    <div 
+                                        key={ball.id}
+                                        className="absolute w-6 h-6 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full shadow-lg z-10"
+                                        style={{ 
+                                            left: `${xPos}%`,
+                                            top: `${yPos}%`,
+                                            transform: 'translate(-50%, -50%)',
+                                            transition: 'all 0.05s linear'
+                                        }}
+                                    ></div>
+                                );
+                            })}
+                        </div>
+                        
+                        {/* Multipliers */}
+                        <div className="grid grid-cols-13 gap-1 mt-4">
+                            {multipliers[state.risk].map((mult, i) => (
+                                <div 
+                                    key={i} 
+                                    className={`text-center py-2 rounded-lg font-black text-xs ${
+                                        mult >= 2 ? 'bg-gradient-to-br from-stake-green to-green-600 text-black' : 
+                                        mult >= 1 ? 'bg-gradient-to-br from-blue-500 to-blue-700 text-white' : 
+                                        'bg-gradient-to-br from-gray-600 to-gray-800 text-gray-300'
+                                    }`}
+                                >
+                                    {mult}x
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // ==========================================
+        // HI-LO - ENHANCED & BALANCED
+        // ==========================================
+        
+        const HiLo = ({ user, updateBalance }) => {
+            const [state, setState] = useState({ bet: 10, active: false, currentCard: null, multiplier: 1.0, higherOdds: 0, lowerOdds: 0, streak: 0 });
+            const [loading, setLoading] = useState(false);
+            const [showWin, setShowWin] = useState(false);
+
+            const startGame = async () => {
+                if (state.bet * 100 > user.balance) return alert("Insufficient funds");
+                setLoading(true);
+                try {
+                    const res = await hiloApi.start(user.username, state.bet * 100);
+                    updateBalance(res.newBalance);
+                    setState({ ...state, active: true, currentCard: res.currentCard, multiplier: 1.0, higherOdds: res.higherOdds, lowerOdds: res.lowerOdds, streak: 0 });
+                } catch (e) { 
+                    alert(e.message); 
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const guess = async (choice) => {
+                setLoading(true);
+                try {
+                    const res = await hiloApi.guess(user.username, choice);
+                    if (res.correct) {
+                        if (res.gameOver && res.won) {
+                            updateBalance(res.newBalance);
+                            setState({ ...state, active: false, currentCard: res.nextCard, streak: state.streak + 1 });
+                            setShowWin(true);
+                            setTimeout(() => setShowWin(false), 2000);
+                        } else {
+                            setState({ 
+                                ...state, 
+                                currentCard: res.nextCard, 
+                                multiplier: res.multiplier,
+                                higherOdds: res.higherOdds,
+                                lowerOdds: res.lowerOdds,
+                                streak: state.streak + 1
+                            });
+                        }
+                    } else {
+                        setState({ ...state, active: false, currentCard: res.nextCard, streak: 0 });
+                    }
+                } catch (e) { 
+                    alert(e.message); 
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const cashout = async () => {
+                if (state.multiplier <= 1.1) {
+                    alert("Must win at least one round before cashing out!");
+                    return;
+                }
+                setLoading(true);
+                try {
+                    const res = await hiloApi.cashout(user.username);
+                    updateBalance(res.newBalance);
+                    setState({ ...state, active: false, streak: 0 });
+                    setShowWin(true);
+                    setTimeout(() => setShowWin(false), 2000);
+                } catch (e) { 
+                    alert(e.message); 
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            return (
+                <div className="flex flex-col items-center justify-center w-full max-w-4xl mx-auto p-4 gap-8 md:gap-12 pb-24 md:pb-4">
+                    <WinParticles show={showWin} />
+                    
+                    {/* Current Card */}
+                    {state.currentCard && (
+                        <div className="animate-pop-in">
+                            <CardView card={state.currentCard} animated={true} />
+                        </div>
+                    )}
+
+                    {/* Streak & Multiplier Display */}
+                    {state.active && (
+                        <div className="glass px-12 py-6 rounded-3xl text-center shadow-2xl border border-stake-green/50 animate-pulse-slow">
+                            {state.streak > 0 && (
+                                <div className="text-yellow-400 text-lg font-bold mb-2">
+                                    🔥 {state.streak} WIN STREAK
+                                </div>
+                            )}
+                            <div className="text-gray-300 text-sm font-bold uppercase mb-2">Current Multiplier</div>
+                            <div className="text-stake-green text-5xl md:text-6xl font-black font-mono drop-shadow-glow">
+                                {state.multiplier.toFixed(2)}x
+                            </div>
+                            <div className="text-white text-xl md:text-2xl font-bold mt-3">
+                                Potential Win: ${(state.bet * state.multiplier).toFixed(2)}
+                            </div>
+                            {state.multiplier > 3.0 && (
+                                <div className="text-yellow-400 text-sm font-bold mt-2 animate-pulse">
+                                    ⚠️ High multiplier! Consider cashing out!
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Controls */}
+                    <div className="w-full glass p-8 rounded-3xl shadow-2xl border border-white/5 space-y-6">
+                        {!state.active ? (
+                            <>
+                                <div>
+                                    <label className="text-gray-300 text-sm font-bold uppercase mb-3 block">💵 Bet Amount</label>
+                                    <input 
+                                        type="number" 
+                                        value={state.bet} 
+                                        onChange={e => setState({ ...state, bet: Math.max(1, Number(e.target.value)) })}
+                                        disabled={loading}
+                                        className="w-full input-field rounded-xl p-4 text-white font-mono font-black text-xl"
+                                    />
+                                </div>
+                                <button 
+                                    onClick={startGame}
+                                    disabled={loading}
+                                    className="w-full bg-btn-gradient text-black font-black py-5 rounded-xl shadow-glow transition-all touch-feedback disabled:opacity-50 text-xl hover:scale-105"
+                                >
+                                    {loading ? 'STARTING...' : '🎴 START GAME'}
+                                </button>
+                                {state.streak > 0 && (
+                                    <div className="text-center text-gray-400 text-sm">
+                                        Last streak: {state.streak} wins
+                                    </div>
+                                )}
+                            </>
+                        ) : (
+                            <>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <button
+                                        onClick={() => guess('higher')}
+                                        disabled={loading}
+                                        className="bg-gradient-to-br from-green-500 to-green-700 text-white py-8 rounded-xl font-black text-xl transition-all touch-feedback disabled:opacity-50 hover:scale-105 shadow-glow"
+                                    >
+                                        <div className="text-4xl mb-2">⬆️</div>
+                                        <div>HIGHER</div>
+                                        <div className="text-sm mt-2 opacity-75">{state.higherOdds}x potential</div>
+                                    </button>
+                                    <button
+                                        onClick={() => guess('lower')}
+                                        disabled={loading}
+                                        className="bg-gradient-to-br from-red-500 to-red-700 text-white py-8 rounded-xl font-black text-xl transition-all touch-feedback disabled:opacity-50 hover:scale-105 shadow-glow"
+                                    >
+                                        <div className="text-4xl mb-2">⬇️</div>
+                                        <div>LOWER</div>
+                                        <div className="text-sm mt-2 opacity-75">{state.lowerOdds}x potential</div>
+                                    </button>
+                                </div>
+                                <button 
+                                    onClick={cashout}
+                                    disabled={loading || state.multiplier <= 1.1}
+                                    className="w-full bg-btn-gradient text-black font-black py-5 rounded-xl shadow-glow transition-all touch-feedback disabled:opacity-50 text-xl hover:scale-105"
+                                >
+                                    {state.multiplier <= 1.1 ? '⚠️ MUST WIN FIRST' : `💰 CASHOUT $${(state.bet * state.multiplier).toFixed(2)}`}
+                                </button>
+                                <div className="text-center text-gray-400 text-xs">
+                                    Tip: The odds get riskier as you progress. Cash out early to secure wins!
+                                </div>
+                            </>
+                        )}
+                    </div>
+                </div>
+            );
+        };
 
         // ==========================================
         // MAIN APP COMPONENT
@@ -1161,21 +2267,44 @@
 
             if (!user) return (
                 <div className="min-h-screen flex items-center justify-center p-4 bg-aura-gradient">
-                    <div className="glass p-6 md:p-10 rounded-3xl border border-white/10 w-full max-w-md shadow-2xl relative overflow-hidden animate-pop-in">
-                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-stake-green to-transparent"></div>
-                        <div className="text-center mb-8 md:mb-10">
-                            <h1 className="text-4xl md:text-5xl font-black text-white mb-2 tracking-tight"><span className="text-stake-green drop-shadow-[0_0_10px_rgba(0,231,1,0.5)]">JUD</span>ECENO</h1>
-                            <p className="text-gray-400 font-medium tracking-wide text-sm md:text-base">PREMIUM CRYPTO CASINO</p>
+                    <div className="glass p-8 md:p-12 rounded-3xl border border-white/10 w-full max-w-md shadow-2xl relative overflow-hidden animate-pop-in">
+                        <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-transparent via-stake-green to-transparent"></div>
+                        <div className="text-center mb-10">
+                            <h1 className="text-5xl md:text-6xl font-black text-white mb-3 tracking-tight">
+                                <span className="text-stake-green drop-shadow-[0_0_15px_rgba(0,231,1,0.5)]">JUD</span>ECENO
+                            </h1>
+                            <p className="text-gray-400 font-bold tracking-wide text-base">PREMIUM CRYPTO CASINO</p>
                         </div>
-                        <div className="space-y-3 md:space-y-4">
-                            <input placeholder="Username" value={loginUser} onChange={e => setLoginUser(e.target.value)} className="w-full input-field rounded-xl p-3 md:p-4 text-white text-base md:text-lg" />
-                            <input type="password" placeholder="Password" value={loginPass} onChange={e => setLoginPass(e.target.value)} className="w-full input-field rounded-xl p-3 md:p-4 text-white text-base md:text-lg" />
-                            <button onClick={() => handleLogin(false)} disabled={loading} className="w-full bg-btn-gradient text-black font-black py-3 md:py-4 rounded-xl text-base md:text-lg hover:shadow-glow transition-all touch-feedback disabled:opacity-50">
+                        <div className="space-y-4">
+                            <input 
+                                placeholder="Username" 
+                                value={loginUser} 
+                                onChange={e => setLoginUser(e.target.value)} 
+                                className="w-full input-field rounded-xl p-4 text-white text-lg" 
+                            />
+                            <input 
+                                type="password" 
+                                placeholder="Password" 
+                                value={loginPass} 
+                                onChange={e => setLoginPass(e.target.value)} 
+                                className="w-full input-field rounded-xl p-4 text-white text-lg" 
+                            />
+                            <button 
+                                onClick={() => handleLogin(false)} 
+                                disabled={loading} 
+                                className="w-full bg-btn-gradient text-black font-black py-4 rounded-xl text-lg hover:shadow-glow transition-all touch-feedback disabled:opacity-50 hover:scale-105"
+                            >
                                 {loading ? 'LOADING...' : 'LOGIN'}
                             </button>
-                            <button onClick={() => handleLogin(true)} disabled={loading} className="w-full bg-white/5 text-gray-300 font-bold py-3 md:py-4 rounded-xl transition-all border border-white/5 touch-feedback disabled:opacity-50">CREATE ACCOUNT</button>
+                            <button 
+                                onClick={() => handleLogin(true)} 
+                                disabled={loading} 
+                                className="w-full glass text-gray-300 font-bold py-4 rounded-xl transition-all border border-white/5 touch-feedback disabled:opacity-50 hover:scale-105"
+                            >
+                                CREATE ACCOUNT
+                            </button>
                             
-                            <div className="relative my-4 md:my-6">
+                            <div className="relative my-6">
                                 <div className="absolute inset-0 flex items-center">
                                     <div className="w-full border-t border-white/10"></div>
                                 </div>
@@ -1184,10 +2313,14 @@
                                 </div>
                             </div>
                             
-                            <button onClick={handleDemoLogin} disabled={loading} className="w-full bg-gradient-to-r from-yellow-400 to-orange-500 text-black font-black py-3 md:py-4 rounded-xl hover:shadow-[0_0_20px_rgba(251,191,36,0.4)] transition-all touch-feedback flex items-center justify-center gap-2 disabled:opacity-50">
-                                <span>🎮</span>
-                                TRY DEMO MODE
-                                <span className="text-xs font-normal">(Free $100)</span>
+                            <button 
+                                onClick={handleDemoLogin} 
+                                disabled={loading} 
+                                className="w-full bg-gold-gradient text-black font-black py-4 rounded-xl hover:shadow-glow-gold transition-all touch-feedback flex items-center justify-center gap-3 disabled:opacity-50 hover:scale-105"
+                            >
+                                <span className="text-2xl">🎮</span>
+                                <span>TRY DEMO MODE</span>
+                                <span className="text-sm font-normal">(Free $100)</span>
                             </button>
                         </div>
                     </div>
@@ -1195,14 +2328,23 @@
             );
 
             const GameCard = ({ id, name, icon, gradient }) => (
-                <button onClick={() => setActiveGame(id)} className="group relative rounded-2xl overflow-hidden aspect-[4/3] shadow-lg hover:shadow-glow-card transition-all hover:-translate-y-2 bg-stake-card border border-white/5 touch-feedback">
-                    <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-10 group-hover:opacity-20 transition-opacity`}></div>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center p-4 md:p-6">
-                        <div className="text-4xl md:text-6xl mb-4 md:mb-6 transform group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300 drop-shadow-2xl">{icon}</div>
-                        <div className="font-black text-lg md:text-2xl text-white tracking-wide uppercase">{name}</div>
+                <button 
+                    onClick={() => setActiveGame(id)} 
+                    className="group relative rounded-3xl overflow-hidden aspect-[4/3] shadow-xl hover:shadow-2xl transition-all hover:-translate-y-3 bg-stake-card border-2 border-white/5 hover:border-stake-green/30 touch-feedback"
+                >
+                    <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-20 group-hover:opacity-30 transition-opacity`}></div>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center p-6">
+                        <div className="text-5xl md:text-7xl mb-6 transform group-hover:scale-125 group-hover:rotate-6 transition-transform duration-300 drop-shadow-2xl">
+                            {icon}
+                        </div>
+                        <div className="font-black text-xl md:text-3xl text-white tracking-wide uppercase drop-shadow-lg">
+                            {name}
+                        </div>
                     </div>
-                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
-                        <span className="bg-btn-gradient text-black font-black px-6 md:px-8 py-2 md:py-3 rounded-full transform scale-90 group-hover:scale-100 transition-transform shadow-glow">PLAY</span>
+                    <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
+                        <span className="bg-btn-gradient text-black font-black px-10 py-4 rounded-full transform scale-90 group-hover:scale-100 transition-transform shadow-glow text-lg">
+                            PLAY NOW
+                        </span>
                     </div>
                 </button>
             );
@@ -1211,32 +2353,39 @@
                 <div className="min-h-screen text-stake-text font-sans">
                     <TopBar user={user} onLogout={() => setUser(null)} />
                     
-                    <main className="pt-20 md:pt-24 px-4 pb-20 md:pb-6 smooth-scroll">
+                    <main className="pt-24 md:pt-28 px-4 pb-20 md:pb-6 smooth-scroll">
                         <div className="max-w-[1600px] mx-auto min-h-[calc(100vh-8rem)]">
                             {activeGame ? (
                                 <div>
-                                    <div className="mb-4 md:mb-8 flex items-center gap-2 md:gap-3 text-xs md:text-sm text-gray-400 font-medium">
-                                        <button className="hover:text-white transition-colors touch-feedback" onClick={() => setActiveGame(null)}>Home</button>
+                                    <div className="mb-6 md:mb-10 flex items-center gap-3 text-sm md:text-base text-gray-400 font-bold">
+                                        <button className="hover:text-white transition-colors touch-feedback flex items-center gap-2" onClick={() => setActiveGame(null)}>
+                                            <span>🏠</span>
+                                            <span>Home</span>
+                                        </button>
                                         <span className="text-white/20">/</span>
-                                        <span className="text-white font-bold capitalize">{activeGame}</span>
+                                        <span className="text-white font-black capitalize">{activeGame}</span>
                                     </div>
                                     {activeGame === 'poker' && <Poker user={user} updateBalance={updateBalance} />}
                                     {activeGame === 'blackjack' && <Blackjack user={user} updateBalance={updateBalance} />}
                                     {activeGame === 'mines' && <Mines user={user} updateBalance={updateBalance} />}
-                                    {/* Include other games here */}
+                                    {activeGame === 'coinflip' && <Coinflip user={user} updateBalance={updateBalance} />}
+                                    {activeGame === 'roulette' && <Roulette user={user} updateBalance={updateBalance} />}
+                                    {activeGame === 'towers' && <Towers user={user} updateBalance={updateBalance} />}
+                                    {activeGame === 'plinko' && <Plinko user={user} updateBalance={updateBalance} />}
+                                    {activeGame === 'hilo' && <HiLo user={user} updateBalance={updateBalance} />}
                                 </div>
                             ) : (
                                 <div>
-                                    <div className="flex items-center gap-3 md:gap-4 mb-6 md:mb-8">
-                                        <div className="w-1 md:w-1.5 h-6 md:h-8 bg-stake-green rounded-full shadow-glow"></div>
-                                        <h2 className="text-2xl md:text-3xl font-black text-white tracking-tight">Game Lobby</h2>
+                                    <div className="flex items-center gap-4 mb-8 md:mb-12">
+                                        <div className="w-2 h-10 bg-stake-green rounded-full shadow-glow animate-pulse-slow"></div>
+                                        <h2 className="text-3xl md:text-4xl font-black text-white tracking-tight">Game Lobby</h2>
                                         {user.isDemo && (
-                                            <div className="demo-badge text-black font-bold text-xs px-3 py-1.5 rounded-full shadow-lg hidden md:block">
+                                            <div className="demo-badge text-black font-bold text-sm px-4 py-2 rounded-full shadow-lg hidden md:block">
                                                 🎮 DEMO MODE - Playing with Free Credits
                                             </div>
                                         )}
                                     </div>
-                                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-8">
+                                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8">
                                         <GameCard id="poker" name="Poker" icon="🎴" gradient="from-purple-600 to-indigo-700" />
                                         <GameCard id="blackjack" name="Blackjack" icon="🃏" gradient="from-purple-600 to-blue-600" />
                                         <GameCard id="mines" name="Mines" icon="💣" gradient="from-yellow-500 to-red-600" />
